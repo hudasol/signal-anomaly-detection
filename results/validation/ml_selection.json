@@ -1,0 +1,14 @@
+{
+  "incident_params": {
+    "open_n": 2,
+    "close_m": 5,
+    "cooldown_c": 30
+  },
+  "chosen": {
+    "model": "lof",
+    "params": {
+      "n_neighbors": 20,
+      "max_train": 30000
+    }
+  }
+}

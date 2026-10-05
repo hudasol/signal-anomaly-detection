@@ -13,12 +13,12 @@ import pandas as pd  # noqa: E402
 
 INK, INK_2, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#fcfcfb"
 # Fixed categorical order (validated: dataviz validate_palette.js, light mode).
-DETECTOR_COLORS = {"rule": "#2a78d6", "stats": "#eb6834", "iforest": "#1baf7a"}
-DETECTOR_MARKERS = {"rule": "o", "stats": "s", "iforest": "^"}
+DETECTOR_COLORS = {"rule": "#2a78d6", "stats": "#eb6834", "lof": "#1baf7a"}
+DETECTOR_MARKERS = {"rule": "o", "stats": "s", "lof": "^"}
 DETECTOR_LABELS = {
     "rule": "Rule baseline",
     "stats": "Robust z baseline",
-    "iforest": "Isolation Forest",
+    "lof": "LOF (ML)",
 }
 
 

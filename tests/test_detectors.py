@@ -131,3 +131,51 @@ def test_rule_detects_a_generated_position_jump(small_cfg: GenerationConfig) -> 
     res = ss.evaluate(0.0, IncidentParams(2, 5, 30))
     assert res.summary["recall"] == 1.0
     assert res.per_fault.iloc[0]["latency_events"] <= 3
+
+
+# ---------------------------------------------------------------- ML detectors
+
+
+def _train_rows(seed: int = 0, n: int = 600) -> pd.DataFrame:
+    rng = np.random.default_rng(seed)
+    frames = []
+    for asset_type, asset_id in (("rover", "rover-01"), ("drone", "drone-01")):
+        df = _rows(n, asset_type=asset_type, asset_id=asset_id)
+        for col in ("temp_c", "battery_pct", "temp_slope_l", "batt_slope_l", "speed_mismatch"):
+            df[col] = rng.normal(0, 1, n)
+        df["run_id"] = [f"r{1000 + i % 5}" for i in range(n)]
+        frames.append(df)
+    return pd.concat(frames, ignore_index=True)
+
+
+@pytest.mark.parametrize("make", [
+    lambda: __import__("fleet_signal.detectors.lof", fromlist=["x"]).LOFDetector(
+        n_neighbors=10, max_train=500),
+    lambda: __import__("fleet_signal.detectors.iforest", fromlist=["x"]).IsolationForestDetector(
+        n_estimators=50, max_samples=256),
+], ids=["lof", "iforest"])  # fmt: skip
+def test_ml_detectors_contract(make) -> None:
+    train = _train_rows()
+    det = make().fit(train)
+    normal = _train_rows(seed=1).iloc[:50]
+    odd = normal.copy()
+    odd["temp_slope_l"] = 25.0
+    s_norm, s_odd = det.score(normal), det.score(odd)
+    assert np.isfinite(s_norm).all()
+    assert np.median(s_odd) > np.quantile(s_norm, 0.9)
+    # deterministic given the seed
+    assert np.allclose(make().fit(train).score(odd), s_odd)
+    # unscorable rows stay NaN
+    odd.loc[odd.index[0], "history_ok"] = False
+    assert np.isnan(det.score(odd)[0])
+    # evidence points at the injected signal
+    assert det.evidence(odd.iloc[[1]], k=1)[0][0]["signal"] == "temp_slope_l"
+
+
+def test_ml_detectors_must_be_fitted() -> None:
+    from fleet_signal.detectors.iforest import IsolationForestDetector
+    from fleet_signal.detectors.lof import LOFDetector
+
+    for det in (LOFDetector(), IsolationForestDetector()):
+        with pytest.raises(RuntimeError, match="before fit"):
+            det.score(_rows())

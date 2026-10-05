@@ -78,19 +78,27 @@ class Selection:
     results: dict[str, EvalResult]
 
 
+BASELINE_NAMES: tuple[str, ...] = ("rule", "stats")
+
+
 def select_on_validation(
     detectors: list[Detector],
     gen_cfg: GenerationConfig | None = None,
     ecfg: EvalConfig | None = None,
     params: IncidentParams | None = None,
 ) -> Selection:
-    """Fit on train, choose incident params (unless given) and thresholds on validation."""
+    """Fit on train, choose incident params (unless given) and thresholds on validation.
+
+    Incident params are chosen from the baselines only, so adding or swapping the ML
+    detector can never re-tune the grouping the baselines are judged with.
+    """
     gen_cfg = gen_cfg or load_config()
     ecfg = ecfg or EvalConfig.load()
     fit_on_train(detectors, gen_cfg)
     sets = {d.name: build_scored_set(d, "validation", gen_cfg, ecfg) for d in detectors}
     if params is None:
-        params, table = select_incident_params(sets, ecfg)
+        basis = {k: v for k, v in sets.items() if k in BASELINE_NAMES} or sets
+        params, table = select_incident_params(basis, ecfg)
     else:
         table = pd.DataFrame([params.as_dict()])
     curves, picks, results = {}, {}, {}
@@ -142,17 +150,17 @@ def write_validation_report(
             "window_confusion": res.window_confusion,
         }
     names = list(sel.results)
-    if len(names) >= 2:
-        a, b = names[0], names[1]
-        report["paired"] = {
-            f"{a}_minus_{b}": paired_difference(
-                sel.results[a].per_run,
-                sel.results[b].per_run,
-                n_assets,
-                ecfg.n_resamples,
-                ecfg.bootstrap_seed,
-            )
-        }
+    report["paired"] = {
+        f"{a}_minus_{b}": paired_difference(
+            sel.results[a].per_run,
+            sel.results[b].per_run,
+            n_assets,
+            ecfg.n_resamples,
+            ecfg.bootstrap_seed,
+        )
+        for i, a in enumerate(names)
+        for b in names[i + 1 :]
+    }
     report = _jsonable(report)
     (out_dir / "validation_report.json").write_text(json.dumps(report, indent=2))
     return report

@@ -107,3 +107,36 @@ The rule baseline beats robust z on recall by 0.53 (paired bootstrap CI 0.32–0
 3. **Latency is the real problem.** The rule's median latency on progressive faults is about 80 events, against a bar of 3. Overheating needs the 120 s slope to exceed the normal warm-up envelope. At 4–10 °C/min that takes about a minute. This is the PLAN §13 risk confirmed.
 4. **First error pattern (rule false positives):** 4 of the 5 false incidents start at seq 120–142, the first moment an asset becomes scorable. The asset is still warming up from its parked start, and the 120 s temperature slope looks like overheating. Not tuned away; recorded for the error analysis.
 5. **Rule misses:** a weak link decline on a quadruped (it never hit the dropout floor within its window) and a battery-drain step on a quadruped. Both fit the "weak faults" observation from Section 2.
+
+### Section 6: ML detector (validation only)
+
+Reproduce with `signal-eval select-model`, which writes `results/validation/ml_model_grid.csv`, `ml_ablation.csv` and `ml_selection.json`. Incident params stay fixed at those chosen from the baselines (N=2, M=5, C=30), so adding the ML model cannot re-tune the grouping the baselines are judged with.
+
+**Isolation Forest (PLAN's first choice) lost badly.** One forest per asset type, eight settings (raw or mode-conditioned z-score inputs; `max_samples` ∈ {256, 2048}; `max_features` ∈ {0.5, 1.0}). The best feasible setting reached recall 0.27 at precision ≥ 0.8. It even missed position jumps, which the rule catches every time. My reading: most faults here show up as *one* feature going extreme (a jump, a frozen counter, a slope). With about 33 dimensions, an extreme value in one of them only shortens isolation paths in the trees that happen to split on it. Meanwhile heavy-tailed normal features (link slopes from fading) widen the normal range. Feeding it z-scores did not help; no z-score setting met the precision constraint at all. This is the assumption failure PLAN §6 flagged ("anomalies few and isolatable"), just in a different way than expected.
+
+**Escalation (PLAN §6): LOF in novelty mode.** One model per asset type, fit on up to 30k train-normal rows, inputs are robust z-scores per (asset type, mode), clipped at ±20. Grid: `n_neighbors` ∈ {10, 20, 30} × `max_train` ∈ {15k, 30k}. All six settings met the constraints with recall 0.77–0.83. The selection rule (recall, then latency) picked `n_neighbors=20, max_train=30000`: precision 0.90, recall 0.83, 0.06 false alerts per 10 min, **median progressive latency 25 events**. Why LOF fits better: it is distance-based on standardised features, so one extreme coordinate moves a point far from all its neighbours, which is exactly the shape of these faults.
+
+**Change from PLAN §6:** the ML detector is LOF, not Isolation Forest. Allowed by the plan's escalation rule; decided on validation only.
+
+**Ablation (exceeds-the-bar item: what actually matters).** Refit with one feature group removed:
+
+| Dropped | Precision | Recall | Latency |
+|---|---|---|---|
+| none | 0.90 | 0.83 | 25 |
+| trend | 0.94 | **0.63** | **172** |
+| motion | 0.81 | 0.67 | 24 |
+| volatility | 0.89 | 0.77 | 18 |
+| freeze | 0.86 | 0.83 | 23.5 |
+| level | 0.83 | 0.87 | 17 |
+
+Trend features carry the model: without them recall drops 0.20 and latency goes up about 7×. Freeze features add almost nothing to LOF, because the trend and motion features already move when a field freezes. Dropping *level* scores slightly better, but that is one fault out of 30, well inside the confidence interval. **I kept the pre-declared feature set** rather than chase a one-fault difference on 30 validation faults.
+
+**Three-way validation comparison** (same incident params, each at its own validation-selected threshold):
+
+| | Precision | Recall | False alerts / 10 min | Median progressive latency |
+|---|---|---|---|---|
+| Rule | 0.88 | 0.93 | 0.08 | 81.5 |
+| Robust z | 0.83 | 0.40 | 0.06 | 474 |
+| LOF | 0.90 | 0.83 | 0.06 | 25 |
+
+Rule minus LOF recall: +0.10 (paired bootstrap CI 0.00 to 0.22). The trade-off going into the test: LOF is about 3× faster on progressive faults but catches fewer of them. Under the pre-declared ship rule (PLAN §7.3), a recall loss means LOF does not ship unless the test result says otherwise.
