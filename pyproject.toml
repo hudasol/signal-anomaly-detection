@@ -28,6 +28,7 @@ dev = ["pytest>=8", "ruff>=0.5", "httpx>=0.27"]
 signal-data = "fleet_signal.data.cli:main"
 signal-features = "fleet_signal.features.cli:main"
 signal-eval = "fleet_signal.eval.cli:main"
+signal-train = "fleet_signal.train:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

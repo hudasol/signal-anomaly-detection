@@ -1,0 +1,80 @@
+{
+  "serving": null,
+  "models": {
+    "rule": {
+      "model_version": "rule-64d39edc1d",
+      "artifact": "models/rule/rule-64d39edc1d/model.joblib",
+      "artifact_sha256": "d5d9e974cce6268e7cb095cadac5a6845497ed70eac6061f6241c89eb7e047d7",
+      "threshold": -0.0867346959161708,
+      "incident_params": {
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "data_version": "v1.0.0-9e903f9008",
+      "feature_version": "1.0.0",
+      "feature_schema_hash": "704b8f1fda",
+      "n_train_runs": 40,
+      "validation_report": "results/validation/validation_report.json",
+      "validation_summary": {
+        "precision": 0.8837209302325582,
+        "recall": 0.9333333333333333,
+        "fp_per_10min": 0.07700139458081297,
+        "progressive_latency_median": 81.5
+      },
+      "official_test_result": null,
+      "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
+      "created_utc": "2026-10-05T21:33:52.126236+00:00"
+    },
+    "stats": {
+      "model_version": "stats-ab89662ec6",
+      "artifact": "models/stats/stats-ab89662ec6/model.joblib",
+      "artifact_sha256": "7b4bd186c9865637a305bc8d07d93a58a8cbcdd051dcbb5e3fe7db151d06ef00",
+      "threshold": 151.91092312830733,
+      "incident_params": {
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "data_version": "v1.0.0-9e903f9008",
+      "feature_version": "1.0.0",
+      "feature_schema_hash": "704b8f1fda",
+      "n_train_runs": 40,
+      "validation_report": "results/validation/validation_report.json",
+      "validation_summary": {
+        "precision": 0.8260869565217391,
+        "recall": 0.4,
+        "fp_per_10min": 0.061601115664650374,
+        "progressive_latency_median": 474.0
+      },
+      "official_test_result": null,
+      "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
+      "created_utc": "2026-10-05T21:33:52.129785+00:00"
+    },
+    "lof": {
+      "model_version": "lof-a588a4d11b",
+      "artifact": "models/lof/lof-a588a4d11b/model.joblib",
+      "artifact_sha256": "843a5658aed91750980750bd4b744df0f4e8799da4a8a1e2494269ab72fccf09",
+      "threshold": 2.279166115803289,
+      "incident_params": {
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "data_version": "v1.0.0-9e903f9008",
+      "feature_version": "1.0.0",
+      "feature_schema_hash": "704b8f1fda",
+      "n_train_runs": 40,
+      "validation_report": "results/validation/validation_report.json",
+      "validation_summary": {
+        "precision": 0.9,
+        "recall": 0.8333333333333334,
+        "fp_per_10min": 0.061601115664650374,
+        "progressive_latency_median": 25.0
+      },
+      "official_test_result": null,
+      "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
+      "created_utc": "2026-10-05T21:33:52.133445+00:00"
+    }
+  }
+}

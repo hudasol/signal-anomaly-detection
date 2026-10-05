@@ -30,9 +30,15 @@ def _style(ax: plt.Axes) -> None:
         spine.set_color(GRID)
 
 
-def plot_threshold_sensitivity(results_dir: Path, out_path: Path, x_max: float = 4.0) -> Path:
+def plot_threshold_sensitivity(
+    results_dir: Path,
+    out_path: Path,
+    x_max: float = 4.0,
+    report_name: str = "validation_report.json",
+    title: str = "Validation threshold sweep (markers = selected operating points)",
+) -> Path:
     """Recall vs false-alert rate, and precision vs recall, with the selected points marked."""
-    report = json.loads((results_dir / "validation_report.json").read_text())
+    report = json.loads((results_dir / report_name).read_text())
     budget = report["false_alert_budget_per_10min"]
     min_precision = report.get("min_precision", 0.0)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.4), facecolor=SURFACE)
@@ -75,10 +81,7 @@ def plot_threshold_sensitivity(results_dir: Path, out_path: Path, x_max: float =
     for ax in (ax1, ax2):
         _style(ax)
     ax2.legend(frameon=False, fontsize=8, loc="lower left")
-    fig.suptitle(
-        "Validation threshold sweep (markers = selected operating points)",
-        color=INK, fontsize=11, x=0.01, ha="left",
-    )  # fmt: skip
+    fig.suptitle(title, color=INK, fontsize=11, x=0.01, ha="left")
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=120, facecolor=SURFACE)
@@ -86,9 +89,14 @@ def plot_threshold_sensitivity(results_dir: Path, out_path: Path, x_max: float =
     return out_path
 
 
-def plot_recall_by_fault(results_dir: Path, out_path: Path) -> Path:
+def plot_recall_by_fault(
+    results_dir: Path,
+    out_path: Path,
+    report_name: str = "validation_report.json",
+    title: str = "Recall by fault type at the selected thresholds (validation)",
+) -> Path:
     """Recall per fault type, one bar per detector, at the selected operating points."""
-    report = json.loads((results_dir / "validation_report.json").read_text())
+    report = json.loads((results_dir / report_name).read_text())
     frames = []
     for name, det in report["detectors"].items():
         df = pd.DataFrame(det["by_fault_type"])

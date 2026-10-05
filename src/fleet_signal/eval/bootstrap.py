@@ -59,3 +59,36 @@ def paired_difference(
         lo, hi = np.nanquantile(diffs[m], [alpha / 2, 1 - alpha / 2])
         out[m] = {"diff": point_a[m] - point_b[m], "ci_low": float(lo), "ci_high": float(hi)}
     return out
+
+
+def paired_latency(
+    per_fault_a: pd.DataFrame,
+    per_fault_b: pd.DataFrame,
+    progressive: tuple[str, ...],
+    n_resamples: int,
+    seed: int,
+    alpha: float = 0.05,
+) -> dict[str, float]:
+    """Median of (latency A - latency B) over progressive faults both detected, with a CI.
+
+    Each run holds at most one fault, so resampling faults is resampling runs.
+    """
+    keys = ["run_id", "asset_id"]
+    a = per_fault_a[per_fault_a["fault_type"].isin(progressive) & per_fault_a["detected"]]
+    b = per_fault_b[per_fault_b["fault_type"].isin(progressive) & per_fault_b["detected"]]
+    both = a[[*keys, "latency_events"]].merge(
+        b[[*keys, "latency_events"]], on=keys, suffixes=("_a", "_b")
+    )
+    if both.empty:
+        return {"n_paired": 0, "median_diff": float("nan"), "ci_low": float("nan"),
+                "ci_high": float("nan")}  # fmt: skip
+    d = (both["latency_events_a"] - both["latency_events_b"]).to_numpy(dtype=float)
+    rng = np.random.default_rng(seed)
+    meds = [np.median(rng.choice(d, size=len(d), replace=True)) for _ in range(n_resamples)]
+    lo, hi = np.quantile(meds, [alpha / 2, 1 - alpha / 2])
+    return {
+        "n_paired": int(len(d)),
+        "median_diff": float(np.median(d)),
+        "ci_low": float(lo),
+        "ci_high": float(hi),
+    }

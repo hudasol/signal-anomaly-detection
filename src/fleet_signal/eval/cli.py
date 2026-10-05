@@ -3,6 +3,7 @@
     signal-eval validate        fit on train, select on validation -> results/validation/
     signal-eval validate --detectors rule
     signal-eval select-model    ML grid + ablation on validation
+    signal-eval test            OFFICIAL test, once per frozen model version
 
 The official test run is a separate command added when the model is frozen.
 """
@@ -34,13 +35,49 @@ def _fmt(v: object) -> str:
     return f"{v:.3f}" if isinstance(v, float) else str(v)
 
 
+def _official() -> None:
+    from fleet_signal.eval.official import OFFICIAL_DIR
+    from fleet_signal.eval.official_test import run_official_test
+
+    out = run_official_test()
+    report = out["report"]
+    posthoc = OFFICIAL_DIR / "posthoc"
+    plot_threshold_sensitivity(
+        posthoc, OFFICIAL_DIR / "test_threshold_sensitivity.png",
+        report_name="test_report_for_plots.json",
+        title="Test: post-hoc threshold sweep (markers = frozen operating points)",
+    )  # fmt: skip
+    plot_recall_by_fault(
+        posthoc, OFFICIAL_DIR / "test_recall_by_fault_type.png",
+        report_name="test_report_for_plots.json",
+        title="Recall by fault type at the frozen thresholds (official test)",
+    )  # fmt: skip
+    cols = ["precision", "recall", "f1", "fp_per_10min", "n_false_incidents",
+            "progressive_latency_median"]  # fmt: skip
+    print("OFFICIAL TEST RESULT (frozen thresholds, run once)")
+    print("detector".ljust(10) + "".join(c[:14].rjust(15) for c in cols) + "   meets bar")
+    for name, det in report["detectors"].items():
+        bar = ",".join(k for k, ok in det["meets_bar"].items() if not ok) or "all"
+        failed = "" if bar == "all" else "fails: "
+        print(name.ljust(10) + "".join(_fmt(det["summary"][c]).rjust(15) for c in cols)
+              + f"   {failed}{bar}")  # fmt: skip
+    if report.get("decision"):
+        print(f"\nship: {report['decision']['ship']}  ({report['decision']['reason']})")
+    print("\n" + "\n".join(out["written"]))
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="signal-eval", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
     val = sub.add_parser("validate", help="select incident params and thresholds on validation")
     val.add_argument("--detectors", default="rule,stats,lof")
     sub.add_parser("select-model", help="ML grid (Isolation Forest, LOF) + ablation on validation")
+    sub.add_parser("test", help="OFFICIAL run-once test evaluation of the frozen models")
     args = parser.parse_args(argv)
+
+    if args.command == "test":
+        _official()
+        return
 
     if args.command == "select-model":
         from fleet_signal.eval.model_selection import run
