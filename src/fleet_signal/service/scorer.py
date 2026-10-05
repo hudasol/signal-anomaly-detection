@@ -1,0 +1,198 @@
+"""Scoring one asset's telemetry window: the inference boundary.
+
+Every response carries an explicit `status`; the service never answers
+"normal" when it could not score safely:
+
+    unavailable        model artifact missing, unreadable or wrong schema
+    insufficient_data  fewer events than min_history for this asset
+    degraded           the window has a gap, or features are not finite
+    ok                 scored; decision is "normal" or "anomalous"
+
+Only `ok` carries a decision. The caller sends the asset's recent events
+(oldest first); features such as "seconds in this mode" are computed from what
+is sent, so sending up to HISTORY_BUFFER events reproduces evaluation exactly.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+from fleet_signal.features.build import FEATURE_COLUMNS, FeatureConfig, build_features
+from fleet_signal.registry import ArtifactError, ModelArtifact, load_artifact, serving_artifact_path
+
+# Longest look-back any feature needs: mode_age is capped at 600 s.
+HISTORY_BUFFER = 650
+REQUIRED = (
+    "asset_id",
+    "asset_type",
+    "seq",
+    "x_m",
+    "y_m",
+    "z_m",
+    "speed_mps",
+    "battery_pct",
+    "temperature_c",
+    "link_quality_pct",
+    "mode",
+)
+
+
+@dataclass
+class ScoreResult:
+    status: str
+    asset_id: str | None = None
+    seq: int | None = None
+    score: float | None = None
+    threshold: float | None = None
+    decision: str | None = None
+    model_version: str | None = None
+    detector: str | None = None
+    evidence: list[dict[str, float]] = field(default_factory=list)
+    history: int = 0
+    reason: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return dict(self.__dict__)
+
+
+def normalise_events(events: list[dict[str, Any]] | pd.DataFrame) -> pd.DataFrame:
+    """Accept flat Signal events or Blackbox-contract events (nested `position`)."""
+    if isinstance(events, pd.DataFrame):
+        df = events.copy()
+    else:
+        rows = []
+        for e in events:
+            e = dict(e)
+            pos = e.pop("position", None)
+            if isinstance(pos, dict):
+                e.update({k: pos.get(k) for k in ("x_m", "y_m", "z_m")})
+            rows.append(e)
+        df = pd.DataFrame(rows)
+    if "run_id" not in df:
+        df["run_id"] = "live"
+    if "timestamp_utc" not in df:
+        df["timestamp_utc"] = pd.NaT
+    return df
+
+
+class Scorer:
+    def __init__(
+        self,
+        artifact_path: Path | None = None,
+        threshold_override: float | None = None,
+        fcfg: FeatureConfig | None = None,
+    ) -> None:
+        self.fcfg = fcfg or FeatureConfig.load()
+        self.artifact: ModelArtifact | None = None
+        self.error: str | None = None
+        self.threshold_override = threshold_override
+        try:
+            path = Path(artifact_path) if artifact_path else serving_artifact_path()
+            self.artifact = load_artifact(path, self.fcfg)
+        except ArtifactError as exc:
+            self.error = str(exc)
+
+    @property
+    def available(self) -> bool:
+        return self.artifact is not None
+
+    @property
+    def threshold(self) -> float | None:
+        if self.artifact is None:
+            return None
+        return (
+            self.threshold_override
+            if self.threshold_override is not None
+            else self.artifact.threshold
+        )
+
+    def _base(self, **kw: Any) -> ScoreResult:
+        art = self.artifact
+        return ScoreResult(
+            model_version=art.model_version if art else None,
+            detector=art.detector_name if art else None,
+            threshold=self.threshold,
+            **kw,
+        )
+
+    def score_events(self, events: list[dict[str, Any]] | pd.DataFrame) -> ScoreResult:
+        """Score the LAST event of one asset's window."""
+        if not self.available:
+            return self._base(status="unavailable", reason=self.error)
+        df = normalise_events(events)
+        missing = [c for c in REQUIRED if c not in df.columns]
+        if missing:
+            return self._base(status="degraded", reason=f"missing fields: {missing}")
+        if df["asset_id"].nunique() != 1:
+            return self._base(status="degraded", reason="a window must contain exactly one asset")
+        df = df.drop_duplicates(subset=["seq"], keep="last").sort_values("seq").tail(HISTORY_BUFFER)
+        last = df.iloc[-1]
+        asset_id, seq, n = str(last["asset_id"]), int(last["seq"]), len(df)
+        if n < self.fcfg.min_history:
+            return self._base(
+                status="insufficient_data", asset_id=asset_id, seq=seq, history=n,
+                reason=f"{n} events of history, need {self.fcfg.min_history}",
+            )  # fmt: skip
+        try:
+            feats = build_features(df, self.fcfg).tail(1)
+        except (ValueError, TypeError) as exc:
+            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=n,
+                              reason=f"features could not be computed: {exc}")  # fmt: skip
+        return self._score_feature_row(feats, asset_id, seq, n)
+
+    def _score_feature_row(
+        self, feats: pd.DataFrame, asset_id: str, seq: int, history: int
+    ) -> ScoreResult:
+        row = feats.iloc[0]
+        values = feats[list(FEATURE_COLUMNS)].to_numpy(dtype=float)
+        if not bool(row["gap_ok"]):
+            gap = f"telemetry gap of {row['max_gap_l']:.0f} events in window"
+            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=history,
+                              reason=gap)  # fmt: skip
+        if not np.isfinite(values).all():
+            bad = [c for c, v in zip(FEATURE_COLUMNS, values[0], strict=True) if not np.isfinite(v)]
+            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=history,
+                              reason=f"non-finite features: {bad[:5]}")  # fmt: skip
+        assert self.artifact is not None
+        det = self.artifact.detector
+        score = float(det.score(feats)[0])
+        if not np.isfinite(score):
+            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=history,
+                              reason="detector returned no score")  # fmt: skip
+        thr = self.threshold
+        assert thr is not None
+        return self._base(
+            status="ok", asset_id=asset_id, seq=seq, history=history, score=score,
+            decision="anomalous" if score >= thr else "normal",
+            evidence=det.evidence(feats, k=3)[0],
+        )  # fmt: skip
+
+    def score_feature_rows(self, feats: pd.DataFrame) -> list[ScoreResult]:
+        """Batch path for replay: one result per pre-computed (causal) feature row."""
+        if not self.available:
+            return [self._base(status="unavailable", reason=self.error) for _ in range(len(feats))]
+        assert self.artifact is not None
+        det, thr = self.artifact.detector, self.threshold
+        scores = det.score(feats)
+        evidence = det.evidence(feats, k=3)
+        out: list[ScoreResult] = []
+        for i, (_, row) in enumerate(feats.iterrows()):
+            base = {"asset_id": str(row["asset_id"]), "seq": int(row["seq"]),
+                    "history": int(row["history"])}  # fmt: skip
+            if not bool(row["history_ok"]):
+                out.append(self._base(status="insufficient_data", **base,
+                                      reason=f"need {self.fcfg.min_history} events"))  # fmt: skip
+            elif not bool(row["gap_ok"]):
+                out.append(self._base(status="degraded", **base, reason="telemetry gap in window"))
+            elif not np.isfinite(scores[i]):
+                out.append(self._base(status="degraded", **base, reason="non-finite features"))
+            else:
+                s = float(scores[i])
+                out.append(self._base(status="ok", **base, score=s, evidence=evidence[i],
+                                      decision="anomalous" if s >= thr else "normal"))  # fmt: skip
+        return out

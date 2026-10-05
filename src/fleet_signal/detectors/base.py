@@ -58,9 +58,12 @@ class Detector(ABC):
         names = contrib.columns.to_numpy()
         top = np.argsort(-np.nan_to_num(values, nan=-np.inf), axis=1)[:, :k]
         for row_pos, (orig, idx) in enumerate(zip(np.flatnonzero(ok), top, strict=True)):
+            # The strongest signal always, then only others that push towards "anomalous"
+            # (contribution >= 0). For the rule detector a negative value means "below its
+            # written limit", which is not evidence.
             result[orig] = [
                 {"signal": str(names[j]), "contribution": float(values[row_pos, j])}
-                for j in idx
-                if np.isfinite(values[row_pos, j])
+                for rank, j in enumerate(idx)
+                if np.isfinite(values[row_pos, j]) and (rank == 0 or values[row_pos, j] >= 0)
             ]
         return result

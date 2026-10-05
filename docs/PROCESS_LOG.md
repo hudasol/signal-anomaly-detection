@@ -172,3 +172,14 @@ The code and registry were committed (`05fcfcb`) **before** the test split was r
 - Battery drain in r3015 was missed by every detector. The whole fault ran during charging above 80 %, where the normal charge rate already tapers, so the net +1.5 %/min sits inside normal.
 
 **Plots** are re-rendered from saved outputs only, with `signal-eval plots`. Test threshold curves were computed *after* the official result was written and live in `results/official/posthoc/`, labelled post-hoc.
+
+### Section 8: service, replay and failure states
+
+- **`Scorer`** is the inference boundary. Every response has a `status`: `unavailable` (artifact missing, corrupt or schema mismatch), `insufficient_data` (fewer than 120 events), `degraded` (gap in the window, non-finite features, mixed assets, missing fields) or `ok`. Only `ok` carries a decision. There is no code path that answers "normal" without a score.
+- **`IncidentTracker`** is the streaming twin of the batch grouping. A property test runs 300 random alert sequences with random N, M, C and checks the tracker produces exactly the same incidents as `group_alerts`. What the service does live is what evaluation measured.
+- **FastAPI** (`uvicorn fleet_signal.service.app:app`): `GET /health`, `GET /model`, `POST /score`. It accepts flat Signal events or Blackbox-contract events with a nested `position`. When no model is loaded, `/score` returns HTTP 503 with `status: unavailable`.
+- **`signal-replay`** streams a stored run through the scorer and tracker and logs every decision to `results/replay/*.jsonl`. Ground truth is loaded only after the replay ends (`--show-truth`). A test checks that the window-by-window service path (`--strict`) gives identical scores and incidents to the batch path, and another that replay opens incidents exactly where the evaluation harness does.
+
+**Checked live:** uvicorn with the shipped model scored seq 700 of test run r3006 as `anomalous` (evidence: `temp_rise`). After renaming the artifact, `/health` and `/score` both return 503 `unavailable`. Replaying r3006 reproduces the official latencies exactly (rule 61 events, LOF 10).
+
+**One change while building:** evidence for the rule detector used to list rules that had *not* fired, with negative margins, which would mislead an operator. Evidence now shows the strongest signal plus any others with a non-negative contribution. This affects only the explanation, not scores or decisions.

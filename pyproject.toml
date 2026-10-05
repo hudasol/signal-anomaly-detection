@@ -29,6 +29,7 @@ signal-data = "fleet_signal.data.cli:main"
 signal-features = "fleet_signal.features.cli:main"
 signal-eval = "fleet_signal.eval.cli:main"
 signal-train = "fleet_signal.train:main"
+signal-replay = "fleet_signal.service.replay:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -39,6 +40,8 @@ addopts = "-q"
 filterwarnings = [
     # Raised inside pandas 2.3 when running against numpy 2.5; not from our code.
     "ignore:The 'generic' unit for NumPy timedelta is deprecated:DeprecationWarning",
+    # starlette's TestClient warns about its own httpx dependency; not our code.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
 ]
 
 [tool.ruff]
