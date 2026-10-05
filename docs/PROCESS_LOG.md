@@ -193,3 +193,13 @@ DATA_CARD, MODEL_CARD, EVALUATION and RETROSPECTIVE written from the saved outpu
 3. **Stale threshold claim.** My first EVALUATION draft quoted incident counts from an early sweep that used different incident params. Rewritten from `results/validation/*_threshold_curve.csv`. In the process I found the precision constraint cost LOF two validation faults: one step lower it had recall 0.90 at precision 0.79.
 
 Also verified for the error analysis: the r3015 battery-drain miss happens at 60–72 % charge, where charging should be fast. It is missed because no feature knows that normal charge rate depends on state of charge, not because of taper at that moment.
+
+### Section 10: demo kit
+
+`docs/DEMO.md` maps every acceptance-demo item to one command, with outputs from a rehearsal. New read-only helpers:
+
+- `signal-eval audit` proves the split: which runs each frozen model was fitted on, and which runs the selection outputs reference.
+- `signal-eval show` prints the official comparison from the saved report.
+- `signal-eval demo-threshold` evaluates a frozen model at another threshold, writing to `results/demo/` only.
+
+Found while rehearsing: `signal-replay --asset X --show-truth` reported a fault on a *different* asset as "not detected", because that asset was never replayed. That is misleading in a live demo. It now says the asset was not replayed. r3003 turned out to be a good single demo run: LOF raises a false alarm on the drone (mode-transition pattern) and catches the quadruped's real fault in 6 events.

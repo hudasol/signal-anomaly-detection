@@ -138,6 +138,10 @@ def main(argv: list[str] | None = None) -> None:
         for _, row in f.iterrows():
             print(f"  {row['asset_id']}: {row['fault_type']} / {row['variant']}  "
                   f"seq {row['fault_start_seq']}-{row['fault_end_seq']}")  # fmt: skip
+            if row["asset_id"] not in all_incidents:
+                print(f"    ({row['asset_id']} was not replayed; drop --asset to include it)")
+                print("    every incident above is on a non-faulted asset: false incident")
+                continue
             for inc in all_incidents.get(row["asset_id"], []):
                 opens = [o for o in inc["open_seqs"] if o >= row["fault_start_seq"]]
                 if opens and opens[0] < row["fault_end_seq"] + 10:

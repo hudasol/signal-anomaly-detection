@@ -5,6 +5,9 @@
     signal-eval select-model    ML grid + ablation on validation
     signal-eval test            OFFICIAL test, once per frozen model version
     signal-eval plots           re-render all figures from saved outputs
+    signal-eval audit           prove the split
+    signal-eval show            official comparison from the saved report
+    signal-eval demo-threshold --detector lof --threshold 1.5   DEMO ONLY trade-off
 
 The official test run is a separate command added when the model is frozen.
 """
@@ -87,7 +90,29 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("select-model", help="ML grid (Isolation Forest, LOF) + ablation on validation")
     sub.add_parser("test", help="OFFICIAL run-once test evaluation of the frozen models")
     sub.add_parser("plots", help="re-render every evaluation plot from saved outputs")
+    sub.add_parser("audit", help="prove the split: which runs fitted / selected / tested")
+    sub.add_parser("show", help="print the official comparison from the saved report")
+    demo = sub.add_parser("demo-threshold", help="DEMO ONLY: a frozen model at another threshold")
+    demo.add_argument("--detector", required=True, choices=["rule", "stats", "lof"])
+    demo.add_argument("--threshold", required=True, type=float)
     args = parser.parse_args(argv)
+
+    if args.command in ("audit", "show"):
+        from fleet_signal.eval import demo as demo_mod
+
+        print("\n".join(demo_mod.audit() if args.command == "audit" else demo_mod.show()))
+        return
+    if args.command == "demo-threshold":
+        from fleet_signal.eval.demo import threshold_demo
+
+        out = threshold_demo(args.detector, args.threshold)
+        print(f"DEMO ONLY ({out['model_version']}); official result untouched")
+        for label in ("frozen", "demo"):
+            thr = out[f"{label}_threshold"]
+            vals = "  ".join(f"{k}={v:.3f}" if isinstance(v, float) else f"{k}={v}"
+                             for k, v in out[label].items())  # fmt: skip
+            print(f"  {label:<6} threshold {thr:8.3f}  {vals}")
+        return
 
     if args.command == "plots":
         for path in render_all_plots():
