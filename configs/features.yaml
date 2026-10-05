@@ -1,0 +1,28 @@
+# Feature pipeline config. The same build_features() is used for training,
+# evaluation and the inference service.
+#
+# Windows are counted in events (1 event = 1 s at 1 Hz). Three scales instead
+# of one tuned W (see PROCESS_LOG): short windows react fast (latency),
+# long windows separate a sustained drift from a normal transient.
+
+feature_version: "1.0.0"
+
+windows:
+  short: 10
+  mid: 30
+  long: 120
+
+# An asset needs this many events of history in the current run before it can
+# be scored. Below this the service returns insufficient_data.
+min_history: 120
+
+# Maximum gap (in seq units) inside the long window before the window is
+# considered degraded (missing telemetry).
+max_gap: 3
+
+# "Events since this field last changed" is capped here.
+unchanged_cap: 300
+
+# Rolling median length for the speed/position consistency check
+# (robust to single GPS outliers).
+mismatch_median: 5
