@@ -1,11 +1,12 @@
 """Threshold and incident-parameter selection. Validation data only.
 
-Selection rule (PLAN §7.2): among thresholds whose false-incident rate is within
-the budget, take the one with the highest fault-event recall; break ties by
+Selection rule (PLAN §7.2, amended 2026-10-06): among thresholds whose
+false-incident rate is within the budget AND whose precision reaches
+min_precision, take the one with the highest fault-event recall; break ties by
 lower median progressive latency, then by the higher (more conservative)
-threshold. If no threshold fits the budget, take the one with the lowest
-false-incident rate and mark the selection infeasible. The caller must never
-pass test data here.
+threshold. If no threshold satisfies both constraints, take the best F1 among
+thresholds within the false-alert budget and mark the selection infeasible.
+The caller must never pass test data here.
 """
 
 from __future__ import annotations
@@ -41,10 +42,18 @@ def sweep(
     return pd.DataFrame([ss.evaluate(float(t), params).summary for t in cands])
 
 
-def select_threshold(curve: pd.DataFrame, budget: float) -> dict[str, Any]:
-    feasible = curve[curve["fp_per_10min"] <= budget]
+def select_threshold(
+    curve: pd.DataFrame, budget: float, min_precision: float = 0.0
+) -> dict[str, Any]:
+    precision = curve["precision"].fillna(0.0) if "precision" in curve else 1.0
+    feasible = curve[(curve["fp_per_10min"] <= budget) & (precision >= min_precision)]
     if feasible.empty:
-        best = curve.sort_values(["fp_per_10min", "threshold"], ascending=[True, False]).iloc[0]
+        within = curve[curve["fp_per_10min"] <= budget]
+        pool = within if not within.empty else curve
+        if "f1" in pool and pool["f1"].notna().any():
+            best = pool.sort_values(["f1", "threshold"], ascending=[False, False]).iloc[0]
+        else:
+            best = pool.sort_values(["fp_per_10min", "threshold"], ascending=[True, False]).iloc[0]
         return {**best.to_dict(), "feasible": False}
     lat = feasible["progressive_latency_median"].fillna(np.inf)
     ranked = feasible.assign(_lat=lat).sort_values(
@@ -56,32 +65,37 @@ def select_threshold(curve: pd.DataFrame, budget: float) -> dict[str, Any]:
 def select_incident_params(
     sets: dict[str, ScoredSet], ecfg: EvalConfig
 ) -> tuple[IncidentParams, pd.DataFrame]:
-    """One set of incident params for all detectors: best mean selected recall on validation.
+    """One set of incident params for all detectors, chosen on validation.
 
-    Ties: lower mean latency, then fewer mean false incidents, then the smaller grid point.
+    Order: most detectors with a feasible threshold, then highest mean selected recall,
+    then lower mean latency, then fewer false incidents, then the smaller grid point.
     """
     rows: list[dict[str, Any]] = []
     for params in ecfg.param_grid():
         picks = {
-            name: select_threshold(sweep(ss, params), ecfg.budget) for name, ss in sets.items()
+            name: select_threshold(sweep(ss, params), ecfg.budget, ecfg.min_precision)
+            for name, ss in sets.items()
         }
         rows.append(
             {
                 **params.as_dict(),
                 "mean_recall": float(np.mean([p["recall"] for p in picks.values()])),
-                "mean_latency": float(
-                    np.nanmean([p["progressive_latency_median"] for p in picks.values()])
-                ),
+                "mean_latency": _nanmean([p["progressive_latency_median"] for p in picks.values()]),
                 "mean_fp_per_10min": float(np.mean([p["fp_per_10min"] for p in picks.values()])),
-                "all_feasible": all(p["feasible"] for p in picks.values()),
+                "n_feasible": sum(bool(p["feasible"]) for p in picks.values()),
                 **{f"recall_{k}": v["recall"] for k, v in picks.items()},
             }
         )
     table = pd.DataFrame(rows)
     best = table.sort_values(
-        ["all_feasible", "mean_recall", "mean_latency", "mean_fp_per_10min",
+        ["n_feasible", "mean_recall", "mean_latency", "mean_fp_per_10min",
          "open_n", "close_m", "cooldown_c"],
         ascending=[False, False, True, True, True, True, True],
     ).iloc[0]  # fmt: skip
     chosen = IncidentParams(int(best["open_n"]), int(best["close_m"]), int(best["cooldown_c"]))
     return chosen, table
+
+
+def _nanmean(values: list[float]) -> float:
+    arr = np.asarray(values, dtype=float)
+    return float(np.nanmean(arr)) if np.isfinite(arr).any() else float("nan")

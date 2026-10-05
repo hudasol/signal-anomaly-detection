@@ -47,4 +47,21 @@ data/<version>/
 
 Each run is 20 minutes of 1 Hz telemetry for all three assets (~503k events in total).
 
-Commands for features, training, evaluation, inference and replay are added as each part lands.
+## Features
+
+```bash
+signal-features build              # build/reuse the feature cache (~6 s)
+signal-features describe --group trend   # train-split distributions per asset type
+```
+
+35 causal features per event (trailing windows of 10/30/120 events per asset and run): levels, slopes, volatility, events-since-change, speed/position consistency, mode context. An asset needs 120 events of history before it can be scored.
+
+## Validation (baselines)
+
+```bash
+signal-eval validate               # fit on train, select on validation -> results/validation/
+```
+
+Fits each detector on train-normal features, chooses the shared incident parameters and each detector's threshold on validation (false alerts ≤ 1.5 per 10 min and precision ≥ 0.80, then highest recall), and writes curves, per-fault tables, incidents and plots. The test split is never loaded by this command.
+
+Commands for the ML model, the official test run, inference and replay are added as each part lands.

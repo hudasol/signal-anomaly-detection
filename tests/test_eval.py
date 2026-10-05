@@ -140,6 +140,21 @@ def test_select_threshold_respects_budget_then_maximises_recall() -> None:
     assert pick["feasible"] and pick["threshold"] == 3.0  # tie on recall/latency -> higher thr
 
 
+def test_select_threshold_enforces_min_precision() -> None:
+    curve = pd.DataFrame(
+        {
+            "threshold": [1.0, 2.0, 3.0],
+            "recall": [1.0, 0.9, 0.7],
+            "precision": [0.3, 0.6, 0.95],
+            "f1": [0.46, 0.72, 0.81],
+            "fp_per_10min": [1.0, 0.5, 0.0],
+            "progressive_latency_median": [1, 1, 1],
+        }
+    )
+    assert select_threshold(curve, budget=1.5, min_precision=0.8)["threshold"] == 3.0
+    assert select_threshold(curve, budget=1.5, min_precision=0.0)["threshold"] == 1.0
+
+
 def test_select_threshold_infeasible_is_flagged() -> None:
     curve = pd.DataFrame(
         {

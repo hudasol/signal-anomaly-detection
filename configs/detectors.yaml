@@ -1,0 +1,92 @@
+# Baseline detectors.
+#
+# Rule limits were set by hand from TRAIN-normal envelopes only
+# (`signal-features describe` / PROCESS_LOG 2026-10-06), about 10-20% beyond the
+# largest normal value, never from fault runs. Score for one rule:
+#   ">" rules: (value - limit) / scale      "<" rules: (limit - value) / scale
+# The detector score is the max over applicable rules, so 0 means "a rule fires
+# exactly at its written limit". The operating threshold on that score is
+# still chosen on validation like every other detector.
+
+rule:
+  rules:
+    - name: temp_rise
+      feature: temp_slope_l           # degC/min over 120 s
+      op: ">"
+      limit: {drone: 5.5, quadruped: 5.0, rover: 3.0}
+      scale: relative
+
+    - name: battery_drain
+      feature: batt_slope_l           # %/min over 120 s
+      op: "<"
+      limit_by_mode:
+        drone: {charging: 1.2, idle: -2.8, moving: -3.8, returning: -3.8}
+        quadruped: {charging: 0.8, idle: -1.1, moving: -2.1, returning: -2.1}
+        rover: {charging: 0.5, idle: -0.6, moving: -1.1, returning: -1.1}
+      scale: 1.0
+      when: {mode_age_min: 120}       # the long window must sit inside one mode
+
+    - name: link_dropout
+      feature: link_min_m
+      op: "<"
+      limit: {drone: 20.0, quadruped: 20.0, rover: 25.0}
+      scale: 10.0
+
+    - name: link_unstable
+      feature: link_std_m
+      op: ">"
+      limit: {drone: 14.0, quadruped: 14.0, rover: 12.5}
+      scale: relative
+
+    - name: frozen_temperature
+      feature: temp_unchanged
+      op: ">"
+      limit: 20
+      scale: relative
+      when: {mode_in: [moving, returning]}
+
+    - name: frozen_battery
+      feature: batt_unchanged
+      op: ">"
+      limit: 8
+      scale: relative
+      when: {mode_in: [moving, returning]}
+
+    - name: frozen_link
+      feature: link_unchanged
+      op: ">"
+      limit: 15
+      scale: relative
+      when: {mode_in: [moving, returning], link_below: 99}
+
+    - name: frozen_speed
+      feature: speed_unchanged
+      op: ">"
+      limit: 8
+      scale: relative
+      when: {mode_in: [moving, returning]}
+
+    - name: frozen_position
+      feature: pos_unchanged
+      op: ">"
+      limit: 3
+      scale: relative
+
+    - name: speed_position_mismatch
+      feature: speed_mismatch         # m/s, rolling median of |reported - implied|
+      op: ">"
+      limit: {drone: 2.5, quadruped: 1.7, rover: 1.4}
+      scale: relative
+
+    - name: position_jump
+      feature: jump_excess            # metres beyond what reported speed allows
+      op: ">"
+      limit: {drone: 3.5, quadruped: 2.4, rover: 1.9}
+      scale: relative
+
+stats:
+  # Robust z-score of each feature against TRAIN-normal median/MAD, per
+  # (asset_type, mode). Score = max |z| over these features.
+  feature_groups: [level, trend, volatility, freeze, motion]
+  exclude: [range_m, alt_m]           # where the asset is, not how it behaves
+  min_group_rows: 200                 # fall back to per-asset-type stats below this

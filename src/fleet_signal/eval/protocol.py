@@ -35,6 +35,7 @@ DEFAULT_EVAL_CONFIG = REPO_ROOT / "configs" / "eval.yaml"
 class EvalConfig:
     grace: int
     budget: float
+    min_precision: float
     bar: dict[str, float]
     progressive: tuple[str, ...]
     grid: dict[str, list[int]]
@@ -48,6 +49,7 @@ class EvalConfig:
         return cls(
             grace=raw["grace_events"],
             budget=raw["false_alert_budget_per_10min"],
+            min_precision=raw["min_precision"],
             bar=raw["bar"],
             progressive=tuple(raw["progressive_faults"]),
             grid=raw["incident_grid"],
@@ -254,11 +256,17 @@ def breakdown(per_fault: pd.DataFrame, by: list[str]) -> pd.DataFrame:
     out = g.agg(
         n=("detected", "size"),
         detected=("detected", "sum"),
-        latency_median=("latency_events", lambda s: pd.to_numeric(s).median()),
-        latency_p90=("latency_events", lambda s: pd.to_numeric(s).quantile(0.9)),
+        latency_median=("latency_events", lambda s: _quantile(s, 0.5)),
+        latency_p90=("latency_events", lambda s: _quantile(s, 0.9)),
     )
     out["recall"] = out["detected"] / out["n"]
     return out.reset_index()
+
+
+def _quantile(s: pd.Series, q: float) -> float:
+    """Quantile of the finite values; NaN (without a warning) when nothing was detected."""
+    v = pd.to_numeric(s, errors="coerce").dropna()
+    return float(v.quantile(q)) if len(v) else float("nan")
 
 
 def meets_bar(summary: dict[str, Any], ecfg: EvalConfig) -> dict[str, bool]:

@@ -6,8 +6,13 @@
 grace_events: 10
 
 # Threshold selection on validation: highest event recall whose false-incident
-# rate stays within this budget. The brief's bar is 2.0; 1.5 leaves margin.
+# rate stays within this budget AND whose incident precision reaches
+# min_precision. The bar is 2.0 false alerts and 0.75 precision; these leave
+# margin. (min_precision added 2026-10-06 after the first validation sweep
+# showed the false-alert budget alone allows ~97 false incidents on
+# validation, far below the precision bar. See PROCESS_LOG.)
 false_alert_budget_per_10min: 1.5
+min_precision: 0.80
 
 # The brief's "meets the bar" numbers, checked on the official test result.
 bar:

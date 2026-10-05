@@ -1,0 +1,427 @@
+{
+  "split": "validation",
+  "data_version": "v1.0.0-9e903f9008",
+  "incident_params": {
+    "open_n": 2,
+    "close_m": 5,
+    "cooldown_c": 30
+  },
+  "false_alert_budget_per_10min": 1.5,
+  "min_precision": 0.8,
+  "detectors": {
+    "rule": {
+      "selected": {
+        "precision": 0.8837209302325582,
+        "recall": 0.9333333333333333,
+        "f1": 0.9078498293515359,
+        "fp_per_10min": 0.07700139458081297,
+        "n_faults": 30.0,
+        "n_detected": 28.0,
+        "n_incidents": 43.0,
+        "n_false_incidents": 5.0,
+        "normal_fleet_minutes": 649.338888888889,
+        "progressive_latency_median": 81.5,
+        "progressive_latency_p90": 347.0,
+        "threshold": -0.0867346959161708,
+        "open_n": 2.0,
+        "close_m": 5.0,
+        "cooldown_c": 30.0,
+        "feasible": true
+      },
+      "summary": {
+        "precision": 0.8837209302325582,
+        "recall": 0.9333333333333333,
+        "f1": 0.9078498293515359,
+        "fp_per_10min": 0.07700139458081297,
+        "n_faults": 30,
+        "n_detected": 28,
+        "n_incidents": 43,
+        "n_false_incidents": 5,
+        "normal_fleet_minutes": 649.338888888889,
+        "progressive_latency_median": 81.5,
+        "progressive_latency_p90": 347.0,
+        "threshold": -0.0867346959161708,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "ci95": {
+        "precision": [
+          0.7843004769475358,
+          0.9737010796221321
+        ],
+        "recall": [
+          0.8275862068965517,
+          1.0
+        ],
+        "f1": [
+          0.8309164712256607,
+          0.967032967032967
+        ],
+        "fp_per_10min": [
+          0.015567426620529585,
+          0.1500392648467747
+        ]
+      },
+      "by_fault_type": [
+        {
+          "fault_type": "battery_drain",
+          "n": 6,
+          "detected": 5,
+          "latency_median": 93.0,
+          "latency_p90": 445.6,
+          "recall": 0.8333333333333334
+        },
+        {
+          "fault_type": "link_degradation",
+          "n": 6,
+          "detected": 5,
+          "latency_median": 135.0,
+          "latency_p90": 227.8,
+          "recall": 0.8333333333333334
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "n": 6,
+          "detected": 6,
+          "latency_median": 2.0,
+          "latency_p90": 9.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "overheating",
+          "n": 6,
+          "detected": 6,
+          "latency_median": 65.0,
+          "latency_p90": 81.5,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "n": 6,
+          "detected": 6,
+          "latency_median": 19.5,
+          "latency_p90": 89.0,
+          "recall": 1.0
+        }
+      ],
+      "by_variant": [
+        {
+          "fault_type": "battery_drain",
+          "variant": "step",
+          "n": 6,
+          "detected": 5,
+          "latency_median": 93.0,
+          "latency_p90": 445.6,
+          "recall": 0.8333333333333334
+        },
+        {
+          "fault_type": "link_degradation",
+          "variant": "decline",
+          "n": 3,
+          "detected": 2,
+          "latency_median": 219.5,
+          "latency_p90": 252.7,
+          "recall": 0.6666666666666666
+        },
+        {
+          "fault_type": "link_degradation",
+          "variant": "oscillation",
+          "n": 3,
+          "detected": 3,
+          "latency_median": 85.0,
+          "latency_p90": 125.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "variant": "jump",
+          "n": 3,
+          "detected": 3,
+          "latency_median": 1.0,
+          "latency_p90": 1.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "variant": "speed_mismatch",
+          "n": 3,
+          "detected": 3,
+          "latency_median": 5.0,
+          "latency_p90": 11.4,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "overheating",
+          "variant": "linear",
+          "n": 6,
+          "detected": 6,
+          "latency_median": 65.0,
+          "latency_p90": 81.5,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "battery_pct",
+          "n": 2,
+          "detected": 2,
+          "latency_median": 89.0,
+          "latency_p90": 89.8,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "link_quality_pct",
+          "n": 1,
+          "detected": 1,
+          "latency_median": 15.0,
+          "latency_p90": 15.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "speed_mps",
+          "n": 1,
+          "detected": 1,
+          "latency_median": 2.0,
+          "latency_p90": 2.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "temperature_c",
+          "n": 2,
+          "detected": 2,
+          "latency_median": 19.5,
+          "latency_p90": 19.9,
+          "recall": 1.0
+        }
+      ],
+      "window_confusion": {
+        "tp": 4287,
+        "fp": 116,
+        "fn": 8130,
+        "tn": 116915
+      }
+    },
+    "stats": {
+      "selected": {
+        "precision": 0.8260869565217391,
+        "recall": 0.4,
+        "f1": 0.5390070921985816,
+        "fp_per_10min": 0.061601115664650374,
+        "n_faults": 30.0,
+        "n_detected": 12.0,
+        "n_incidents": 23.0,
+        "n_false_incidents": 4.0,
+        "normal_fleet_minutes": 649.338888888889,
+        "progressive_latency_median": 474.0,
+        "progressive_latency_p90": 530.8,
+        "threshold": 151.91092312830733,
+        "open_n": 2.0,
+        "close_m": 5.0,
+        "cooldown_c": 30.0,
+        "feasible": true
+      },
+      "summary": {
+        "precision": 0.8260869565217391,
+        "recall": 0.4,
+        "f1": 0.5390070921985816,
+        "fp_per_10min": 0.061601115664650374,
+        "n_faults": 30,
+        "n_detected": 12,
+        "n_incidents": 23,
+        "n_false_incidents": 4,
+        "normal_fleet_minutes": 649.338888888889,
+        "progressive_latency_median": 474.0,
+        "progressive_latency_p90": 530.8,
+        "threshold": 151.91092312830733,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "ci95": {
+        "precision": [
+          0.6190476190476191,
+          1.0
+        ],
+        "recall": [
+          0.22580645161290322,
+          0.5806451612903226
+        ],
+        "f1": [
+          0.34614197530864194,
+          0.7040555236476247
+        ],
+        "fp_per_10min": [
+          0.0,
+          0.14022989720943296
+        ]
+      },
+      "by_fault_type": [
+        {
+          "fault_type": "battery_drain",
+          "n": 6,
+          "detected": 3,
+          "latency_median": 474.0,
+          "latency_p90": 530.8,
+          "recall": 0.5
+        },
+        {
+          "fault_type": "link_degradation",
+          "n": 6,
+          "detected": 0,
+          "latency_median": null,
+          "latency_p90": null,
+          "recall": 0.0
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "n": 6,
+          "detected": 3,
+          "latency_median": 1.0,
+          "latency_p90": 1.0,
+          "recall": 0.5
+        },
+        {
+          "fault_type": "overheating",
+          "n": 6,
+          "detected": 0,
+          "latency_median": null,
+          "latency_p90": null,
+          "recall": 0.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "n": 6,
+          "detected": 6,
+          "latency_median": 39.0,
+          "latency_p90": 65.0,
+          "recall": 1.0
+        }
+      ],
+      "by_variant": [
+        {
+          "fault_type": "battery_drain",
+          "variant": "step",
+          "n": 6,
+          "detected": 3,
+          "latency_median": 474.0,
+          "latency_p90": 530.8,
+          "recall": 0.5
+        },
+        {
+          "fault_type": "link_degradation",
+          "variant": "decline",
+          "n": 3,
+          "detected": 0,
+          "latency_median": null,
+          "latency_p90": null,
+          "recall": 0.0
+        },
+        {
+          "fault_type": "link_degradation",
+          "variant": "oscillation",
+          "n": 3,
+          "detected": 0,
+          "latency_median": null,
+          "latency_p90": null,
+          "recall": 0.0
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "variant": "jump",
+          "n": 3,
+          "detected": 3,
+          "latency_median": 1.0,
+          "latency_p90": 1.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "variant": "speed_mismatch",
+          "n": 3,
+          "detected": 0,
+          "latency_median": null,
+          "latency_p90": null,
+          "recall": 0.0
+        },
+        {
+          "fault_type": "overheating",
+          "variant": "linear",
+          "n": 6,
+          "detected": 0,
+          "latency_median": null,
+          "latency_p90": null,
+          "recall": 0.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "battery_pct",
+          "n": 2,
+          "detected": 2,
+          "latency_median": 2.0,
+          "latency_p90": 2.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "link_quality_pct",
+          "n": 1,
+          "detected": 1,
+          "latency_median": 77.0,
+          "latency_p90": 77.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "speed_mps",
+          "n": 1,
+          "detected": 1,
+          "latency_median": 27.0,
+          "latency_p90": 27.0,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "variant": "temperature_c",
+          "n": 2,
+          "detected": 2,
+          "latency_median": 52.0,
+          "latency_p90": 52.8,
+          "recall": 1.0
+        }
+      ],
+      "window_confusion": {
+        "tp": 1063,
+        "fp": 124,
+        "fn": 11354,
+        "tn": 116907
+      }
+    }
+  },
+  "paired": {
+    "rule_minus_stats": {
+      "precision": {
+        "diff": 0.05763397371081902,
+        "ci_low": -0.1333333333333333,
+        "ci_high": 0.27509789194549994
+      },
+      "recall": {
+        "diff": 0.5333333333333333,
+        "ci_low": 0.3235056925996205,
+        "ci_high": 0.730833333333333
+      },
+      "f1": {
+        "diff": 0.36884273715295435,
+        "ci_low": 0.20261476514047375,
+        "ci_high": 0.5631577159313716
+      },
+      "fp_per_10min": {
+        "diff": 0.015400278916162594,
+        "ci_low": -0.0770674282374653,
+        "ci_high": 0.10627615633742674
+      }
+    }
+  }
+}
