@@ -42,7 +42,7 @@ def plot_threshold_sensitivity(
     budget = report["false_alert_budget_per_10min"]
     min_precision = report.get("min_precision", 0.0)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.4), facecolor=SURFACE)
-    for name, det in report["detectors"].items():
+    for i, (name, det) in enumerate(report["detectors"].items()):
         curve = pd.read_csv(results_dir / f"{name}_threshold_curve.csv").sort_values("threshold")
         color = DETECTOR_COLORS.get(name, INK_2)
         marker = DETECTOR_MARKERS.get(name, "o")
@@ -56,7 +56,8 @@ def plot_threshold_sensitivity(
         ax1.annotate(
             f"{label}\nrecall {sel['recall']:.2f}",
             (sel["fp_per_10min"], sel["recall"]),
-            textcoords="offset points", xytext=(10, -14), fontsize=8, color=INK_2,
+            textcoords="offset points", xytext=(14, -10 - 30 * i), fontsize=8, color=INK_2,
+            arrowprops={"arrowstyle": "-", "color": GRID, "linewidth": 0.8},
         )  # fmt: skip
         pr = curve.dropna(subset=["precision"])
         ax2.plot(pr["recall"], pr["precision"], color=color, linewidth=2, label=label)
@@ -119,10 +120,8 @@ def plot_recall_by_fault(
     ax.set_xticks(range(len(types)))
     ax.set_xticklabels([t.replace("_", " ") for t in types], fontsize=8, color=INK_2)
     ax.set_ylim(0, 1.25)
-    ax.set_ylabel("Recall (validation)", color=INK_2, fontsize=9)
-    ax.set_title(
-        "Recall by fault type at the selected thresholds", color=INK, fontsize=10, loc="left"
-    )
+    ax.set_ylabel("Fault-event recall", color=INK_2, fontsize=9)
+    ax.set_title(title, color=INK, fontsize=10, loc="left")
     _style(ax)
     ax.legend(frameon=False, fontsize=8, loc="upper right", ncol=len(names))
     fig.tight_layout()

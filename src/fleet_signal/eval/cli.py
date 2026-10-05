@@ -4,6 +4,7 @@
     signal-eval validate --detectors rule
     signal-eval select-model    ML grid + ablation on validation
     signal-eval test            OFFICIAL test, once per frozen model version
+    signal-eval plots           re-render all figures from saved outputs
 
 The official test run is a separate command added when the model is frozen.
 """
@@ -35,23 +36,35 @@ def _fmt(v: object) -> str:
     return f"{v:.3f}" if isinstance(v, float) else str(v)
 
 
-def _official() -> None:
+def render_all_plots() -> list[str]:
+    """Every evaluation figure, drawn only from files already saved on disk."""
     from fleet_signal.eval.official import OFFICIAL_DIR
+
+    out = [
+        plot_threshold_sensitivity(VALIDATION_DIR, VALIDATION_DIR / "threshold_sensitivity.png"),
+        plot_recall_by_fault(VALIDATION_DIR, VALIDATION_DIR / "recall_by_fault_type.png"),
+    ]
+    posthoc = OFFICIAL_DIR / "posthoc"
+    if (posthoc / "test_report_for_plots.json").exists():
+        out.append(plot_threshold_sensitivity(
+            posthoc, OFFICIAL_DIR / "test_threshold_sensitivity.png",
+            report_name="test_report_for_plots.json",
+            title="Test: post-hoc threshold sweep (markers = frozen operating points)",
+        ))  # fmt: skip
+        out.append(plot_recall_by_fault(
+            posthoc, OFFICIAL_DIR / "test_recall_by_fault_type.png",
+            report_name="test_report_for_plots.json",
+            title="Recall by fault type at the frozen thresholds (official test)",
+        ))  # fmt: skip
+    return [str(p) for p in out]
+
+
+def _official() -> None:
     from fleet_signal.eval.official_test import run_official_test
 
     out = run_official_test()
     report = out["report"]
-    posthoc = OFFICIAL_DIR / "posthoc"
-    plot_threshold_sensitivity(
-        posthoc, OFFICIAL_DIR / "test_threshold_sensitivity.png",
-        report_name="test_report_for_plots.json",
-        title="Test: post-hoc threshold sweep (markers = frozen operating points)",
-    )  # fmt: skip
-    plot_recall_by_fault(
-        posthoc, OFFICIAL_DIR / "test_recall_by_fault_type.png",
-        report_name="test_report_for_plots.json",
-        title="Recall by fault type at the frozen thresholds (official test)",
-    )  # fmt: skip
+    render_all_plots()
     cols = ["precision", "recall", "f1", "fp_per_10min", "n_false_incidents",
             "progressive_latency_median"]  # fmt: skip
     print("OFFICIAL TEST RESULT (frozen thresholds, run once)")
@@ -73,7 +86,13 @@ def main(argv: list[str] | None = None) -> None:
     val.add_argument("--detectors", default="rule,stats,lof")
     sub.add_parser("select-model", help="ML grid (Isolation Forest, LOF) + ablation on validation")
     sub.add_parser("test", help="OFFICIAL run-once test evaluation of the frozen models")
+    sub.add_parser("plots", help="re-render every evaluation plot from saved outputs")
     args = parser.parse_args(argv)
+
+    if args.command == "plots":
+        for path in render_all_plots():
+            print(path)
+        return
 
     if args.command == "test":
         _official()
@@ -110,8 +129,7 @@ def main(argv: list[str] | None = None) -> None:
     started = time.perf_counter()
     sel = select_on_validation([DETECTORS[n]() for n in names], gen_cfg, ecfg)
     report = write_validation_report(sel, gen_cfg, ecfg, VALIDATION_DIR)
-    plot_threshold_sensitivity(VALIDATION_DIR, VALIDATION_DIR / "threshold_sensitivity.png")
-    plot_recall_by_fault(VALIDATION_DIR, VALIDATION_DIR / "recall_by_fault_type.png")
+    render_all_plots()
 
     print(f"validation selection in {time.perf_counter() - started:.1f}s")
     print(f"incident params (shared): {report['incident_params']}")

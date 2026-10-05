@@ -1,0 +1,492 @@
+{
+  "split": "test",
+  "official": true,
+  "comparison_key": "4530f6a108",
+  "data_version": "v1.0.0-9e903f9008",
+  "incident_params": {
+    "open_n": 2,
+    "close_m": 5,
+    "cooldown_c": 30
+  },
+  "false_alert_budget_per_10min": 1.5,
+  "min_precision": 0.8,
+  "bar": {
+    "precision": 0.75,
+    "recall": 0.85,
+    "false_alerts_per_10min": 2.0,
+    "median_latency_events": 3
+  },
+  "detectors": {
+    "rule": {
+      "model_version": "rule-64d39edc1d",
+      "selected": {
+        "precision": 0.8095238095238095,
+        "recall": 0.8444444444444444,
+        "f1": 0.8266154830454255,
+        "fp_per_10min": 0.12378081626571615,
+        "n_faults": 45,
+        "n_detected": 38,
+        "n_incidents": 63,
+        "n_false_incidents": 12,
+        "normal_fleet_minutes": 969.4555555555556,
+        "progressive_latency_median": 71.0,
+        "progressive_latency_p90": 183.0,
+        "threshold": -0.0867346959161708,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "summary": {
+        "precision": 0.8095238095238095,
+        "recall": 0.8444444444444444,
+        "f1": 0.8266154830454255,
+        "fp_per_10min": 0.12378081626571615,
+        "n_faults": 45,
+        "n_detected": 38,
+        "n_incidents": 63,
+        "n_false_incidents": 12,
+        "normal_fleet_minutes": 969.4555555555556,
+        "progressive_latency_median": 71.0,
+        "progressive_latency_p90": 183.0,
+        "threshold": -0.0867346959161708,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "meets_bar": {
+        "precision": true,
+        "recall": false,
+        "false_alerts": true,
+        "latency": false
+      },
+      "ci95": {
+        "precision": [
+          0.7,
+          0.9076973684210526
+        ],
+        "recall": [
+          0.7297297297297297,
+          0.9388355342136852
+        ],
+        "f1": [
+          0.7345570161976784,
+          0.9025641025641026
+        ],
+        "fp_per_10min": [
+          0.051801647359201654,
+          0.2122084113137853
+        ]
+      },
+      "by_fault_type": [
+        {
+          "fault_type": "battery_drain",
+          "n": 9,
+          "detected": 6,
+          "latency_median": 103.0,
+          "latency_p90": 267.5,
+          "recall": 0.6666666666666666
+        },
+        {
+          "fault_type": "link_degradation",
+          "n": 9,
+          "detected": 7,
+          "latency_median": 71.0,
+          "latency_p90": 134.40000000000003,
+          "recall": 0.7777777777777778
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "n": 9,
+          "detected": 9,
+          "latency_median": 2.0,
+          "latency_p90": 8.200000000000001,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "overheating",
+          "n": 9,
+          "detected": 8,
+          "latency_median": 35.5,
+          "latency_p90": 281.5999999999999,
+          "recall": 0.8888888888888888
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "n": 9,
+          "detected": 8,
+          "latency_median": 12.0,
+          "latency_p90": 20.0,
+          "recall": 0.8888888888888888
+        }
+      ],
+      "by_seen_variant": [
+        {
+          "seen_variant": false,
+          "n": 16,
+          "detected": 16,
+          "latency_median": 23.0,
+          "latency_p90": 111.5,
+          "recall": 1.0
+        },
+        {
+          "seen_variant": true,
+          "n": 29,
+          "detected": 22,
+          "latency_median": 20.0,
+          "latency_p90": 117.30000000000004,
+          "recall": 0.7586206896551724
+        }
+      ],
+      "window_confusion": {
+        "tp": 7251,
+        "fp": 383,
+        "fn": 12183,
+        "tn": 174328
+      }
+    },
+    "stats": {
+      "model_version": "stats-ab89662ec6",
+      "selected": {
+        "precision": 0.7916666666666666,
+        "recall": 0.37777777777777777,
+        "f1": 0.5114806017418845,
+        "fp_per_10min": 0.05157534011071506,
+        "n_faults": 45,
+        "n_detected": 17,
+        "n_incidents": 24,
+        "n_false_incidents": 5,
+        "normal_fleet_minutes": 969.4555555555556,
+        "progressive_latency_median": 534.5,
+        "progressive_latency_p90": 584.3,
+        "threshold": 151.91092312830733,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "summary": {
+        "precision": 0.7916666666666666,
+        "recall": 0.37777777777777777,
+        "f1": 0.5114806017418845,
+        "fp_per_10min": 0.05157534011071506,
+        "n_faults": 45,
+        "n_detected": 17,
+        "n_incidents": 24,
+        "n_false_incidents": 5,
+        "normal_fleet_minutes": 969.4555555555556,
+        "progressive_latency_median": 534.5,
+        "progressive_latency_p90": 584.3,
+        "threshold": 151.91092312830733,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "meets_bar": {
+        "precision": true,
+        "recall": false,
+        "false_alerts": true,
+        "latency": false
+      },
+      "ci95": {
+        "precision": [
+          0.6470588235294118,
+          0.9259259259259259
+        ],
+        "recall": [
+          0.23809523809523808,
+          0.5208333333333334
+        ],
+        "f1": [
+          0.3567375142132424,
+          0.6360474419224847
+        ],
+        "fp_per_10min": [
+          0.010492294068913763,
+          0.10068173759671771
+        ]
+      },
+      "by_fault_type": [
+        {
+          "fault_type": "battery_drain",
+          "n": 9,
+          "detected": 3,
+          "latency_median": 519.0,
+          "latency_p90": 583.0,
+          "recall": 0.3333333333333333
+        },
+        {
+          "fault_type": "link_degradation",
+          "n": 9,
+          "detected": 1,
+          "latency_median": 550.0,
+          "latency_p90": 550.0,
+          "recall": 0.1111111111111111
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "n": 9,
+          "detected": 6,
+          "latency_median": 46.5,
+          "latency_p90": 141.0,
+          "recall": 0.6666666666666666
+        },
+        {
+          "fault_type": "overheating",
+          "n": 9,
+          "detected": 0,
+          "latency_median": null,
+          "latency_p90": null,
+          "recall": 0.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "n": 9,
+          "detected": 7,
+          "latency_median": 52.0,
+          "latency_p90": 92.40000000000003,
+          "recall": 0.7777777777777778
+        }
+      ],
+      "by_seen_variant": [
+        {
+          "seen_variant": false,
+          "n": 16,
+          "detected": 9,
+          "latency_median": 161.0,
+          "latency_p90": 559.8,
+          "recall": 0.5625
+        },
+        {
+          "seen_variant": true,
+          "n": 29,
+          "detected": 8,
+          "latency_median": 44.0,
+          "latency_p90": 82.29999999999998,
+          "recall": 0.27586206896551724
+        }
+      ],
+      "window_confusion": {
+        "tp": 981,
+        "fp": 252,
+        "fn": 18453,
+        "tn": 174459
+      }
+    },
+    "lof": {
+      "model_version": "lof-a588a4d11b",
+      "selected": {
+        "precision": 0.9701492537313433,
+        "recall": 0.8888888888888888,
+        "f1": 0.927743086529884,
+        "fp_per_10min": 0.020630136044286027,
+        "n_faults": 45,
+        "n_detected": 40,
+        "n_incidents": 67,
+        "n_false_incidents": 2,
+        "normal_fleet_minutes": 969.4555555555556,
+        "progressive_latency_median": 16.0,
+        "progressive_latency_p90": 429.20000000000016,
+        "threshold": 2.279166115803289,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "summary": {
+        "precision": 0.9701492537313433,
+        "recall": 0.8888888888888888,
+        "f1": 0.927743086529884,
+        "fp_per_10min": 0.020630136044286027,
+        "n_faults": 45,
+        "n_detected": 40,
+        "n_incidents": 67,
+        "n_false_incidents": 2,
+        "normal_fleet_minutes": 969.4555555555556,
+        "progressive_latency_median": 16.0,
+        "progressive_latency_p90": 429.20000000000016,
+        "threshold": 2.279166115803289,
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "meets_bar": {
+        "precision": true,
+        "recall": true,
+        "false_alerts": true,
+        "latency": false
+      },
+      "ci95": {
+        "precision": [
+          0.9218673406862745,
+          1.0
+        ],
+        "recall": [
+          0.7872340425531915,
+          0.975609756097561
+        ],
+        "f1": [
+          0.8600556843294617,
+          0.9772853535353535
+        ],
+        "fp_per_10min": [
+          0.0,
+          0.051976988460871065
+        ]
+      },
+      "by_fault_type": [
+        {
+          "fault_type": "battery_drain",
+          "n": 9,
+          "detected": 8,
+          "latency_median": 7.0,
+          "latency_p90": 69.59999999999997,
+          "recall": 0.8888888888888888
+        },
+        {
+          "fault_type": "link_degradation",
+          "n": 9,
+          "detected": 8,
+          "latency_median": 206.0,
+          "latency_p90": 429.19999999999993,
+          "recall": 0.8888888888888888
+        },
+        {
+          "fault_type": "motion_anomaly",
+          "n": 9,
+          "detected": 8,
+          "latency_median": 3.0,
+          "latency_p90": 5.799999999999999,
+          "recall": 0.8888888888888888
+        },
+        {
+          "fault_type": "overheating",
+          "n": 9,
+          "detected": 9,
+          "latency_median": 10.0,
+          "latency_p90": 548.4000000000001,
+          "recall": 1.0
+        },
+        {
+          "fault_type": "sensor_freeze",
+          "n": 9,
+          "detected": 7,
+          "latency_median": 7.0,
+          "latency_p90": 122.80000000000001,
+          "recall": 0.7777777777777778
+        }
+      ],
+      "by_seen_variant": [
+        {
+          "seen_variant": false,
+          "n": 16,
+          "detected": 16,
+          "latency_median": 8.0,
+          "latency_p90": 16.0,
+          "recall": 1.0
+        },
+        {
+          "seen_variant": true,
+          "n": 29,
+          "detected": 24,
+          "latency_median": 14.0,
+          "latency_p90": 439.8999999999999,
+          "recall": 0.8275862068965517
+        }
+      ],
+      "window_confusion": {
+        "tp": 8100,
+        "fp": 235,
+        "fn": 11334,
+        "tn": 174476
+      }
+    }
+  },
+  "paired": {
+    "rule_minus_stats": {
+      "precision": {
+        "diff": 0.017857142857142905,
+        "ci_low": -0.123151599656418,
+        "ci_high": 0.15874582289055963
+      },
+      "recall": {
+        "diff": 0.4666666666666667,
+        "ci_low": 0.3147569444444444,
+        "ci_high": 0.6274623803009575
+      },
+      "f1": {
+        "diff": 0.31513488130354106,
+        "ci_low": 0.1854873891757197,
+        "ci_high": 0.4689485693309008
+      },
+      "fp_per_10min": {
+        "diff": 0.07220547615500109,
+        "ci_low": 0.0,
+        "ci_high": 0.15372302253812004
+      }
+    },
+    "rule_minus_lof": {
+      "precision": {
+        "diff": -0.16062544420753377,
+        "ci_low": -0.2786956704497688,
+        "ci_high": -0.044516279612556935
+      },
+      "recall": {
+        "diff": -0.0444444444444444,
+        "ci_low": -0.16326530612244894,
+        "ci_high": 0.07844427244582042
+      },
+      "f1": {
+        "diff": -0.10112760348445848,
+        "ci_low": -0.19714321935699397,
+        "ci_high": -0.005035754451986894
+      },
+      "fp_per_10min": {
+        "diff": 0.10315068022143012,
+        "ci_low": 0.020958759282091764,
+        "ci_high": 0.19538508143493782
+      }
+    },
+    "stats_minus_lof": {
+      "precision": {
+        "diff": -0.17848258706467668,
+        "ci_low": -0.3186327791986361,
+        "ci_high": -0.04030131403645416
+      },
+      "recall": {
+        "diff": -0.5111111111111111,
+        "ci_low": -0.6888888888888889,
+        "ci_high": -0.3333333333333333
+      },
+      "f1": {
+        "diff": -0.41626248478799954,
+        "ci_low": -0.5886731213312416,
+        "ci_high": -0.27156823251309853
+      },
+      "fp_per_10min": {
+        "diff": 0.030945204066429033,
+        "ci_low": -0.010461035739220775,
+        "ci_high": 0.0809743471552329
+      }
+    }
+  },
+  "decision": {
+    "ship": "rule",
+    "ml": "lof",
+    "best_baseline": "rule",
+    "reason": "recall difference +0.044 (CI -0.078 to +0.163) does not show ML is better; latency advantage not established",
+    "criteria": {
+      "recall_ci_excludes_zero_in_ml_favour": false,
+      "latency_ci_excludes_zero_in_ml_favour": false,
+      "ml_no_recall_loss": true
+    },
+    "recall_ml_minus_baseline": {
+      "diff": 0.0444444444444444,
+      "ci_low": -0.07844427244582049,
+      "ci_high": 0.16326530612244894
+    },
+    "latency_ml_minus_baseline": {
+      "n_paired": 20,
+      "median_diff": -24.0,
+      "ci_low": -53.5,
+      "ci_high": 3.5
+    }
+  }
+}

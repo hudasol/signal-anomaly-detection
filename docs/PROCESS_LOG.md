@@ -140,3 +140,35 @@ Trend features carry the model: without them recall drops 0.20 and latency goes 
 | LOF | 0.90 | 0.83 | 0.06 | 25 |
 
 Rule minus LOF recall: +0.10 (paired bootstrap CI 0.00 to 0.22). The trade-off going into the test: LOF is about 3× faster on progressive faults but catches fewer of them. Under the pre-declared ship rule (PLAN §7.3), a recall loss means LOF does not ship unless the test result says otherwise.
+
+### Section 7: freeze and the official test (run once)
+
+**Freeze.** `signal-train` fits rule, stats and LOF on train, takes their thresholds from the validation selection, and writes one artifact per detector (`models/<detector>/<model_version>/model.joblib`) plus `models/registry.json`. Two checks before touching test:
+
+- Two training runs gave identical model versions and thresholds. Artifact bytes differ only by the embedded creation time; the registry stores the SHA-256 of the exact file that was evaluated.
+- A dry run of the frozen artifacts on **validation** reproduced the committed validation report exactly, for all three detectors.
+
+The code and registry were committed (`05fcfcb`) **before** the test split was read. LOF artifacts are about 25 MB (LOF keeps its training points), so artifacts are not committed; `signal-train` rebuilds them deterministically.
+
+**Official test result** (`signal-eval test`, frozen thresholds, incident params N=2 / M=5 / C=30; 60 runs, 45 faults, 1,105 normal fleet-minutes):
+
+| | Precision | Recall | F1 | False incidents / 10 min | Median progressive latency | Bar |
+|---|---|---|---|---|---|---|
+| Rule | 0.81 | 0.84 | 0.83 | 0.12 | 71 events | fails recall (by 0.006), latency |
+| Robust z | 0.79 | 0.38 | 0.51 | 0.05 | 534.5 events | fails recall, latency |
+| LOF | **0.97** | **0.89** | **0.93** | **0.02** | **16 events** | fails latency only |
+
+**Ship decision (pre-declared rule, PLAN §7.3): the rule baseline.** LOF's recall gain over the rule is +0.044 with a paired CI of −0.08 to +0.16, so it is not established. Its latency gain is a median 24 events faster over the 20 progressive faults both caught, with a CI of −53.5 to **+3.5**, which just includes zero, so that is not established either.
+
+**What the pre-declared rule missed.** On the same test runs, LOF is significantly better than the rule on **precision** (+0.16, paired CI +0.05 to +0.28) and on **false alerts** (0.10 fewer per 10 min, CI 0.02 to 0.20), with no recall loss. My ship rule only looked at recall and latency, because I wrote it thinking about missed faults, not operator alarm fatigue. That was a gap in the rule, not a property of the result. I am not changing the official decision after seeing the test; this is recorded here and in the retrospective, and the recommendation is discussed in EVALUATION.md.
+
+**Seen vs unseen fault variants on test** (recall): rule 0.76 seen / 1.00 unseen; LOF 0.83 / 1.00. The variants held back from validation turned out *easier*, not harder: runaway heating, accelerating drain and position drift are more extreme than their validation counterparts. What made the test hard was the wider parameter ranges, which produced weaker versions of the *seen* variants.
+
+**Concrete errors found** (details in EVALUATION.md):
+
+- 9 of the rule's 12 false incidents start within 45 s of the asset first becoming scorable (warm-up temperature slope).
+- LOF false positive in r3003: a 3-second charging → returning → charging blip. The trailing battery slope still reflects charging but is judged against "returning" statistics, giving z ≈ 33.
+- A speed freeze in r3025 was missed by every detector. My generator's fallback forced it to start while the drone was **charging**, so a speed frozen at 0 is unobservable. This is a label-validity bug in the data design.
+- Battery drain in r3015 was missed by every detector. The whole fault ran during charging above 80 %, where the normal charge rate already tapers, so the net +1.5 %/min sits inside normal.
+
+**Plots** are re-rendered from saved outputs only, with `signal-eval plots`. Test threshold curves were computed *after* the official result was written and live in `results/official/posthoc/`, labelled post-hoc.

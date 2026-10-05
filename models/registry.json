@@ -1,5 +1,5 @@
 {
-  "serving": null,
+  "serving": "rule",
   "models": {
     "rule": {
       "model_version": "rule-64d39edc1d",
@@ -22,7 +22,7 @@
         "fp_per_10min": 0.07700139458081297,
         "progressive_latency_median": 81.5
       },
-      "official_test_result": null,
+      "official_test_result": "results/official/test_rule_rule-64d39edc1d.json",
       "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
       "created_utc": "2026-10-05T21:33:52.126236+00:00"
     },
@@ -47,7 +47,7 @@
         "fp_per_10min": 0.061601115664650374,
         "progressive_latency_median": 474.0
       },
-      "official_test_result": null,
+      "official_test_result": "results/official/test_stats_stats-ab89662ec6.json",
       "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
       "created_utc": "2026-10-05T21:33:52.129785+00:00"
     },
@@ -72,9 +72,15 @@
         "fp_per_10min": 0.061601115664650374,
         "progressive_latency_median": 25.0
       },
-      "official_test_result": null,
+      "official_test_result": "results/official/test_lof_lof-a588a4d11b.json",
       "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
       "created_utc": "2026-10-05T21:33:52.133445+00:00"
     }
-  }
+  },
+  "ship_decision": {
+    "ship": "rule",
+    "best_baseline": "rule",
+    "reason": "recall difference +0.044 (CI -0.078 to +0.163) does not show ML is better; latency advantage not established"
+  },
+  "official_test_report": "results/official/test_report_4530f6a108.json"
 }
