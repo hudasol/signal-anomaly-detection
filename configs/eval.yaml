@@ -1,0 +1,32 @@
+# Evaluation protocol. Fixed before any detector was scored (see PLAN §7).
+
+# A fault counts as detected if an incident opens (or re-opens) on the faulted
+# asset between fault_start and fault_end + grace. An incident is a true
+# positive if it overlaps that same interval.
+grace_events: 10
+
+# Threshold selection on validation: highest event recall whose false-incident
+# rate stays within this budget. The brief's bar is 2.0; 1.5 leaves margin.
+false_alert_budget_per_10min: 1.5
+
+# The brief's "meets the bar" numbers, checked on the official test result.
+bar:
+  precision: 0.75
+  recall: 0.85
+  false_alerts_per_10min: 2.0
+  median_latency_events: 3
+
+progressive_faults: [overheating, battery_drain, link_degradation]
+
+# Incident grouping, shared by every detector, chosen once on validation.
+incident_grid:
+  open_n: [1, 2, 3]
+  close_m: [5, 10, 20]
+  cooldown_c: [30, 60]
+
+# Threshold candidates are quantiles of the detector's validation scores.
+threshold_candidates: 80
+
+bootstrap:
+  n_resamples: 2000
+  seed: 7
