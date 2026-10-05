@@ -9,11 +9,11 @@ venv/
 htmlcov/
 
 # Generated data, model artifacts, scratch results
-data/
-models/*
-!models/registry.json
-results/*
-!results/official/
+/data/
+/models/*
+!/models/registry.json
+/results/*
+!/results/official/
 
 # Editors / OS
 .DS_Store

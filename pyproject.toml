@@ -24,12 +24,19 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5", "httpx>=0.27"]
 
+[project.scripts]
+signal-data = "fleet_signal.data.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    # Raised inside pandas 2.3 when running against numpy 2.5; not from our code.
+    "ignore:The 'generic' unit for NumPy timedelta is deprecated:DeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 100

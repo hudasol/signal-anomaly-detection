@@ -1,0 +1,189 @@
+# Telemetry generation config for Signal.
+#
+# Every number here is a design choice that shapes what "normal" and "fault"
+# look like. Changing this file changes the data version hash, so results are
+# always traceable to the exact config that produced them.
+#
+# Units follow the blackbox-telemetry contract: battery_pct and
+# link_quality_pct are 0-100, temperature_c in Celsius, positions in metres,
+# speed in m/s, heading in degrees [0, 360).
+
+generator_version: "1.0.0"
+
+tick_hz: 1                     # matches blackbox simulator default tick
+run_duration_s: 1200           # 20 minutes per run
+start_epoch_utc: "2026-09-01T00:00:00Z"
+run_spacing_s: 3600            # run seed s starts at epoch + s * spacing
+packet_loss_prob: 0.002        # independent per-event loss; seq still advances
+ambient_c: [22.0, 42.0]        # per-run ambient temperature (UAE daytime range)
+
+fleet:
+  - {asset_id: drone-01, asset_type: drone, base_xy: [0.0, 0.0]}
+  - {asset_id: rover-01, asset_type: rover, base_xy: [20.0, 0.0]}
+  - {asset_id: quad-01, asset_type: quadruped, base_xy: [-20.0, 0.0]}
+
+profiles:
+  drone:
+    cruise_speed: [8.0, 12.0]     # m/s, sampled once per asset per run
+    accel: 3.0                    # m/s^2
+    turn_rate: 90.0               # deg/s
+    work_radius_m: 700.0
+    link_range_m: 900.0
+    cruise_alt_m: [30.0, 60.0]
+    hover_alt_m: [10.0, 30.0]
+    climb_rate: 2.0               # m/s
+    drain_idle: 0.2               # %/min at zero load
+    drain_load: 4.0               # %/min per unit load
+    charge_rate: 8.0              # %/min below 80%, tapers above
+    heat_gain_c: 18.0             # equilibrium rise at load 1.0
+    charge_heat_c: 6.0
+    thermal_tau_s: 90.0
+    rtb_battery_pct: 30.0
+    loads: {parked: 0.05, inspect: 0.55, moving: 0.75, returning: 0.75, charging: 0.1, manoeuvre: 1.0}
+    noise: {gps_m: 0.5, alt_m: 0.3, speed: 0.15, temp: 0.15, battery: 0.01, heading: 1.0}
+    hover_drift_speed: 0.3
+  rover:
+    cruise_speed: [1.0, 2.0]
+    accel: 0.5
+    turn_rate: 30.0
+    work_radius_m: 300.0
+    link_range_m: 400.0
+    cruise_alt_m: [0.0, 0.0]
+    hover_alt_m: [0.0, 0.0]
+    climb_rate: 0.0
+    drain_idle: 0.1
+    drain_load: 1.2
+    charge_rate: 4.0
+    heat_gain_c: 15.0
+    charge_heat_c: 4.0
+    thermal_tau_s: 150.0
+    rtb_battery_pct: 25.0
+    loads: {parked: 0.05, inspect: 0.3, moving: 0.6, returning: 0.6, charging: 0.1, manoeuvre: 1.0}
+    noise: {gps_m: 0.25, alt_m: 0.3, speed: 0.05, temp: 0.15, battery: 0.01, heading: 1.0}
+    hover_drift_speed: 0.0
+  quadruped:
+    cruise_speed: [0.8, 1.6]
+    accel: 0.6
+    turn_rate: 45.0
+    work_radius_m: 250.0
+    link_range_m: 350.0
+    cruise_alt_m: [0.0, 0.0]
+    hover_alt_m: [0.0, 0.0]
+    climb_rate: 0.0
+    drain_idle: 0.15
+    drain_load: 2.2
+    charge_rate: 5.0
+    heat_gain_c: 20.0
+    charge_heat_c: 5.0
+    thermal_tau_s: 120.0
+    rtb_battery_pct: 25.0
+    loads: {parked: 0.05, inspect: 0.35, moving: 0.7, returning: 0.7, charging: 0.1, manoeuvre: 1.0}
+    noise: {gps_m: 0.3, alt_m: 0.3, speed: 0.05, temp: 0.15, battery: 0.01, heading: 1.0}
+    hover_drift_speed: 0.0
+
+mission:
+  start_battery_pct: [45.0, 100.0]
+  initial_park_s: [5, 60]
+  inspect_s: [30, 150]
+  waypoint_min_frac: 0.3          # waypoints at least this fraction of work radius from base
+  charge_target_pct: [90.0, 98.0]
+  post_charge_park_s: [5, 30]
+  arrival_tol_m: 3.0
+
+link:
+  path_loss_coeff: 0.7            # lq = 100 * (1 - coeff * (d / range)^1.5)
+  fade_std: 3.0                   # slow AR(1) fading component
+  fade_phi: 0.98
+  white_std: 1.5
+
+# "Difficult normal" episodes. These are NORMAL behaviour and must not become
+# incidents. Logged to an evaluation-only episodes table for error analysis.
+episodes:
+  scheduled_rtb_prob: 0.5         # per asset per run: an unplanned return + top-up charge
+  scheduled_rtb_frac: [0.15, 0.85]
+  hard_manoeuvre_rate_per_s: 0.005  # start probability per moving tick
+  hard_manoeuvre_s: [4, 12]
+  hard_manoeuvre_speed_mult: [1.3, 1.8]
+  hard_manoeuvre_swerve_deg: [40.0, 120.0]
+  noisy_link_prob: 0.5            # per asset per run
+  noisy_link_s: [60, 240]
+  noisy_link_white_std: 7.0
+  noisy_link_fade_std: 6.0
+
+# Fault scenarios. Each run has at most one fault on one asset.
+# - `ranges.standard` is used for validation; `ranges.wide` for test (wider
+#   and weaker), so the test set is not a copy of what thresholds were tuned on.
+# - variants marked test_only never appear in validation.
+faults:
+  onset_frac: [0.25, 0.60]
+  sensor_trigger_timeout_s: 300   # sensor faults wait for the asset to be moving, up to this long
+  overheating:
+    progressive: true
+    variants:
+      linear: {test_only: false}
+      runaway: {test_only: true}
+    ranges:
+      standard: {rate_c_per_min: [4.0, 10.0], runaway_coeff: [0.3, 0.8], cap_c: 40.0}
+      wide: {rate_c_per_min: [2.0, 14.0], runaway_coeff: [0.3, 0.8], cap_c: 40.0}
+  battery_drain:
+    progressive: true
+    variants:
+      step: {test_only: false}
+      accelerating: {test_only: true}
+    ranges:
+      standard: {extra_pct_per_min: [2.0, 5.0], accel_pct_per_min2: [0.5, 1.5]}
+      wide: {extra_pct_per_min: [1.0, 6.5], accel_pct_per_min2: [0.5, 1.5]}
+  link_degradation:
+    progressive: true
+    variants:
+      decline: {test_only: false}
+      oscillation: {test_only: false}
+      intermittent: {test_only: true}
+    ranges:
+      standard:
+        decline_pct_per_min: [8.0, 20.0]
+        dropout_floor: [0.0, 5.0]
+        osc_amp_pct: [20.0, 45.0]
+        osc_period_s: [12.0, 40.0]
+        osc_duration_s: [180, 480]
+        intermittent_gap_s: [8, 20]
+        intermittent_len_s: [2, 6]
+      wide:
+        decline_pct_per_min: [4.0, 30.0]
+        dropout_floor: [0.0, 5.0]
+        osc_amp_pct: [12.0, 55.0]
+        osc_period_s: [8.0, 60.0]
+        osc_duration_s: [120, 480]
+        intermittent_gap_s: [6, 25]
+        intermittent_len_s: [2, 8]
+  sensor_freeze:
+    progressive: false
+    variants:
+      temperature_c: {test_only: false}
+      battery_pct: {test_only: false}
+      link_quality_pct: {test_only: false}
+      speed_mps: {test_only: false}
+      position: {test_only: true}
+      multi: {test_only: true}
+    ranges:
+      standard: {duration_s: [60, 240]}
+      wide: {duration_s: [40, 300]}
+  motion_anomaly:
+    progressive: false
+    variants:
+      jump: {test_only: false}
+      speed_mismatch: {test_only: false}
+      drift: {test_only: true}
+    ranges:
+      standard:
+        duration_s: [30, 180]
+        jump_m: [40.0, 150.0]
+        mismatch_low: [0.0, 0.3]
+        mismatch_high: [2.5, 4.0]
+        drift_mps: [1.5, 5.0]
+      wide:
+        duration_s: [20, 240]
+        jump_m: [15.0, 250.0]
+        mismatch_low: [0.0, 0.5]
+        mismatch_high: [1.8, 5.0]
+        drift_mps: [1.0, 6.0]

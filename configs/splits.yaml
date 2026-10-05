@@ -1,0 +1,41 @@
+# Train / validation / test split, by seed. Never by row.
+#
+# run_id = "r<seed>". It carries no scenario information.
+# Seed ranges are disjoint, and runs are also disjoint in time
+# (a run starts at start_epoch_utc + seed * run_spacing_s), so test runs come
+# strictly after every train and validation run.
+#
+# Scenarios are assigned to seeds within a split by a fixed shuffle
+# (assignment_seed), so seed order does not reveal the scenario. The resulting
+# run -> scenario mapping is written only to the ground-truth files.
+
+assignment_seed: 20261005
+
+splits:
+  train:
+    seed_start: 1000
+    fault_ranges: null           # normal only: models learn the normal envelope
+    include_test_only_variants: false
+    composition: {normal: 40}
+  validation:
+    seed_start: 2000
+    fault_ranges: standard
+    include_test_only_variants: false
+    composition:
+      normal: 10
+      overheating: 6
+      battery_drain: 6
+      link_degradation: 6
+      sensor_freeze: 6
+      motion_anomaly: 6
+  test:
+    seed_start: 3000
+    fault_ranges: wide
+    include_test_only_variants: true
+    composition:
+      normal: 15
+      overheating: 9
+      battery_drain: 9
+      link_degradation: 9
+      sensor_freeze: 9
+      motion_anomaly: 9
