@@ -81,4 +81,8 @@ class StatsDetector(Detector):
         return pd.DataFrame(np.abs(self._z(feats)), index=feats.index, columns=self.features)
 
     def _raw_score(self, feats: pd.DataFrame) -> np.ndarray:
-        return np.nanmax(np.abs(self._z(feats)), axis=1)
+        z = np.abs(self._z(feats))
+        out = np.full(len(feats), np.nan)  # rows with no statistics (unknown type) stay NaN
+        has = ~np.isnan(z).all(axis=1)
+        out[has] = np.nanmax(z[has], axis=1)
+        return out

@@ -74,6 +74,13 @@ def test_rule_not_applicable_score() -> None:
     assert (det.score(_rows(mode="charging")) == NOT_APPLICABLE).all()
 
 
+@pytest.mark.parametrize("make", [RuleDetector, lambda: StatsDetector().fit(_rows(300))])
+def test_unknown_asset_type_gets_no_score(make) -> None:
+    det = make()
+    rows = _rows(asset_type="submarine", asset_id="sub-01")
+    assert np.isnan(det.score(rows)).all()
+
+
 def test_unscorable_rows_get_nan_not_normal() -> None:
     rows = _rows(temp_slope_l=99.0)
     rows.loc[0, "history_ok"] = False

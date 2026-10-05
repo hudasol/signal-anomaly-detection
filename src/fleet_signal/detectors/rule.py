@@ -60,8 +60,22 @@ class RuleDetector(Detector):
             out[rule["name"]] = s
         return pd.DataFrame(out, index=feats.index)
 
+    @property
+    def known_asset_types(self) -> set[str]:
+        types: set[str] = set()
+        for rule in self.rules:
+            table = rule.get("limit_by_mode", rule.get("limit"))
+            if isinstance(table, dict):
+                types |= set(table)
+        return types
+
     def _raw_score(self, feats: pd.DataFrame) -> np.ndarray:
         c = self._contributions(feats).to_numpy()
         all_nan = np.isnan(c).all(axis=1)
         best = np.nanmax(np.where(all_nan[:, None], NOT_APPLICABLE, c), axis=1)
+        # An asset type the rules were never written for gets no score (never "normal").
+        known = self.known_asset_types
+        if known:
+            unknown = ~feats["asset_type"].isin(known).to_numpy()
+            best = np.where(unknown, np.nan, best)
         return best

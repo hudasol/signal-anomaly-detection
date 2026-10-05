@@ -150,7 +150,7 @@ Rule minus LOF recall: +0.10 (paired bootstrap CI 0.00 to 0.22). The trade-off g
 
 The code and registry were committed (`05fcfcb`) **before** the test split was read. LOF artifacts are about 25 MB (LOF keeps its training points), so artifacts are not committed; `signal-train` rebuilds them deterministically.
 
-**Official test result** (`signal-eval test`, frozen thresholds, incident params N=2 / M=5 / C=30; 60 runs, 45 faults, 1,105 normal fleet-minutes):
+**Official test result** (`signal-eval test`, frozen thresholds, incident params N=2 / M=5 / C=30; 60 runs, 45 faults, 969.5 normal fleet-minutes):
 
 | | Precision | Recall | F1 | False incidents / 10 min | Median progressive latency | Bar |
 |---|---|---|---|---|---|---|
@@ -183,3 +183,13 @@ The code and registry were committed (`05fcfcb`) **before** the test split was r
 **Checked live:** uvicorn with the shipped model scored seq 700 of test run r3006 as `anomalous` (evidence: `temp_rise`). After renaming the artifact, `/health` and `/score` both return 503 `unavailable`. Replaying r3006 reproduces the official latencies exactly (rule 61 events, LOF 10).
 
 **One change while building:** evidence for the rule detector used to list rules that had *not* fired, with negative margins, which would mislead an operator. Evidence now shows the strongest signal plus any others with a non-negative contribution. This affects only the explanation, not scores or decisions.
+
+### Section 9: documentation
+
+DATA_CARD, MODEL_CARD, EVALUATION and RETROSPECTIVE written from the saved outputs, not from memory. Writing them found three things:
+
+1. **Fail-safe bug (fixed).** For an asset type the rules have no limits for, the rule detector fell back to its "nothing fired" score (−10), which the service would have reported as **normal**. Unknown asset types now get no score from every detector, so the service answers `degraded`. A test was added. Verified afterwards: the frozen artifacts reproduce the committed validation report exactly, because the fix only touches asset types absent from the data.
+2. **Wrong number in this log.** The Section 7 entry said 1,105 normal fleet-minutes; the saved test result says 969.5. Corrected.
+3. **Stale threshold claim.** My first EVALUATION draft quoted incident counts from an early sweep that used different incident params. Rewritten from `results/validation/*_threshold_curve.csv`. In the process I found the precision constraint cost LOF two validation faults: one step lower it had recall 0.90 at precision 0.79.
+
+Also verified for the error analysis: the r3015 battery-drain miss happens at 60–72 % charge, where charging should be fast. It is missed because no feature knows that normal charge rate depends on state of charge, not because of taper at that moment.
