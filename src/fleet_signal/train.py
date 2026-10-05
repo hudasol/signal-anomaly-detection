@@ -11,6 +11,7 @@ the exact file that was evaluated.
 from __future__ import annotations
 
 import argparse
+import json
 import time
 
 from fleet_signal.data.config import load_config
@@ -20,9 +21,11 @@ from fleet_signal.detectors.lof import LOFDetector
 from fleet_signal.detectors.rule import RuleDetector
 from fleet_signal.detectors.stats import StatsDetector
 from fleet_signal.eval.protocol import EvalConfig
-from fleet_signal.eval.validate import select_on_validation
+from fleet_signal.eval.validate import VALIDATION_DIR, select_on_validation
 from fleet_signal.features.build import FeatureConfig
 from fleet_signal.registry import ModelArtifact, git_sha, register, save_artifact
+
+ML_SELECTION = VALIDATION_DIR / "ml_selection.json"
 
 FACTORIES: dict[str, type[Detector]] = {
     "rule": RuleDetector,
@@ -31,9 +34,19 @@ FACTORIES: dict[str, type[Detector]] = {
 }
 
 
+def _make(name: str) -> Detector:
+    """The ML detector is built with the hyperparameters chosen by `signal-eval select-model`."""
+    if name == "lof" and ML_SELECTION.exists():
+        chosen = json.loads(ML_SELECTION.read_text())["chosen"]
+        if chosen["model"] != "lof":
+            raise SystemExit(f"model selection chose {chosen['model']}, not lof")
+        return LOFDetector(**chosen["params"])
+    return FACTORIES[name]()
+
+
 def train_and_freeze(names: list[str]) -> list[ModelArtifact]:
     gen_cfg, ecfg, fcfg = load_config(), EvalConfig.load(), FeatureConfig.load()
-    detectors = [FACTORIES[n]() for n in names]
+    detectors = [_make(n) for n in names]
     sel = select_on_validation(detectors, gen_cfg, ecfg)  # fits on train, selects on validation
     sha = git_sha()
     arts = []
