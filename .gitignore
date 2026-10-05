@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated data, model artifacts, scratch results
+data/
+models/*
+!models/registry.json
+results/*
+!results/official/
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
