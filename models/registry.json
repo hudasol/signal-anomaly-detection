@@ -86,13 +86,10 @@
   "provenance": {
     "evaluated_artifacts_committed": true,
     "frozen_code_commit": "05fcfcb",
+    "official_result_commit": "6683640",
     "note_on_git_sha": "Each artifact's git_sha (ca162fa) is HEAD at training time; the freeze code itself was uncommitted in the working tree and committed as 05fcfcb before the test split was read.",
-    "code_changes_after_official_test": [
-      "079b2d5 evidence shows only signals pushing towards anomalous (explanations only)",
-      "07aab1d unknown asset types get no score instead of rule 'nothing fired' (absent from the data)",
-      "this release: scorer refuses truncated mid-run windows (service only; evaluation scores whole runs)"
-    ],
-    "verified_unchanged": "A fresh clone at 1cdbaaf (after 07aab1d) re-ran the whole pipeline including the test into a scratch folder and reproduced every official number and decision exactly; frozen artifacts re-evaluated on validation match the committed report.",
-    "detector_code_hash_now": "4ffe52c30c"
+    "code_changes_since_freeze": "Run `signal-eval audit`: it lists, live from git, every commit since 05fcfcb that touched scoring code, and the current detector_code_hash. A stored snapshot would go stale.",
+    "verified_unchanged": "After each post-test code change the frozen artifacts were re-scored on validation and matched the committed report exactly; a scratch clone after 07aab1d re-ran the whole pipeline including the test and reproduced every official number and decision.",
+    "detector_code_hash_coverage": "Recorded in metadata.json for artifacts saved after 2026-10-06 (pre-release review). The three evaluated artifacts predate it; their code is identified by frozen_code_commit plus the git history above."
   }
 }

@@ -63,7 +63,7 @@ Computed by `fleet_signal.features.build_features`, identical at training, evalu
 
 ## Shipped model: rule baseline
 
-Eleven transparent rules, each comparing one feature to a limit per asset type (battery: per type and mode, only once the asset has been in the mode for 120 s). Limits were set by hand from **train-normal envelopes only**, about 10–20 % beyond the largest normal value (`configs/detectors.yaml`). Rules cover temperature rise, battery drain, link dropout or instability, five frozen-field rules, speed/position mismatch and position jumps. Score = worst rule margin in units of its scale; frozen threshold **−0.087** (chosen on validation; 0 would be exactly at the written limits).
+Eleven transparent rules, each comparing one feature to a limit per asset type (battery: per type and mode, only once the asset has been in the mode for 120 s). Limits were set by hand from **train-normal envelopes only**, at or beyond the largest train-normal value: about 5–25 % beyond it for the continuous signals (e.g. drone link std 14.0 vs a normal maximum of 13.3), and 2–8× the normal maximum for the freeze counters (position freeze: 3 repeats, where normal is 0) (e.g. 8 identical speed readings while moving vs a normal maximum of 2–3), see `results/validation/rule_envelopes_train.csv` (`configs/detectors.yaml`). Rules cover temperature rise, battery drain, link dropout or instability, five frozen-field rules, speed/position mismatch and position jumps. Score = worst rule margin in units of its scale; frozen threshold **−0.087** (chosen on validation; 0 would be exactly at the written limits).
 
 Evidence = the rule(s) that fired, with their margin.
 
@@ -91,7 +91,7 @@ Full tables, confidence intervals and per-fault results are in EVALUATION.md.
 ## Known failure cases
 
 - **Warm-up after start (rule):** first 1–2 minutes of motion can look like overheating; 9 of 12 rule false incidents.
-- **Brief mode flips (LOF):** a charging → returning → charging blip produced LOF's highest false score.
+- **Brief mode flips (LOF):** a 4-second charging → idle → returning → charging flip produced LOF's highest false score.
 - **Faults during charging:** extra drain while charging is missed by every detector (no state-of-charge context). A speed frozen at 0 during charging is missed by the rule (its freeze rules only run while moving) and LOF (input clipping), though robust z catches it.
 - **Fragmented incidents:** one long fault can become several incidents when its alerts pause for longer than the cooldown (LOF: up to 6 on one fault).
 - **Slow link decline (rule misses, LOF late):** fading masks declines below about 20 %/min.

@@ -22,6 +22,13 @@ stats-ab89662ec6: fitted on 40 runs, all in train: True; any test run used: Fals
 lof-a588a4d11b: fitted on 40 runs, all in train: True; any test run used: False
 runs referenced in the validation selection outputs: 32, all in validation: True; any test run: False
 official test report: results/official/test_report_4530f6a108.json
+detector_code_hash now: e9b6936a73
+scoring-code commits since freeze (05fcfcb): 5
+  62e6158 repro + code: pinned environment, mypy in CI, true end-to-end test, Dockerfile, small fixes
+  cb1df60 fix(service): never score a truncated mid-run window (was a silent-normal path)
+  1cdbaaf feat(demo): acceptance runbook, audit/show/demo-threshold commands
+  07aab1d docs: data card, model card, evaluation, retrospective, full README
+  079b2d5 feat(service): scorer with explicit failure states, streaming incidents, API, replay
 ```
 
 Then point at:
@@ -159,7 +166,7 @@ mypy                            # no issues
 | 0:00–0:30 | README result table | the problem, what was built, the one-line conclusion |
 | 0:30–1:15 | `signal-eval audit`, splits.yaml, git log | split by seed and time, test run once, registry committed before the test |
 | 1:15–2:15 | §3 replay r3006 (LOF then rule) | score crossing, incident opens, latency 10 vs 61; incident closes and re-opens |
-| 2:15–2:45 | §2 replay r3048 | normal run: rule 3 warm-up false alarms, LOF 0 |
+| 2:15–2:45 | §2 replay r3048 | normal run: rule 3 false alarms (2 warm-up, 1 on the drone at seq 973), LOF 0 |
 | 2:45–3:30 | `signal-eval show` + recall-by-fault figure | three detectors on the same test; why the rule ships; the ship-rule gap |
 | 3:30–4:30 | §5 FP r3003 and FN r3015 | mode-transition false alarm; drain hidden by charging; what I'd change |
 | 4:30–5:15 | §6 demo-threshold + sensitivity figure | trade-off, then back to frozen (nothing changed) |

@@ -108,7 +108,8 @@ CODE_SOURCES: tuple[str, ...] = ("detectors", "features")
 def detector_code_hash() -> str:
     """Hash of the code that turns telemetry into a score (detectors + feature builder).
 
-    Recorded next to every artifact. It is deliberately NOT part of `model_version`:
+    Recorded in metadata.json for every artifact saved since 2026-10-06 (the three
+    evaluated artifacts predate it). It is deliberately NOT part of `model_version`:
     the version identifies what was fitted and frozen; this records which code ran it.
     """
     h = hashlib.sha256()

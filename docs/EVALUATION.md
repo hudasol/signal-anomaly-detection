@@ -23,7 +23,7 @@ An alarm that was already open before a fault started counts as a true positive 
 
 **Split.** Test is 60 runs (15 normal, 45 fault), seeds 3000–3059. It contains 969.5 minutes of normal fleet time. 16 of its 45 faults are variants never seen in validation.
 
-**Disclosure: test data was looked at before the freeze.** While building the generator (Section 2), the data-sanity plot gallery drew one example of every fault variant from validation **and test**, and I viewed three test runs (r3000, r3032, r3037) to check the generator. That was before the rule limits were set (01:12) and before the official run (01:34 on 6 Oct). The rule limits were taken from train-normal envelopes only (`results/validation/rule_envelopes_train.csv`), and no threshold, feature, model or parameter was chosen from those plots, but "test never seen before the freeze" is not literally true and is not claimed. The gallery is now validation-only.
+**Disclosure: test data was looked at before the freeze.** While building the generator (PROCESS_LOG, Section 2), the data-sanity plot gallery drew one example of every fault variant from validation **and test**, and I viewed three test runs (r3000, r3032, r3037) to check the generator. That was before the rule limits were set (01:12) and before the official run (01:34 on 6 Oct). The rule limits were taken from train-normal envelopes only (`results/validation/rule_envelopes_train.csv`), and no threshold, feature, model or parameter was chosen from those plots, but "test never seen before the freeze" is not literally true and is not claimed. The gallery is now validation-only.
 
 ## 2. Official test result
 

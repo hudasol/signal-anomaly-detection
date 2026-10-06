@@ -1,7 +1,7 @@
 # Baseline detectors.
 #
 # Rule limits were set by hand from TRAIN-normal envelopes only
-# (`signal-features describe` / PROCESS_LOG 2026-10-06), about 10-20% beyond the
+# (`signal-features describe` / PROCESS_LOG 2026-10-06), at or beyond the
 # largest normal value, never from fault runs. Score for one rule:
 #   ">" rules: (value - limit) / scale      "<" rules: (limit - value) / scale
 # The detector score is the max over applicable rules, so 0 means "a rule fires

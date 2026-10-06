@@ -64,7 +64,34 @@ def audit() -> list[str]:
                  f"validation: {used <= val}; any test run: {bool(used & test)}")  # fmt: skip
     if "official_test_report" in reg:
         lines.append(f"official test report: {reg['official_test_report']}")
+    lines += code_provenance(reg)
     return lines
+
+
+SCORING_CODE = ("src/fleet_signal/detectors", "src/fleet_signal/features",
+                "src/fleet_signal/incidents", "src/fleet_signal/service")  # fmt: skip
+
+
+def code_provenance(reg: dict[str, Any]) -> list[str]:
+    """Live, from git: what scoring code changed since the models were frozen."""
+    import subprocess
+
+    from fleet_signal.registry import detector_code_hash
+
+    frozen = reg.get("provenance", {}).get("frozen_code_commit")
+    out = [f"detector_code_hash now: {detector_code_hash()}"]
+    if not frozen:
+        return out
+    try:
+        log = subprocess.run(
+            ["git", "log", "--format=%h %s", f"{frozen}..HEAD", "--", *SCORING_CODE],
+            capture_output=True, text=True, check=True, cwd=REPO_ROOT,
+        ).stdout.strip().splitlines()  # fmt: skip
+    except (OSError, subprocess.CalledProcessError):
+        return out + ["(git history unavailable)"]
+    out.append(f"scoring-code commits since freeze ({frozen}): {len(log)}")
+    out += [f"  {line[:100]}" for line in log]
+    return out
 
 
 def show() -> list[str]:

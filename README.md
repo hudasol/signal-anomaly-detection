@@ -95,7 +95,7 @@ SIGNAL_ARTIFACT=models/lof/<version>/model.joblib uvicorn fleet_signal.service.a
 curl localhost:8000/health
 curl localhost:8000/model
 curl -X POST localhost:8000/score -H 'content-type: application/json' \
-     -d '{"events": [ ...one asset, oldest first, up to 650 events... ]}'
+     -d '{"events": [ ...one asset, oldest first: 650 events, or all since the run started... ]}'
 ```
 
 Responses carry `status` (`ok`, `insufficient_data`, `degraded`, `unavailable`), `score`, `threshold`, `decision`, `model_version` and `evidence`. Without a usable model, `/score` returns HTTP 503 `unavailable`. Send 650 events (or everything since the run started): a shorter mid-run window would cut off look-back features, so it gets `insufficient_data`. The service never answers `normal` without a full-context score.
