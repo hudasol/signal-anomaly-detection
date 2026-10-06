@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from pathlib import Path
 
@@ -14,11 +15,14 @@ from fleet_signal.eval.decision import best_baseline, ship_decision
 from fleet_signal.features.build import FeatureConfig
 from fleet_signal.registry import (
     ArtifactError,
+    EvaluatedModelError,
     ModelArtifact,
     load_artifact,
     read_registry,
     register,
     save_artifact,
+    sha256_file,
+    write_registry,
 )
 
 FCFG = FeatureConfig.load()
@@ -136,3 +140,23 @@ def test_paired_latency_uses_only_faults_both_detected() -> None:
     out = paired_latency(pf([10, 20, None]), pf([30, 50, 5]), ("overheating",), 200, 0)
     assert out["n_paired"] == 2
     assert out["median_diff"] == pytest.approx(-25.0)
+
+
+def test_artifact_bytes_are_deterministic(tmp_path: Path) -> None:
+    a = save_artifact(_art(), tmp_path / "a")
+    b = save_artifact(_art(), tmp_path / "b")
+    assert sha256_file(a) == sha256_file(b)
+    meta = json.loads((a.parent / "metadata.json").read_text())
+    assert meta["created_utc"] and len(meta["detector_code_hash"]) == 10
+
+
+def test_evaluated_model_cannot_be_overwritten(tmp_path: Path) -> None:
+    art = _art()
+    path = save_artifact(art, tmp_path)
+    reg_path = tmp_path / "registry.json"
+    register(art, path, reg_path)
+    reg = read_registry(reg_path)
+    reg["models"]["rule"]["official_test_result"] = "results/official/test_rule_x.json"
+    write_registry(reg, reg_path)
+    with pytest.raises(EvaluatedModelError):
+        register(_art(0.7), save_artifact(_art(0.7), tmp_path), reg_path)

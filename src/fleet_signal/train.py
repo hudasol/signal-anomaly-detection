@@ -3,9 +3,12 @@
     signal-train                    rule, stats and lof -> models/ + models/registry.json
 
 Deterministic: the same data version and code give the same model versions and
-thresholds. Artifact bytes differ between builds only because each artifact
-records its own creation time and git SHA; the registry stores the SHA-256 of
-the exact file that was evaluated.
+thresholds, and (since 2026-10-06) the same artifact bytes; creation time and
+git SHA live in metadata.json, not in the pickle.
+
+Evaluated models are never overwritten. If the registry entry already has an
+official test result and the committed artifact on disk matches its SHA-256,
+training keeps it untouched; replacing it is refused.
 """
 
 from __future__ import annotations
@@ -23,7 +26,15 @@ from fleet_signal.detectors.stats import StatsDetector
 from fleet_signal.eval.protocol import EvalConfig
 from fleet_signal.eval.validate import VALIDATION_DIR, select_on_validation
 from fleet_signal.features.build import FeatureConfig
-from fleet_signal.registry import ModelArtifact, git_sha, register, save_artifact
+from fleet_signal.registry import (
+    EvaluatedModelError,
+    ModelArtifact,
+    git_sha,
+    is_frozen_and_present,
+    read_registry,
+    register,
+    save_artifact,
+)
 
 ML_SELECTION = VALIDATION_DIR / "ml_selection.json"
 
@@ -64,10 +75,25 @@ def train_and_freeze(names: list[str]) -> list[ModelArtifact]:
             validation_summary={**sel.results[det.name].summary, "feasible": pick["feasible"]},
             git_sha=sha,
         )
-        path = save_artifact(art)
-        register(art, path)
+        if is_frozen_and_present(det.name, art.model_version):
+            print(f"{art.model_version}: evaluated artifact present and verified; kept as is")
+        else:
+            register_guard(det.name)
+            path = save_artifact(art)
+            register(art, path)
         arts.append(art)
     return arts
+
+
+def register_guard(name: str) -> None:
+    """Fail BEFORE writing a file if this would replace an evaluated model."""
+    entry = read_registry()["models"].get(name)
+    if entry and entry.get("official_test_result"):
+        raise EvaluatedModelError(
+            f"{name}: the evaluated artifact {entry['artifact']} is missing or does not match "
+            "its registry SHA-256, and this registry entry has an official test result. "
+            "Restore it with `git checkout -- models/` instead of retraining."
+        )
 
 
 def main(argv: list[str] | None = None) -> None:

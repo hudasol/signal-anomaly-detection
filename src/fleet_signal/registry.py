@@ -18,7 +18,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -102,11 +102,32 @@ def artifact_path(art: ModelArtifact, root: Path = MODELS_DIR) -> Path:
     return Path(root) / art.detector_name / art.model_version / "model.joblib"
 
 
+CODE_SOURCES: tuple[str, ...] = ("detectors", "features")
+
+
+def detector_code_hash() -> str:
+    """Hash of the code that turns telemetry into a score (detectors + feature builder).
+
+    Recorded next to every artifact. It is deliberately NOT part of `model_version`:
+    the version identifies what was fitted and frozen; this records which code ran it.
+    """
+    h = hashlib.sha256()
+    pkg = Path(__file__).parent
+    for sub in CODE_SOURCES:
+        for f in sorted((pkg / sub).glob("*.py")):
+            h.update(f.name.encode())
+            h.update(f.read_bytes())
+    return h.hexdigest()[:10]
+
+
 def save_artifact(art: ModelArtifact, root: Path = MODELS_DIR) -> Path:
+    """Write the artifact. The pickle holds no timestamp or git SHA, so the same model
+    gives the same bytes; creation time, git SHA and code hash go to metadata.json."""
     path = artifact_path(art, root)
     path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(art, path)
-    (path.parent / "metadata.json").write_text(json.dumps(art.metadata(), indent=2, default=str))
+    joblib.dump(replace(art, created_utc="", git_sha=None), path)
+    meta = art.metadata() | {"detector_code_hash": detector_code_hash()}
+    (path.parent / "metadata.json").write_text(json.dumps(meta, indent=2, default=str))
     return path
 
 
@@ -145,8 +166,32 @@ def write_registry(reg: dict[str, Any], path: Path = REGISTRY_PATH) -> None:
     Path(path).write_text(json.dumps(reg, indent=2, default=str) + "\n")
 
 
+class EvaluatedModelError(RuntimeError):
+    """Refusing to replace an artifact that already has an official test result."""
+
+
+def is_frozen_and_present(name: str, model_version: str, reg_path: Path = REGISTRY_PATH) -> bool:
+    """True if `name` already holds this exact evaluated artifact on disk (SHA verified)."""
+    entry = read_registry(reg_path)["models"].get(name)
+    if not entry or not entry.get("official_test_result"):
+        return False
+    path = REPO_ROOT / entry["artifact"]
+    return (
+        entry["model_version"] == model_version
+        and path.exists()
+        and sha256_file(path) == entry["artifact_sha256"]
+    )
+
+
 def register(art: ModelArtifact, path_on_disk: Path, reg_path: Path = REGISTRY_PATH) -> None:
     reg = read_registry(reg_path)
+    old = reg["models"].get(art.detector_name)
+    if old and old.get("official_test_result"):
+        raise EvaluatedModelError(
+            f"{art.detector_name} {old['model_version']} has an official test result "
+            f"({old['official_test_result']}); refusing to overwrite its registry entry. "
+            "The evaluated artifact is committed under models/; restore it with git."
+        )
     rel = Path(path_on_disk).resolve()
     try:
         rel = rel.relative_to(REPO_ROOT)
@@ -171,6 +216,7 @@ def register(art: ModelArtifact, path_on_disk: Path, reg_path: Path = REGISTRY_P
         .get(art.detector_name, {})
         .get("official_test_result"),
         "git_sha": art.git_sha,
+        "detector_code_hash": detector_code_hash(),
         "created_utc": art.created_utc,
     }
     write_registry(reg, reg_path)

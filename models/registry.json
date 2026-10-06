@@ -82,5 +82,17 @@
     "best_baseline": "rule",
     "reason": "recall difference +0.044 (CI -0.078 to +0.163) does not show ML is better; latency advantage not established"
   },
-  "official_test_report": "results/official/test_report_4530f6a108.json"
+  "official_test_report": "results/official/test_report_4530f6a108.json",
+  "provenance": {
+    "evaluated_artifacts_committed": true,
+    "frozen_code_commit": "05fcfcb",
+    "note_on_git_sha": "Each artifact's git_sha (ca162fa) is HEAD at training time; the freeze code itself was uncommitted in the working tree and committed as 05fcfcb before the test split was read.",
+    "code_changes_after_official_test": [
+      "079b2d5 evidence shows only signals pushing towards anomalous (explanations only)",
+      "07aab1d unknown asset types get no score instead of rule 'nothing fired' (absent from the data)",
+      "this release: scorer refuses truncated mid-run windows (service only; evaluation scores whole runs)"
+    ],
+    "verified_unchanged": "A fresh clone at 1cdbaaf (after 07aab1d) re-ran the whole pipeline including the test into a scratch folder and reproduced every official number and decision exactly; frozen artifacts re-evaluated on validation match the committed report.",
+    "detector_code_hash_now": "4ffe52c30c"
+  }
 }
