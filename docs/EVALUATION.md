@@ -1,6 +1,8 @@
 # Evaluation
 
-All numbers below come from saved outputs: `results/validation/` (selection) and `results/official/` (the test, run once). Figures are re-rendered from those files with `signal-eval plots`.
+> **Headline: the shipped system does not meet the brief's bar.** The rule baseline (shipped by the pre-declared decision rule) misses the recall bar by one fault (0.844 vs 0.85) and the latency bar by a wide margin (71 events vs 3). LOF meets precision, recall and false alerts but also misses latency (16 vs 3). No detector meets the 3-event latency bar for slow progressive faults (§8 pattern 5).
+
+All numbers below come from saved outputs: `results/validation/` (selection) and `results/official/` (the test, run once). Figures are re-rendered from those files with `signal-eval plots`. Corrections made after an independent pre-release review are listed in PROCESS_LOG.md ("Pre-release review").
 
 ## 1. Protocol
 
@@ -9,7 +11,7 @@ All numbers below come from saved outputs: `results/validation/` (selection) and
 | Unit of detection | **fault event**: one injected fault on one asset in one run |
 | Detected | an incident **opens or re-opens** on the faulted asset in `[fault_start, fault_end + 10)` |
 | Recall | detected fault events / fault events |
-| Precision | incidents overlapping a fault window on the right asset / all incidents |
+| Precision | incidents overlapping a fault window on the right asset / all incidents (**incident precision**; per-fault precision, which cannot be raised by splitting a fault into several incidents, is reported alongside: §2) |
 | False-alert rate | incidents overlapping no fault, per **10 minutes of normal fleet time** (scorable asset-seconds outside fault windows ÷ 3 assets) |
 | Latency | events from `fault_start` to the first in-window open; the bar applies to progressive faults (overheating, battery drain, link degradation) |
 | Incident grouping | open after N = 2 consecutive alerts, close after M = 5 quiet events, re-open within C = 30 events counts as the same incident; chosen on validation from the baselines, shared by every detector |
@@ -19,7 +21,9 @@ All numbers below come from saved outputs: `results/validation/` (selection) and
 
 An alarm that was already open before a fault started counts as a true positive (it overlaps the fault) but **not** as detecting it, so a noisy detector cannot take credit for faults it never reacted to.
 
-**Split.** Test is 60 runs (15 normal, 45 fault), seeds 3000–3059, never used for any choice. It contains 969.5 minutes of normal fleet time. 16 of its 45 faults are variants never seen in validation.
+**Split.** Test is 60 runs (15 normal, 45 fault), seeds 3000–3059. It contains 969.5 minutes of normal fleet time. 16 of its 45 faults are variants never seen in validation.
+
+**Disclosure: test data was looked at before the freeze.** While building the generator (Section 2), the data-sanity plot gallery drew one example of every fault variant from validation **and test**, and I viewed three test runs (r3000, r3032, r3037) to check the generator. That was before the rule limits were set (01:12) and before the official run (01:34 on 6 Oct). The rule limits were taken from train-normal envelopes only (`results/validation/rule_envelopes_train.csv`), and no threshold, feature, model or parameter was chosen from those plots, but "test never seen before the freeze" is not literally true and is not claimed. The gallery is now validation-only.
 
 ## 2. Official test result
 
@@ -39,7 +43,19 @@ Frozen thresholds: rule −0.087, robust z 151.9, LOF 2.279. Model versions: `ru
 | Robust z | ✅ 0.79 | ❌ 0.38 | ✅ 0.05 | ❌ 534.5 |
 | LOF | ✅ 0.97 | ✅ 0.89 | ✅ 0.02 | ❌ 16 |
 
-No detector meets the latency bar. The shipped rule baseline misses the recall bar by 0.006 (38 of 45 detected; 39 would pass). The latency gap is discussed in §8.
+No detector meets the latency bar. The shipped rule baseline misses the recall bar by 0.006 (38 of 45 detected; 39 would pass). The latency gap is discussed in §8. The ship rule (§5) required the ML model to be *significantly better*; it never required the shipped system to meet the bar, which in hindsight it should have.
+
+### Incident fragmentation and per-fault precision (post-hoc, from the saved files)
+
+Must-have 9 asks that one fault becomes one incident. It does not always: an incident closes after 5 quiet events, and if a fault's alerts pause for longer than the 30-event cooldown, the next alert opens a new incident. Each of those incidents counts as a true positive in incident precision, which flatters detectors that fragment. `signal-eval fragmentation` (writes `results/official/posthoc/fragmentation.json`):
+
+| Test | Incident precision | **Per-fault precision** | Incidents per detected fault | Max on one fault | Faults with > 1 incident |
+|---|---|---|---|---|---|
+| Rule | 0.81 | **0.76** | 1.34 | 3 | 10 of 38 |
+| Robust z | 0.79 | **0.77** | 1.12 | 2 | 2 of 17 |
+| LOF | 0.97 | **0.95** | 1.62 | 6 | 17 of 40 |
+
+Per-fault precision = detected faults / (detected faults + false incidents). On that measure the rule is **just above** the 0.75 bar (0.76) and LOF stays well above it. The fragmentation was already visible on validation (rule 1.36, LOF 1.44 incidents per detected fault) and should have been reported before the test; it is error pattern 6.
 
 ### Event-level confusion (test)
 
@@ -116,6 +132,11 @@ Each detector runs at its own validation-chosen threshold under the same constra
 
 **Pre-declared rule (PLAN §7.3).** The ML detector ships only if its recall beats the best baseline with a paired CI excluding zero, or it is faster with a CI excluding zero and loses no recall.
 
+How it was made concrete, and its weaknesses (the code, `eval/decision.py`, was committed in `05fcfcb` *before* the test was read):
+
+- "Meaningfully faster" became "the paired bootstrap CI of the median latency difference excludes zero", computed over **progressive faults both detectors caught** (20 pairs: rule caught 21 of 27, LOF 25 of 27). Pairing only faults both caught biases the comparison towards easier faults and drops the 5 progressive faults only LOF caught (and the 1 only the rule caught).
+- "Best baseline" is picked in code by **test** recall. It made no difference here (the rule was also best on validation, 0.93 vs 0.40), but it is a choice made on test and should have been fixed on validation.
+
 **Result: the rule baseline ships.** LOF's recall gain (CI −0.08 to +0.16) and latency gain (CI −53.5 to +3.5) are not established with 45 test faults. The registry (`models/registry.json`, `"serving": "rule"`) and the service follow this decision.
 
 **What the rule missed.** LOF is significantly better on precision (+0.16) and false alerts (−0.10 per 10 min), with no recall loss, and better at every matched false-alert rate. My ship rule only considered recall and latency. I wrote it thinking about missed faults and did not weigh the operator's alarm load. That was a gap in how I specified the decision, not a property of the data. I am not changing the official decision after seeing the test; changing the rule now would be choosing it from test results.
@@ -126,7 +147,7 @@ Each detector runs at its own validation-chosen threshold under the same constra
 
 The frozen thresholds sit at the knee of the validation curves (`results/validation/threshold_sensitivity.png`, `*_threshold_curve.csv`):
 
-- **Rule** (−0.087): lowering the threshold adds **no** recall (it stays at 0.933) while false incidents climb from 5 to 33 (−0.134) and 79 (−0.145). Raising it to 0.031 removes every false incident but costs one fault (recall 0.867). The selected point is the cheapest place to have full validation recall.
+- **Rule** (−0.087): lowering the threshold never adds recall (it stays at 0.933 at −0.134 and drops to 0.900 at −0.145) while false incidents climb from 5 to 33 and 79. Raising it to 0.031 removes every false incident but costs two faults (recall 0.933 → 0.867 of 30). The selected point is the cheapest place to have the best validation recall.
 - **LOF** (2.279): one step lower (1.968) would reach recall 0.90 at precision 0.79, just under the 0.80 constraint. The precision constraint cost LOF two validation faults. On test, its curve stays above the rule's at every false-alert rate (figure above).
 - **Robust z**: no threshold reaches precision 0.80 with useful recall. The max-|z| score is dominated by heavy-tailed normal features, so its operating point (151.9) only catches extreme, abrupt events.
 
@@ -159,7 +180,7 @@ Every pattern below is a concrete test case you can replay: `signal-replay --run
 
 ### Pattern 2: brief mode transitions (LOF false positive)
 
-**r3003, drone, seq 976** (LOF score 3.41 against threshold 2.28; evidence `batt_slope_m`, `batt_slope_l`, `batt_slope_s` at z ≈ 33). The drone flipped charging → idle → returning → charging within 4 seconds at base. LOF normalises features per (asset type, *current* mode), but the trailing battery slopes still describe the charging that just happened. Judged against the "returning" statistics (where battery falls), a strongly rising battery looks impossible. The second LOF false positive (r3018, drone charging for over 5 minutes) is the same mechanism with counters: `speed_unchanged` keeps growing during a long, perfectly normal charge.
+**r3003, drone, seq 976–978, incident opens at 977** (LOF score 3.41 against threshold 2.28; evidence `batt_slope_m`, `batt_slope_l`, `batt_slope_s` at z ≈ 33). The drone flipped charging → idle → returning → charging within 4 seconds at base. LOF normalises features per (asset type, *current* mode), but the trailing battery slopes still describe the charging that just happened. Judged against the "returning" statistics (where battery falls), a strongly rising battery looks impossible. The second LOF false positive (r3018, drone charging for over 5 minutes) is the same mechanism with counters: `speed_unchanged` keeps growing during a long, perfectly normal charge.
 
 *Next:* do not apply mode-conditioned statistics until the trailing window lies inside the current mode (fall back to per-asset-type statistics while `mode_age < window`), and cap or log-transform the event counters.
 
@@ -167,9 +188,9 @@ Every pattern below is a concrete test case you can replay: `signal-replay --run
 
 **r3015, rover, battery drain (missed by every detector).** The whole fault ran while the rover was charging at 60–72 %. Extra drain cut the net charge rate from about 3.9 to 1.5 %/min. Every detector judges charging slopes per mode with no state-of-charge context, and normal charging legitimately slows below 1 %/min once a battery is above 80 %, so 1.5 %/min looks normal for "charging" in general. See `docs/figures/test_r3015_rover-01_battery_drain_step.png`.
 
-**r3025, drone, speed freeze (missed by every detector).** This is a data-design bug, not a detector failure. The fault waited for the drone to move, hit its deadline, and started while the drone was charging. A speed frozen at 0 on a stationary asset is unobservable. The label should not exist.
+**r3025, drone, speed freeze during charging (missed by the rule and LOF; caught by robust z).** The fault started while the drone was charging and froze reported speed at 0.00. That *is* observable: normal charging speed still flickers (0.14, 0.26 m/s), so `speed_unchanged` keeps growing, to 153 events against a train-normal charging maximum of 14. Robust z caught it at 153 events on exactly that signal. The rule missed it because its frozen-speed rule only applies while the asset is moving. LOF missed it because its inputs clip z-scores at ±20, which flattens a 153-σ counter into an ordinary-looking point. *(An earlier version of this document called r3025 an unobservable, invalid label; that was wrong and is corrected here.)*
 
-*Next:* model the expected charge rate as a function of state of charge and use the residual as a feature. In the generator, re-draw the onset instead of forcing a sensor fault onto a stationary asset.
+*Next:* model the expected charge rate as a function of state of charge and use the residual as a feature; let the freeze rules apply in every mode with mode-specific limits; replace the hard ±20 clip in LOF's inputs with a monotone squash (e.g. log) so extreme counters still stand out.
 
 ### Pattern 4: slow link decline drowned by fading
 
@@ -183,14 +204,22 @@ Median progressive latency is 16 events (LOF) and 71 (rule) against a bar of 3. 
 
 *Next:* a sequential change detector (CUSUM on the slope residual) would minimise detection delay for a given false-alarm rate. It is the principled tool for this bar. A label that also records the "detectable from" time would let latency be reported against both.
 
+### Pattern 6: one fault, several incidents
+
+LOF split 17 of its 40 detected test faults into more than one incident (up to 6 on r3029 rover); the rule split 10 of 38. Progressive faults alternate between alerting and quiet stretches (for example while the asset charges), and once a quiet stretch outlasts the 30-event cooldown the next alert opens a new incident. The operator sees repeated incidents for one problem, and incident precision rises (see the per-fault precision table in §2).
+
+*Next:* keep an incident open while the *same asset* stays inside an unresolved fault hypothesis (close on sustained normal evidence, e.g. M = 60 quiet events, not 5), or merge by asset within a longer window; choose M and C on validation per-fault precision, not incident precision.
+
 ### False positive and false negative to explain in the demo
 
-- **False positive:** LOF, r3003 drone seq 976 (pattern 2). `signal-replay --run r3003 --detector lof --asset drone-01 --show-truth`.
+- **False positive:** LOF, r3003 drone, alerts at seq 976–978, incident opens at 977 (pattern 2). `signal-replay --run r3003 --detector lof --asset drone-01 --show-truth`.
 - **False negative:** r3015 rover battery drain during charging (pattern 3). `signal-replay --run r3015 --detector lof --asset rover-01 --show-truth`.
 
 ## 9. Limitations of this evaluation
 
 - 45 test faults: confidence intervals are wide, and one fault moves recall by 2.2 points.
 - Synthetic data that I designed, so designer bias favours the rule baseline (DATA_CARD.md).
-- Incident parameters were chosen from the baselines and shared with LOF. A grouping tuned for LOF might change its latency, but was deliberately not explored.
-- One false label (r3025) counts against every detector.
+- Incident parameters were chosen from the baselines and shared with LOF. In practice the **weakest** detector decided them: the rule's validation recall was 0.933 for every grid point, so N = 2 won only because it maximised robust z's recall, and it adds one event of latency to every detector. A grouping tuned for LOF might change its latency, but was deliberately not explored.
+- Latency medians are over **detected** faults only (survivor bias): a detector that misses its hardest faults gets a better median. Recall must be read alongside latency.
+- LOF and robust z do not use exactly the same features: LOF's inputs include position level (`range_m`, `alt_m`), which robust z excludes as "where, not how".
+- Test-run plots were viewed during generator development (see §1 disclosure).

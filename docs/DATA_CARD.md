@@ -2,7 +2,7 @@
 
 ## Summary
 
-Synthetic, deterministic telemetry for a three-asset inspection fleet (one drone, one rover, one quadruped), with fault scenarios injected on top of causally simulated normal behaviour. 140 runs × 3 assets × 20 minutes at 1 Hz = **503,976 events** (1,024 events, 0.2 %, deliberately lost in transit). Ground truth is stored separately from the telemetry and is used only for evaluation.
+Synthetic, deterministic telemetry for a three-asset inspection fleet (one drone, one rover, one quadruped), with fault scenarios injected on top of causally simulated normal behaviour. 140 runs × 3 assets × 20 minutes at 1 Hz = **502,976 events** (1,024 events, 0.2 %, deliberately lost in transit). Ground truth is stored separately from the telemetry and is used only for evaluation.
 
 ```bash
 signal-data generate     # one command, ~20 s, byte-identical on every run
@@ -66,7 +66,7 @@ Per-split medians are close (temperature 40.8–41.4 °C, link 86–87 %, batter
 
 ## Fault scenarios and labels
 
-One fault per fault run, on one asset, starting at 25–60 % of the run. Faults are balanced across assets (each fault type hits each asset equally often) and across variants.
+One fault per fault run, on one asset. Physical faults (overheating, battery drain, link degradation) start at a planned onset drawn from 25–60 % of the run. Sensor faults (freeze, motion anomaly) wait from that planned onset until the asset is moving, up to 300 s and never past 80 % of the run, so they can start as late as seq 960 (r3024 and r3043 in test). Faults are balanced across assets (each fault type hits each asset equally often) and across variants.
 
 | Fault | Kind | Variants (validation) | Extra test-only variants | Window |
 |---|---|---|---|---|
@@ -109,7 +109,7 @@ The split is by **seed and run**, never by row. Runs are also disjoint in time: 
 | Fault leaking backwards in time or to other assets | separate RNG stream per concern | a fault run equals the same seed's normal run before onset and on other assets |
 | Scenario inferable from run id or seed order | `run_id = r<seed>`; scenarios shuffled within a split | `test_run_order_does_not_reveal_scenario` |
 | Statistics fit on non-train data | `assert_only_split` before every fit | `test_split_guard_rejects_foreign_runs` |
-| Test set used for selection | selection code never loads test; official result written once | `test_official_result_cannot_be_overwritten` |
+| Test set used for selection | selection code never loads test; official result written once; frozen artifacts committed and never overwritten | `test_official_result_cannot_be_overwritten`, `test_evaluated_model_cannot_be_overwritten` |
 
 ## Known limitations
 
@@ -117,7 +117,8 @@ The split is by **seed and run**, never by row. Runs are also disjoint in time: 
 - **Designer bias.** I wrote the fault generator and the rule baseline. Wider test ranges and unseen variants were meant to counter this; the unseen variants turned out *easier*, not harder (see EVALUATION.md). The rule baseline's test result is therefore likely optimistic relative to real faults.
 - **Small fault counts.** 30 validation and 45 test faults. One fault moves recall by 2–3 points, and confidence intervals are wide (see EVALUATION.md).
 - **Narrow validation sample for battery drain.** The six validation drain faults happened to sample only 2.4–2.9 %/min, so threshold selection saw little variety for that fault.
-- **One unobservable label.** In test run r3025 a speed freeze was forced to start at its deadline while the drone was charging; a speed frozen at 0 on a stationary asset is invisible. The generator should have re-drawn the onset instead. It is kept, not regenerated, because the test set is frozen; it is counted as a miss for every detector.
+- **A hard freeze during charging.** In test run r3025 a speed freeze reached its deadline and started while the drone was charging. It is still observable (charging speed normally flickers, so a stuck 0.00 grows `speed_unchanged` far beyond normal) and the robust-z baseline caught it, but rules written for moving assets cannot. *(An earlier version of this card called it an unobservable, invalid label; that was wrong.)*
+- **Test data was looked at during development.** The generator's sanity-plot gallery originally included one test run per fault variant, and three test runs were viewed while checking the generator, before any detector limit or threshold was set. Nothing was chosen from them, but it is disclosed here and in EVALUATION.md; the gallery is now validation-only.
 - **One fault per run, one fleet.** No simultaneous faults, no fleet-wide events (such as a base-station outage), and no asset ids beyond one per type.
 - **No telemetry pathologies from Blackbox.** No duplicates, out-of-order events or clock skew; Blackbox already handles those upstream. Only rare single-event loss is simulated.
 

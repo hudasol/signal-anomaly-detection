@@ -17,7 +17,7 @@ Built `signal-data generate`: 140 runs × 3 assets × 1,200 events at 1 Hz, abou
 
 **Difficult normal.** Charging and returning (triggered by low battery, plus an unplanned return in about half of asset-runs), hard manoeuvres (speed ×1.3–1.8 and a swerve, about 3 per moving asset per run) and noisy-link episodes. They appear in every split and are logged to `ground_truth/episodes.parquet` for false-positive analysis, never as features.
 
-**Faults.** One fault per fault run, on one asset, starting at 25–60 % of the run. Overheating and battery drain persist to the end of the run. Link degradation either declines to dropout (persists) or oscillates and then recovers. Sensor freeze and motion anomalies last 40–300 s, then revert. Sensor faults wait until the asset is moving before starting (up to a deadline), because a frozen speed on a parked asset is indistinguishable from normal and would be a meaningless label.
+**Faults.** One fault per fault run, on one asset, starting at 25–60 % of the run *(correction: that is the planned onset; sensor faults then wait for motion and can start up to 80 %, seq 960)*. Overheating and battery drain persist to the end of the run. Link degradation either declines to dropout (persists) or oscillates and then recovers. Sensor freeze and motion anomalies last 40–300 s, then revert. Sensor faults wait until the asset is moving before starting (up to a deadline), because a frozen speed on a parked asset is indistinguishable from normal and would be a meaningless label.
 
 **Changes from PLAN.md:**
 
@@ -148,7 +148,7 @@ Rule minus LOF recall: +0.10 (paired bootstrap CI 0.00 to 0.22). The trade-off g
 - Two training runs gave identical model versions and thresholds. Artifact bytes differ only by the embedded creation time; the registry stores the SHA-256 of the exact file that was evaluated.
 - A dry run of the frozen artifacts on **validation** reproduced the committed validation report exactly, for all three detectors.
 
-The code and registry were committed (`05fcfcb`) **before** the test split was read. LOF artifacts are about 25 MB (LOF keeps its training points), so artifacts are not committed; `signal-train` rebuilds them deterministically.
+The code and registry were committed (`05fcfcb`) **before** the test split was read. LOF artifacts are about 35 MB (LOF keeps its training points), so artifacts were not committed at this point *(changed in the pre-release review: the exact evaluated artifacts are now committed, because rebuilding gives new bytes and breaks the link to the official result)*.
 
 **Official test result** (`signal-eval test`, frozen thresholds, incident params N=2 / M=5 / C=30; 60 runs, 45 faults, 969.5 normal fleet-minutes):
 
@@ -168,8 +168,8 @@ The code and registry were committed (`05fcfcb`) **before** the test split was r
 
 - 9 of the rule's 12 false incidents start within 45 s of the asset first becoming scorable (warm-up temperature slope).
 - LOF false positive in r3003: a 3-second charging → returning → charging blip. The trailing battery slope still reflects charging but is judged against "returning" statistics, giving z ≈ 33.
-- A speed freeze in r3025 was missed by every detector. My generator's fallback forced it to start while the drone was **charging**, so a speed frozen at 0 is unobservable. This is a label-validity bug in the data design.
-- Battery drain in r3015 was missed by every detector. The whole fault ran during charging above 80 %, where the normal charge rate already tapers, so the net +1.5 %/min sits inside normal.
+- ~~A speed freeze in r3025 was missed by every detector … label-validity bug in the data design.~~ **Corrected in the pre-release review:** robust z caught r3025 at 153 events via `speed_unchanged`; only the rule (freeze rules run only while moving) and LOF (inputs clipped at ±20) missed it. It is an observable fault, not a bad label.
+- Battery drain in r3015 was missed by every detector. The whole fault ran during charging ~~above 80 %~~ *(corrected: at 60–72 % charge; see the Section 9 entry)*; no feature knows that charge rate depends on state of charge, so the net +1.5 %/min looks like normal charging.
 
 **Plots** are re-rendered from saved outputs only, with `signal-eval plots`. Test threshold curves were computed *after* the official result was written and live in `results/official/posthoc/`, labelled post-hoc.
 
@@ -203,3 +203,51 @@ Also verified for the error analysis: the r3015 battery-drain miss happens at 60
 - `signal-eval demo-threshold` evaluates a frozen model at another threshold, writing to `results/demo/` only.
 
 Found while rehearsing: `signal-replay --asset X --show-truth` reported a fault on a *different* asset as "not detected", because that asset was never replayed. That is misleading in a live demo. It now says the asset was not replayed. r3003 turned out to be a good single demo run: LOF raises a false alarm on the drone (mode-transition pattern) and catches the quadruped's real fault in 6 events.
+
+
+## 2026-10-06 (later): pre-release review
+
+Before tagging, an independent reviewer (a separate agent that had not seen the build, given only the brief and the repo) checked the repo against every must-have, submission item and demo item, and spot-checked the numbers in the docs against the saved outputs. I verified each finding myself before acting on it. Nothing below changes an official test number or decision; every change to code was checked to reproduce the frozen results exactly (frozen artifacts re-scored on validation, a fresh refit through `signal-eval validate`, and the 133-test suite).
+
+### Real problems found and fixed
+
+1. **Silent "normal" through the API on short windows (blocker).** `/score` accepted any 120–649-event window. Sent mid-run, a short window cuts off look-back features (`mode_age` caps at 600, freeze counters at 300), so the shipped rule's battery check (which needs 120 s in one mode) could never fire. On r3029 rover, 42 of 57 sampled decisions differed from the full-window answer; at seq 796 a full window said `anomalous` (2.42), a 120-event window said `normal`. **Fix:** the scorer answers `insufficient_data` unless the window holds 650 events or starts at the run start; tests prove an `ok` answer always equals the full-context answer. Rechecked on r3029: 57 of 57 short windows are now `insufficient_data`, 0 silent flips. Evaluation was never affected (it scores whole runs).
+2. **Wrong explanation of r3025, in five documents.** See the corrected Section 7 line above and EVALUATION §8 pattern 3. Robust z caught it; the misses are detector gaps, not a bad label.
+3. **Test data was viewed before the freeze, and not disclosed.** The Section 2 sanity gallery included one test run per fault variant, and I looked at r3000, r3032 and r3037 while checking the generator, before any limit or threshold was set. Nothing was chosen from them (rule limits come from train envelopes, now committed as `results/validation/rule_envelopes_train.csv` via `signal-eval envelopes`), but it is now disclosed in EVALUATION §1, DATA_CARD and DEMO §1, and the gallery is validation-only.
+4. **Provenance would break during the demo.** The DEMO setup ran `signal-train`, which rewrote the registry's artifact hashes (the pickle embedded a timestamp), so nobody could check that the file they held was the one evaluated. **Fix:** the three evaluated artifacts are committed (SHA-256 matches the registry and the official files); pickles no longer embed timestamps, so the same model gives the same bytes; `signal-train` keeps a verified evaluated artifact and refuses to overwrite an entry that has an official result; `detector_code_hash` is recorded next to every new artifact, and a provenance note in the registry lists the code changes made after the test.
+5. **Precision flattered by fragmentation.** LOF split 17 of 40 detected test faults into several incidents (up to 6), the rule 10 of 38. Added per-fault precision to every summary and a post-hoc `signal-eval fragmentation` from the saved files: test per-fault precision rule 0.76, LOF 0.95, robust z 0.77. Already visible on validation; now error pattern 6.
+
+### Wrong numbers and overclaims corrected
+
+- DATA_CARD event count: 503,976 → **502,976**.
+- DEMO §2: only **2 of 3** rule false incidents on r3048 are warm-up; the drone one is at seq 973.
+- EVALUATION §6: raising the rule threshold to 0.031 costs **two** faults, not one; recall does dip (to 0.900) at −0.145.
+- LOF false positive: alerts at seq 976–978, opens at 977 (was 976 in one doc and 977 in another).
+- MODEL_CARD: "about 16 s latency" for LOF was the median over detected progressive faults; link degradation takes 206 events (declines 365). The LOF calibration ("1 = train 99.9th percentile") was wrong, because LOF was scored on its own training points; it is now described as a comparability scale only.
+- DATA_CARD: onset "25–60 %" applies to physical faults; sensor faults start up to 80 %.
+- "The shipped system fails the bar" (recall by one fault, latency) moved to the top of README, EVALUATION and MODEL_CARD.
+
+### Evaluation caveats now stated (EVALUATION §5, §9)
+
+- The ship rule's "best baseline" is picked in code by **test** recall. No effect here (the rule was best on validation too), but it is a test-time choice.
+- "Meaningfully faster" was turned into a paired-bootstrap CI over progressive faults **both** detectors caught (20 pairs). This was committed in `05fcfcb` before the test was read. It biases towards easy faults and drops the 5 only LOF caught and the 1 only the rule caught.
+- Incident grouping N = 2 was decided by the weakest detector: the rule's validation recall was 0.933 at every grid point, so robust z decided it.
+- Latency medians count detected faults only (survivor bias).
+- LOF and robust z use slightly different feature sets (LOF includes `range_m`, `alt_m`).
+
+### Reproducibility and code
+
+- `requirements.lock` pins the exact environment (Python 3.12.3, numpy 2.5.3, pandas 2.3.3, scikit-learn 1.9.1, pyarrow 25.0.1, fastapi 0.142.2, …); CI installs it on Python 3.12.3.
+- mypy is now clean (41 errors, mostly pandas-stub typing plus one real `float >= None` in the scorer) and runs in CI. Typing-only edits, verified not to change any result.
+- `tests/test_end_to_end.py`: generate → fit robust z and LOF on train → threshold on validation → freeze → test once → replay through the service, which must reproduce evaluation's incidents exactly. PLAN §11 promised this and it was missing.
+- Dockerfile added and built here. Inside the image, with networking off, the 133 tests pass, mypy is clean and the shipped model loads. (Building in this sandbox needed its proxy CA passed in as a build context; the committed Dockerfile is the plain one.)
+- Doc figures are generated by `signal-eval plots` instead of copied by hand (regenerating them changed no bytes, so they were current).
+- Small fixes: replay used a hard-coded grace of 10 (now from config); model selection would have turned `max_features=1.0` into `int(1)`, which means one feature to scikit-learn (no effect, since LOF won).
+
+### Plan deviations that were never logged
+
+- **Rule score:** PLAN §5 said "number of rules firing, scaled by how far over the limit". Built as "the worst rule's margin in units of its scale", so one strong rule is not diluted by quiet ones and the threshold has a physical meaning (0 = at the written limit).
+- **Rule constants:** PLAN §5 said "constants are set on validation". They were set from **train** envelopes instead (stricter: validation then only chose the single threshold).
+- **Features:** PLAN §4's "count of link drops below a floor" became `link_min_m` plus `link_absdiff_s`, and "max single-step displacement" became `jump_excess` (displacement beyond what reported speed allows, which is normalised by speed).
+- **Escalation:** PLAN §6 said to try LOF or One-Class SVM "once" if Isolation Forest lost. In practice Isolation Forest and LOF were run as one validation grid (8 + 6 settings) and the best feasible one was taken. One-Class SVM was never tried.
+- **Open questions (a) and (b) for Awaiz** (per-event recall; unseen variants in test) were never resolved in writing. I went with per-event recall and included unseen variants, and both choices are documented, but they were not confirmed with him. The mid-point check-in was also not sent.

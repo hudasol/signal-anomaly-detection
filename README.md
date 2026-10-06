@@ -6,11 +6,15 @@ Task 02 of the mentorship track, built next to [blackbox-telemetry](https://gith
 
 ## Result (official test, run once)
 
+> **The shipped system does not meet the brief's bar.** The rule baseline ships by the pre-declared decision rule, but it misses recall by one fault (0.844 vs 0.85) and latency by a wide margin (71 events vs 3). LOF meets every bar item except latency. No detector meets the latency bar.
+
 | | Precision | Recall | False incidents / 10 min | Median progressive latency |
 |---|---|---|---|---|
-| **Rule baseline (shipped)** | 0.81 | 0.84 | 0.12 | 71 events |
-| Robust z baseline | 0.79 | 0.38 | 0.05 | 534.5 events |
-| LOF (ML) | 0.97 | 0.89 | 0.02 | 16 events |
+| **Rule baseline (shipped)** | 0.81 (per fault 0.76) | 0.84 ❌ | 0.12 | 71 events ❌ |
+| Robust z baseline | 0.79 (per fault 0.77) | 0.38 ❌ | 0.05 | 534.5 events ❌ |
+| LOF (ML) | 0.97 (per fault 0.95) | 0.89 | 0.02 | 16 events ❌ |
+
+Precision in brackets counts each fault once; incident precision is flattered when one fault is split into several incidents (LOF did this for 17 of its 40 detected faults; [EVALUATION §2](docs/EVALUATION.md#incident-fragmentation-and-per-fault-precision-post-hoc-from-the-saved-files)).
 
 **The rule baseline ships**, by the decision rule declared before the test: LOF's recall and latency gains were not statistically established on 45 test faults. LOF is, however, significantly better on precision and false alerts, which that rule did not consider. The recommendation is to run LOF in shadow mode next to the rule (see [EVALUATION.md §5](docs/EVALUATION.md#5-ship-decision)). No detector meets the brief's 3-event latency bar for slow progressive faults ([§8](docs/EVALUATION.md#8-error-analysis), pattern 5).
 
@@ -28,11 +32,19 @@ Task 02 of the mentorship track, built next to [blackbox-telemetry](https://gith
 
 ## Setup
 
-Python 3.12+. No Docker or external services are needed for the pipeline.
+The results were produced with **Python 3.12.3**; `requirements.lock` pins every package (numpy 2.5.3, pandas 2.3.3, scikit-learn 1.9.1, pyarrow 25.0.1, fastapi 0.142.2, …).
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.lock && pip install --no-deps -e .
+```
+
+Or with Docker:
+
+```bash
+docker build -t signal .
+docker run --rm signal pytest                      # tests inside the pinned image
+docker run --rm -p 8000:8000 signal                # the API, serving the shipped model
 ```
 
 ## Reproduce everything
@@ -44,12 +56,22 @@ signal-data generate        # 1. dataset: 140 runs, ~503k events, ground truth s
 signal-features build       # 2. causal window features, cached per data version                   (~6 s)
 signal-eval validate        # 3. fit on train; incident params + thresholds on VALIDATION          (~60 s)
 signal-eval select-model    # 4. ML grid (Isolation Forest, LOF) + feature-group ablation          (~5 min)
-signal-train                # 5. freeze rule / stats / lof artifacts + models/registry.json        (~50 s)
+signal-train                # 5. freeze artifacts; KEEPS the committed evaluated ones (SHA-verified) (~50 s)
 signal-eval test            # 6. OFFICIAL test: runs once per model version, then refuses
 signal-eval plots           #    re-render every figure from saved outputs
 ```
 
-The committed `results/official/` already holds the official result, so step 6 will refuse to run in this repo, by design. To reproduce it, run it in a fresh clone after deleting `results/official/`, or compare against the committed files. Rebuilt artifacts get the same model versions and thresholds; the registry records the SHA-256 of the artifact that was evaluated.
+The committed `results/official/` already holds the official result, so step 6 refuses to run in this repo, by design. To reproduce it, run it in a scratch clone after deleting `results/official/` and compare with the committed files; this was done and reproduced every number and decision exactly. The **exact evaluated artifacts are committed** under `models/` (their SHA-256 is in `models/registry.json` and in each official result file), and `signal-train` will not overwrite them.
+
+Post-hoc analysis and audit helpers (read-only):
+
+```bash
+signal-eval show            # the official comparison, from the saved report
+signal-eval audit           # proves which runs each model was fitted / selected / tested on
+signal-eval fragmentation   # incidents per detected fault, per-fault precision
+signal-eval envelopes       # the train-normal envelopes the rule limits came from
+signal-eval demo-threshold --detector lof --threshold 1.5   # DEMO ONLY, writes results/demo/
+```
 
 ## Inference
 
@@ -76,16 +98,17 @@ curl -X POST localhost:8000/score -H 'content-type: application/json' \
      -d '{"events": [ ...one asset, oldest first, up to 650 events... ]}'
 ```
 
-Responses carry `status` (`ok`, `insufficient_data`, `degraded`, `unavailable`), `score`, `threshold`, `decision`, `model_version` and `evidence`. Without a usable model, `/score` returns HTTP 503 `unavailable`; it never answers `normal` without a score.
+Responses carry `status` (`ok`, `insufficient_data`, `degraded`, `unavailable`), `score`, `threshold`, `decision`, `model_version` and `evidence`. Without a usable model, `/score` returns HTTP 503 `unavailable`. Send 650 events (or everything since the run started): a shorter mid-run window would cut off look-back features, so it gets `insufficient_data`. The service never answers `normal` without a full-context score.
 
 ## Tests
 
 ```bash
-pytest                       # 126 tests, ~13 s
+pytest                       # 133 tests, ~15 s
 ruff check . && ruff format --check .
+mypy                         # type check (clean)
 ```
 
-The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), and the inference contract with end-to-end replay (`test_service.py`). CI runs lint and tests on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions).
+The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the pinned environment on Python 3.12.3 and runs ruff, mypy and pytest on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([latest verified run](CI_RUN_LINK)).
 
 ## Exceeds the bar
 
@@ -109,5 +132,6 @@ src/fleet_signal/
   registry.py    artifacts + registry      train.py   signal-train
 results/validation/   selection outputs (committed)
 results/official/     the run-once test result (committed); posthoc/ = analysis after the fact
-models/registry.json  committed; artifacts are rebuilt by signal-train
+models/               the exact evaluated artifacts + registry.json (committed, SHA-verified)
+requirements.lock     exact environment          Dockerfile   pinned image
 ```

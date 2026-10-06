@@ -8,7 +8,13 @@
 
 **The planned model lost badly.** I chose Isolation Forest in the plan with reasons that sounded right. It reached recall 0.27. The faults I generated are mostly "one feature goes extreme", and Isolation Forest is weak at that in about 33 dimensions. I had the information to predict this (I designed the faults) but did not connect it to how the algorithm isolates points.
 
-**A label in the test set is wrong.** My sensor-fault generator waits for the asset to move before freezing a field, with a deadline. In test run r3025 the deadline fired while the drone was charging, so "speed frozen at 0" on a stationary drone is a fault nobody can see. Every detector is charged with a miss for it.
+**I wrote a confident, wrong explanation into five documents.** In test run r3025 a speed freeze started while the drone was charging. I declared the label invalid ("a fault nobody can see, missed by every detector") without checking. An independent review then showed the robust-z baseline had caught it, through `speed_unchanged` growing to 153 against a normal maximum of 14. The real lessons were about my detectors: the rule only checks for frozen fields while moving, and LOF's input clipping flattens extreme counters. Blaming the data was the easier story, and I should have checked all three detectors' per-fault results before writing it.
+
+**I looked at test data before the freeze.** My generator's sanity-plot gallery drew one example of every fault variant from validation *and test*, and I viewed three test runs while checking the generator. I did not choose anything from them, but "test was never touched before the freeze" was not true, and I only disclosed it after the review. The gallery should have been validation-only from the start.
+
+**The service could still say "normal" when it should alert.** The scorer accepted any window of 120+ events. A short mid-run window cuts off look-back features ("seconds in this mode"), so the shipped rule's battery check could never fire. On one test run, 42 of 57 sampled decisions differed from the full-window answer (for example, anomalous became normal). That is exactly the failure the brief forbids, and my tests didn't catch it because they always sent windows from the start of the run.
+
+**One fault often became several incidents.** LOF split 17 of its 40 detected test faults into multiple incidents (up to 6), which flatters incident precision. It was already visible on validation, and I didn't measure it until the review.
 
 **Small process mistakes caught late:**
 
@@ -16,6 +22,8 @@
 - The data version did not change when generator code changed.
 - Fault variants were drawn at random instead of balanced.
 - The rule detector could answer "normal" for an unknown asset type. I only found this while writing the model card, after the test.
+- Several numbers in my docs were wrong (event count, which false alarms were warm-up, a threshold-curve claim). I had written them from memory or from an earlier sweep instead of the saved files.
+- Running the demo's setup step would have rewritten the registry's artifact hashes, breaking the link to the evaluated files. The evaluated artifacts are now committed and protected.
 
 ## Bad assumptions
 
@@ -27,11 +35,12 @@
 ## What I'd redesign
 
 1. **The decision rule:** non-inferiority on recall plus a significant gain on precision **or** latency, declared up front, with the operator's alarm load as a first-class metric.
-2. **The fault generator:** never force a sensor fault onto a stationary asset; re-draw the onset. Record both "fault starts" and "fault becomes physically detectable" so latency can be reported against both.
+2. **The fault generator:** record both "fault starts" and "fault becomes physically detectable", so latency can be reported against both.
 3. **The test design:** generalisation sets made of subtler faults (and a held-out asset type), not just new fault shapes.
 4. **Features:** residuals against expected behaviour (temperature vs a lagged-load model, charge rate vs state of charge, link vs distance) instead of raw slopes. Every error pattern in EVALUATION.md is a case where the detector compared a signal to the wrong "normal".
 5. **Detectors:** an asset that just changed mode should be judged by per-type statistics until its windows sit inside the new mode.
-6. **Order of work:** write the model card's "failure cases" section *before* freezing. It found a fail-safe bug that should have been caught before the test.
+6. **Order of work:** write the model card's "failure cases" section *before* freezing; it found a fail-safe bug. And get an independent review before the test, not after: the review found two more fail-safe and honesty problems I had missed.
+7. **Incident grouping:** choose open, close and cooldown on per-fault precision, and keep an incident open while the asset is still inside an unresolved fault, so one fault stays one incident.
 
 ## Technical lessons
 
@@ -46,5 +55,7 @@
 
 - **The ship rule's blind spot.** Every test I wrote checked that the rule was *implemented* as declared (`test_registry_and_decision.py`); none asked whether the rule was the right one.
 - **The unknown-asset-type "normal" fallback.** I tested every failure state I had listed (missing model, corrupt model, short history, gaps, NaN, mixed assets) but not "an input the model has no notion of".
-- **The unobservable r3025 label.** My generator tests check that each fault variant is observable *against a clean twin*. They used fixed seeds where the asset was moving. No test checked that every label in the real dataset is observable.
+- **The short-window silent-normal path.** My service tests always sent windows that started at the beginning of a run, so look-back features were never cut off. The independent review found the gap by sending a short window from the middle of a run.
+- **My own explanation of r3025.** I checked that the rule and LOF had missed it, and assumed every detector had. A one-line query over the three per-fault result files would have shown otherwise.
+- **Fragmentation.** I counted incidents, not incidents per fault, so a metric that flatters splitting faults went unnoticed.
 - **A wrong number in my own log.** I wrote "1,105 normal fleet-minutes" in the process log from memory; the saved result says 969.5. It was corrected when writing EVALUATION.md from the files. Numbers in docs should come from saved outputs, not my notes.

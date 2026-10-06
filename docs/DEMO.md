@@ -2,7 +2,7 @@
 
 Every item the brief lists, with the exact command and what it shows. Nothing here edits a model, regenerates data or touches `results/official/`. Outputs shown are from a rehearsal on the committed state.
 
-Setup, once: `pip install -e ".[dev]" && signal-data generate && signal-train` (the data and models are rebuilt deterministically; the model versions match the registry).
+Setup, once: `pip install -r requirements.lock && pip install --no-deps -e . && signal-data generate` (about 20 s; byte-identical data). **Do not retrain:** the exact evaluated model artifacts are committed under `models/`, and their SHA-256 matches `models/registry.json` and the official result files. (`signal-train` would verify and keep them anyway, and it refuses to overwrite an evaluated model.) Docker alternative: `docker build -t signal . && docker run --rm signal sh -c "signal-data generate && signal-eval show"`.
 
 ## 1. The split, and proof held-out runs were not used
 
@@ -17,16 +17,18 @@ data version v1.0.0-9e903f9008
   validation seeds 2000-2039  (40 runs)
   test       seeds 3000-3059  (60 runs)
 pairwise overlap of run ids: train/val 0, train/test 0, val/test 0
-rule-64d39edc1d: fitted on 40 runs, all in train: True; any test run used: False
+rule-64d39edc1d: no fit; limits hand-set from train-normal envelopes (results/validation/rule_envelopes_train.csv); threshold chosen on validation
 stats-ab89662ec6: fitted on 40 runs, all in train: True; any test run used: False
 lof-a588a4d11b: fitted on 40 runs, all in train: True; any test run used: False
-runs referenced in the validation selection outputs: 30, all in validation: True; any test run: False
+runs referenced in the validation selection outputs: 32, all in validation: True; any test run: False
+official test report: results/official/test_report_4530f6a108.json
 ```
 
 Then point at:
 
 - **Git history.** The frozen registry was committed in `05fcfcb` *before* the official result `6683640`.
 - **The guard.** Running `signal-eval test` again refuses (the official files already exist).
+- **Disclosure, said out loud:** three test runs (r3000, r3032, r3037) were viewed in a data-sanity plot while building the generator, before any limit or threshold was set; nothing was chosen from them (EVALUATION §1). The gallery is now validation-only.
 - **The leakage tests:** `pytest tests/test_splits.py tests/test_features.py -k "split or leak or ground_truth or causal or cross" -v`.
 
 ## 2. A normal held-out run and its false-incident count
@@ -36,7 +38,7 @@ signal-replay --run r3048 --show-truth        # shipped rule baseline
 signal-replay --run r3048 --detector lof --show-truth
 ```
 
-Rule: **3 false incidents**, all at seq 122–151 on the first minute of motion, evidence `temp_rise` (error pattern 1, warm-up). LOF: **0**. For a clean example: `signal-replay --run r3002 --show-truth`.
+Rule: **3 false incidents**. Two are warm-up false alarms in the first minute of motion: rover seq 122 and quadruped seq 151, evidence `temp_rise` (error pattern 1). The third is on the drone at seq 973. LOF: **0**. For a clean example: `signal-replay --run r3002 --show-truth`.
 
 ## 3. A held-out fault: score, threshold crossing, incident open, latency
 
@@ -77,7 +79,7 @@ Then open `docs/figures/test_recall_by_fault_type.png` and EVALUATION.md §5: wh
 
 ## 5. One false positive and one false negative, explained
 
-**False positive: LOF, r3003 drone, seq 977.**
+**False positive: LOF, r3003 drone, alerts at seq 976–978, incident opens at 977.**
 
 ```bash
 signal-replay --run r3003 --detector lof --show-truth
@@ -93,7 +95,7 @@ signal-replay --run r3015 --detector lof --asset rover-01 --show-truth
 
 0 incidents. Open `docs/figures/test_r3015_rover-01_battery_drain_step.png`: the fault starts while the rover is charging at 60 %, and extra drain cuts the charge rate from about 3.9 to 1.5 %/min. No feature knows that charge rate depends on state of charge, and normal charging does drop that low near full, so a slow charge looks normal. *Next:* a charge-rate-vs-state-of-charge residual feature.
 
-(Bonus FN with a different cause: r3025, a speed freeze forced to start while the drone was charging. That is a label bug in my generator, not a detector miss; see RETROSPECTIVE.md.)
+(Second FN, with a different cause: r3025, a speed freeze that started while the drone was charging. The rule and LOF missed it but robust z caught it at 153 events via `speed_unchanged`, showing two detector gaps: the rule's freeze checks only run while moving, and LOF clips its inputs at ±20. Run it with `signal-replay --run r3025 --detector stats --asset drone-01 --show-truth`.)
 
 ## 6. Change the threshold for the demo, then put it back
 
@@ -132,13 +134,14 @@ mv "$ART.bak" "$ART"                              # restore
 
 (Make `window.json` with: `python -c "import json;from fleet_signal.data.telemetry import load_telemetry as L;t=L(run_ids=['r3006']);d=t[(t.asset_id=='drone-01')&(t.seq<=700)].tail(650);print(json.dumps({'events':d.drop(columns=['timestamp_utc']).to_dict('records')}))" > window.json`.)
 
-Also: fewer than 120 events gives `insufficient_data`; a gap gives `degraded` (`pytest tests/test_service.py -v -k "unavailable or insufficient or degraded"`).
+Also: fewer than 120 events gives `insufficient_data`, **a short window from the middle of a run gives `insufficient_data`** (it would cut off look-back features; e.g. r3029 rover at seq 796: 650 events → `anomalous`, last 120 only → `insufficient_data`, never a silent `normal`), and a gap gives `degraded` (`pytest tests/test_service.py -v -k "unavailable or insufficient or degraded"`).
 
 ## 8. The tests that pin it down
 
 ```bash
 pytest -v tests/test_features.py tests/test_splits.py tests/test_eval.py tests/test_incidents.py tests/test_service.py
-pytest                          # 126 passed
+pytest                          # 133 passed
+mypy                            # no issues
 ```
 
 | Brief asks for | Tests |
@@ -161,4 +164,4 @@ pytest                          # 126 passed
 | 3:30–4:30 | §5 FP r3003 and FN r3015 | mode-transition false alarm; drain hidden by charging; what I'd change |
 | 4:30–5:15 | §6 demo-threshold + sensitivity figure | trade-off, then back to frozen (nothing changed) |
 | 5:15–5:50 | §7 rename the model | HTTP 503 unavailable, never "normal"; restore |
-| 5:50–6:00 | `pytest` | 126 passed; CI green |
+| 5:50–6:00 | `pytest` | 133 passed; CI green |
