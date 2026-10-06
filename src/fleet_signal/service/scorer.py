@@ -4,13 +4,21 @@ Every response carries an explicit `status`; the service never answers
 "normal" when it could not score safely:
 
     unavailable        model artifact missing, unreadable or wrong schema
-    insufficient_data  fewer events than min_history for this asset
+    insufficient_data  not enough context to compute the features the model was
+                       evaluated with (see below)
     degraded           the window has a gap, or features are not finite
     ok                 scored; decision is "normal" or "anomalous"
 
-Only `ok` carries a decision. The caller sends the asset's recent events
-(oldest first); features such as "seconds in this mode" are computed from what
-is sent, so sending up to HISTORY_BUFFER events reproduces evaluation exactly.
+Only `ok` carries a decision.
+
+Context rule. Some features look back up to 600 events ("seconds in this mode",
+events since a field last changed). Computed from a shorter window they are cut
+off and the score is NOT the score evaluation measured: a battery rule that needs
+two minutes in one mode can never fire on a 2-minute window, which would turn an
+alert into "normal". So a window is scored only if it holds HISTORY_BUFFER
+events, or it starts at the asset's first event of the run (seq <= max_gap), in
+which case nothing earlier exists to be cut off. Anything else is
+`insufficient_data`.
 """
 
 from __future__ import annotations
@@ -52,7 +60,7 @@ class ScoreResult:
     decision: str | None = None
     model_version: str | None = None
     detector: str | None = None
-    evidence: list[dict[str, float]] = field(default_factory=list)
+    evidence: list[dict[str, Any]] = field(default_factory=list)
     history: int = 0
     reason: str | None = None
 
@@ -137,6 +145,13 @@ class Scorer:
             return self._base(
                 status="insufficient_data", asset_id=asset_id, seq=seq, history=n,
                 reason=f"{n} events of history, need {self.fcfg.min_history}",
+            )  # fmt: skip
+        starts_at_run_start = int(df["seq"].iloc[0]) <= self.fcfg.max_gap
+        if n < HISTORY_BUFFER and not starts_at_run_start:
+            return self._base(
+                status="insufficient_data", asset_id=asset_id, seq=seq, history=n,
+                reason=(f"{n} events sent mid-run; send {HISTORY_BUFFER} (or the whole run so "
+                        "far) so look-back features match evaluation"),
             )  # fmt: skip
         try:
             feats = build_features(df, self.fcfg).tail(1)
