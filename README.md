@@ -108,7 +108,7 @@ ruff check . && ruff format --check .
 mypy                         # type check (clean)
 ```
 
-The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the pinned environment on Python 3.12.3 and runs ruff, mypy and pytest on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([latest verified run](CI_RUN_LINK)).
+The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the pinned environment on Python 3.12.3 and runs ruff, mypy and pytest on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([verified run on 0b690d3](https://github.com/hudasol/signal-anomaly-detection/actions/runs/37394108168): pinned install, ruff, mypy, 133 tests).
 
 ## Exceeds the bar
 
