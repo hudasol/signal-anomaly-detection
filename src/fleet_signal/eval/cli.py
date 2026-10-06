@@ -8,6 +8,8 @@
     signal-eval audit           prove the split
     signal-eval show            official comparison from the saved report
     signal-eval demo-threshold --detector lof --threshold 1.5   DEMO ONLY trade-off
+    signal-eval fragmentation   post-hoc incidents-per-fault and per-fault precision
+    signal-eval envelopes       train envelopes the rule limits were set from
 
 The official test run is a separate command added when the model is frozen.
 """
@@ -92,11 +94,31 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("plots", help="re-render every evaluation plot from saved outputs")
     sub.add_parser("audit", help="prove the split: which runs fitted / selected / tested")
     sub.add_parser("show", help="print the official comparison from the saved report")
+    sub.add_parser("fragmentation", help="post-hoc: incidents per fault, per-fault precision")
+    sub.add_parser("envelopes", help="export the train envelopes the rule limits came from")
     demo = sub.add_parser("demo-threshold", help="DEMO ONLY: a frozen model at another threshold")
     demo.add_argument("--detector", required=True, choices=["rule", "stats", "lof"])
     demo.add_argument("--threshold", required=True, type=float)
     args = parser.parse_args(argv)
 
+    if args.command == "fragmentation":
+        from fleet_signal.eval.demo import fragmentation
+
+        frag = fragmentation()
+        print("POST-HOC (from saved official files)")
+        keys = ["incident_precision", "per_fault_precision", "incidents_per_detected_fault",
+                "max_incidents_on_one_fault", "faults_with_more_than_one_incident"]  # fmt: skip
+        for split in ("test", "validation"):
+            print(f"\n{split}")
+            for name, row in frag[split].items():
+                print(f"  {name:<6}" + "  ".join(f"{k}={row[k]:.3g}" for k in keys))
+        return
+    if args.command == "envelopes":
+        from fleet_signal.eval.demo import rule_envelopes
+
+        with pd.option_context("display.width", 200, "display.max_rows", 200):
+            print(rule_envelopes().round(3).to_string(index=False))
+        return
     if args.command in ("audit", "show"):
         from fleet_signal.eval import demo as demo_mod
 

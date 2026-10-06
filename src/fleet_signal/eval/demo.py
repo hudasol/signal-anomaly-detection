@@ -6,12 +6,17 @@
 * `threshold_demo()`: evaluate a frozen model on test at a DIFFERENT threshold,
   to show the trade-off. Writes to results/demo/ only, never to the official
   files, and the frozen artifact is not modified.
+* `fragmentation()`: post-hoc, from the SAVED official files: how many incidents
+  each detected fault produced, and precision counted per fault.
+* `rule_envelopes()`: the train-normal envelopes the rule limits were set from.
 """
 
 from __future__ import annotations
 
 import json
 from typing import Any
+
+import pandas as pd
 
 from fleet_signal.data.config import REPO_ROOT, load_config
 from fleet_signal.data.ground_truth import load_faults
@@ -37,18 +42,24 @@ def audit() -> list[str]:
                  f"train/test {len(train & test)}, val/test {len(val & test)}")  # fmt: skip
     for entry in reg["models"].values():
         art = load_artifact(REPO_ROOT / entry["artifact"])
-        fitted = set(art.train_run_ids)
-        fitted_on = set(getattr(art.detector, "fitted_runs", [])) or fitted
+        fitted_on = set(getattr(art.detector, "fitted_runs", []))
+        if not fitted_on:  # the rule detector has no fit
+            lines.append(
+                f"{entry['model_version']}: no fit; limits hand-set from train-normal envelopes "
+                "(results/validation/rule_envelopes_train.csv); threshold chosen on validation"
+            )
+            continue
         lines.append(
             f"{entry['model_version']}: fitted on {len(fitted_on)} runs, all in train: "
             f"{fitted_on <= train}; any test run used: {bool(fitted_on & test)}"
         )
     vrep = json.loads((VALIDATION_DIR / "validation_report.json").read_text())
-    used = set()
+    used: set[str] = set()
     for name in vrep["detectors"]:
-        pf = VALIDATION_DIR / f"{name}_per_fault.csv"
-        if pf.exists():
-            used |= {line.split(",")[0] for line in pf.read_text().splitlines()[1:]}
+        for kind in ("per_fault", "incidents"):
+            f = VALIDATION_DIR / f"{name}_{kind}.csv"
+            if f.exists():
+                used |= set(pd.read_csv(f, usecols=["run_id"])["run_id"])
     lines.append(f"runs referenced in the validation selection outputs: {len(used)}, all in "
                  f"validation: {used <= val}; any test run: {bool(used & test)}")  # fmt: skip
     if "official_test_report" in reg:
@@ -109,3 +120,89 @@ def threshold_demo(detector: str, threshold: float) -> dict[str, Any]:
 
 def official_files() -> list[str]:
     return sorted(p.name for p in OFFICIAL_DIR.glob("test_*.json"))
+
+
+def fragmentation_table(per_fault: pd.DataFrame, incidents: pd.DataFrame) -> dict[str, Any]:
+    """Incidents per detected fault, and precision counted per fault instead of per incident.
+
+    Per-fault precision = detected faults / (detected faults + false incidents): a fault
+    that produced six incidents counts once, so splitting a fault into many incidents
+    cannot raise it.
+    """
+    tp = incidents[incidents["true_positive"]]
+    per = tp.groupby(["run_id", "asset_id"]).size()
+    detected = int(per_fault["detected"].sum())
+    false_inc = int((~incidents["true_positive"]).sum())
+    return {
+        "detected_faults": detected,
+        "true_incidents": int(len(tp)),
+        "false_incidents": false_inc,
+        "incidents_per_detected_fault": float(per.mean()) if len(per) else float("nan"),
+        "max_incidents_on_one_fault": int(per.max()) if len(per) else 0,
+        "faults_with_more_than_one_incident": int((per > 1).sum()),
+        "incident_precision": float(len(tp) / len(incidents)) if len(incidents) else float("nan"),
+        "per_fault_precision": (
+            float(detected / (detected + false_inc)) if detected + false_inc else float("nan")
+        ),
+    }
+
+
+def fragmentation() -> dict[str, Any]:
+    """Computed from the saved official result files only; written to posthoc/."""
+    out: dict[str, Any] = {
+        "POST_HOC": True,
+        "note": "Computed after the official result from the saved files; selects nothing.",
+        "test": {},
+        "validation": {},
+    }
+    reg = read_registry()
+    for name, entry in reg["models"].items():
+        off = json.loads((REPO_ROOT / entry["official_test_result"]).read_text())
+        out["test"][name] = fragmentation_table(
+            pd.DataFrame(off["per_fault"]), pd.DataFrame(off["incidents"])
+        )
+        pf, inc = VALIDATION_DIR / f"{name}_per_fault.csv", VALIDATION_DIR / f"{name}_incidents.csv"
+        if pf.exists() and inc.exists():
+            out["validation"][name] = fragmentation_table(pd.read_csv(pf), pd.read_csv(inc))
+    path = OFFICIAL_DIR / "posthoc" / "fragmentation.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(out, indent=2))
+    return out
+
+
+ENVELOPE_FEATURES: tuple[str, ...] = (
+    "temp_slope_l", "link_min_m", "link_std_m", "speed_mismatch", "jump_excess",
+)  # fmt: skip
+
+
+def rule_envelopes() -> pd.DataFrame:
+    """Train-normal envelopes the rule limits in configs/detectors.yaml were set from."""
+    from fleet_signal.features.build import scorable
+
+    tr = load_features("train")
+    tr = tr[scorable(tr)]
+    rows: list[dict[str, Any]] = []
+    for at, g in tr.groupby("asset_type"):
+        for feat in ENVELOPE_FEATURES:
+            v = g[feat]
+            rows.append({"asset_type": at, "mode": "*", "feature": feat, "condition": "all",
+                         "min": v.min(), "q0.1%": v.quantile(0.001), "median": v.median(),
+                         "q99.9%": v.quantile(0.999), "max": v.max()})  # fmt: skip
+        settled = g[g["mode_age"] >= 120]
+        for md, gm in settled.groupby("mode"):
+            v = gm["batt_slope_l"]
+            rows.append({"asset_type": at, "mode": md, "feature": "batt_slope_l",
+                         "condition": "mode_age>=120", "min": v.min(),
+                         "q0.1%": v.quantile(0.001), "median": v.median(),
+                         "q99.9%": v.quantile(0.999), "max": v.max()})  # fmt: skip
+        moving = g[g["mode"].isin(["moving", "returning"])]
+        for feat in ("temp_unchanged", "batt_unchanged", "speed_unchanged", "pos_unchanged"):
+            rows.append({"asset_type": at, "mode": "moving|returning", "feature": feat,
+                         "condition": "moving", "max": moving[feat].max()})  # fmt: skip
+        low = moving[moving["link_pct"] < 99]
+        rows.append({"asset_type": at, "mode": "moving|returning", "feature": "link_unchanged",
+                     "condition": "moving, link<99",
+                     "max": low["link_unchanged"].max()})  # fmt: skip
+    df = pd.DataFrame(rows)
+    df.to_csv(VALIDATION_DIR / "rule_envelopes_train.csv", index=False, float_format="%.3f")
+    return df

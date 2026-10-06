@@ -240,6 +240,9 @@ def summarise(
     out["n_incidents"] = int(per_run["n_incidents"].sum())
     out["n_false_incidents"] = int(per_run["n_fp"].sum())
     out["normal_fleet_minutes"] = float(per_run["normal_asset_s"].sum() / n_assets / 60.0)
+    # Precision counted per fault (a fault split into many incidents counts once).
+    det, fp = out["n_detected"], out["n_false_incidents"]
+    out["per_fault_precision"] = float(det / (det + fp)) if det + fp else float("nan")
     lat = per_fault.loc[
         per_fault["detected"] & per_fault["fault_type"].isin(ecfg.progressive), "latency_events"
     ] if len(per_fault) else pd.Series(dtype=float)  # fmt: skip
