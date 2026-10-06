@@ -7,7 +7,7 @@ features. Groups with too few train rows fall back to per-asset-type stats.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -43,14 +43,16 @@ class StatsDetector(Detector):
         if train.empty:
             raise ValueError("no scorable training rows")
         self.fitted_runs = sorted(train["run_id"].unique())
-        for asset_type, by_type in train.groupby("asset_type"):
+        for type_key, by_type in train.groupby("asset_type"):
+            asset_type = str(type_key)
             x_all = by_type[self.features].to_numpy(dtype=float)
             fallback = (
                 np.median(x_all, axis=0),
                 np.array([robust_scale(x_all[:, j]) for j in range(x_all.shape[1])]),
             )
             self.center[(asset_type, "*")], self.scale[(asset_type, "*")] = fallback
-            for mode, g in by_type.groupby("mode"):
+            for mode_key, g in by_type.groupby("mode"):
+                mode = str(mode_key)
                 if len(g) < self.min_group_rows:
                     continue
                 x = g[self.features].to_numpy(dtype=float)
@@ -70,7 +72,8 @@ class StatsDetector(Detector):
             .groupby(["t", "m"])
             .indices
         )
-        for key, rows in groups.items():
+        for raw_key, rows in groups.items():
+            key = cast(tuple[str, str], raw_key)
             stat_key = key if key in self.center else (key[0], "*")
             if stat_key not in self.center:
                 continue  # unknown asset type: leave NaN (no evidence either way)

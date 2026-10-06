@@ -47,10 +47,10 @@ class Detector(ABC):
             out[ok] = self._raw_score(feats.loc[ok])
         return out
 
-    def evidence(self, feats: pd.DataFrame, k: int = 3) -> list[list[dict[str, float]]]:
+    def evidence(self, feats: pd.DataFrame, k: int = 3) -> list[list[dict[str, Any]]]:
         """Top-k contributing signals per row (empty list for unscorable rows)."""
         ok = scorable(feats).to_numpy()
-        result: list[list[dict[str, float]]] = [[] for _ in range(len(feats))]
+        result: list[list[dict[str, Any]]] = [[] for _ in range(len(feats))]
         if not ok.any():
             return result
         contrib = self._contributions(feats.loc[ok])

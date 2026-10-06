@@ -63,8 +63,12 @@ def _cmd_plot(args: argparse.Namespace) -> None:
     if args.run:
         targets.append((args.run, args.asset))
     else:
-        # Gallery: first validation and first test run of each fault variant, plus one normal run.
+        # Gallery: first VALIDATION run of each fault variant, plus one normal run. Test runs
+        # are excluded on purpose: looking at test data before freezing is a leak (an early
+        # version of this gallery included test runs; see PROCESS_LOG). Plot a specific test
+        # run explicitly with --run after the official result exists.
         merged = faults.merge(runs, on="run_id")
+        merged = merged[merged["split"] == "validation"]
         for _, group in merged.groupby(["split", "fault_type", "variant"]):
             targets.append((group.iloc[0]["run_id"], None))
         normal = runs[(runs["split"] == "validation") & (runs["scenario"] == "normal")]

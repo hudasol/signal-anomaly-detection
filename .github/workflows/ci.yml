@@ -12,11 +12,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.3"   # the exact interpreter the results were produced with
           cache: pip
-      - name: Install
-        run: pip install -e ".[dev]"
+      - name: Install (exact pinned environment)
+        run: |
+          pip install -r requirements.lock
+          pip install --no-deps -e .
       - name: Lint
         run: ruff check . && ruff format --check .
+      - name: Type check
+        run: mypy
       - name: Test
         run: pytest -v

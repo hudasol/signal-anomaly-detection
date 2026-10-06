@@ -24,7 +24,7 @@ def bootstrap_ci(
     per_run: pd.DataFrame, n_assets: int, n_resamples: int, seed: int, alpha: float = 0.05
 ) -> dict[str, tuple[float, float]]:
     pr = per_run.set_index("run_id")
-    samples = {m: [] for m in METRICS}
+    samples: dict[str, list[float]] = {m: [] for m in METRICS}
     for ids in _resample_ids(pr.index.to_numpy(), n_resamples, seed):
         r = rates(pr.loc[ids], n_assets)
         for m in METRICS:
@@ -49,7 +49,7 @@ def paired_difference(
     if set(a.index) != set(b.index):
         raise ValueError("paired comparison needs both detectors on the same runs")
     point_a, point_b = rates(a, n_assets), rates(b, n_assets)
-    diffs = {m: [] for m in METRICS}
+    diffs: dict[str, list[float]] = {m: [] for m in METRICS}
     for ids in _resample_ids(a.index.to_numpy(), n_resamples, seed):
         ra, rb = rates(a.loc[ids], n_assets), rates(b.loc[ids], n_assets)
         for m in METRICS:

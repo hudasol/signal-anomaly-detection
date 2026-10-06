@@ -54,12 +54,13 @@ def select_threshold(
             best = pool.sort_values(["f1", "threshold"], ascending=[False, False]).iloc[0]
         else:
             best = pool.sort_values(["fp_per_10min", "threshold"], ascending=[True, False]).iloc[0]
-        return {**best.to_dict(), "feasible": False}
+        return {**{str(k): v for k, v in best.to_dict().items()}, "feasible": False}
     lat = feasible["progressive_latency_median"].fillna(np.inf)
     ranked = feasible.assign(_lat=lat).sort_values(
         ["recall", "_lat", "threshold"], ascending=[False, True, False]
     )
-    return {**ranked.iloc[0].drop("_lat").to_dict(), "feasible": True}
+    top = ranked.iloc[0].drop("_lat").to_dict()
+    return {**{str(k): v for k, v in top.items()}, "feasible": True}
 
 
 def select_incident_params(

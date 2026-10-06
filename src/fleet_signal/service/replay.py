@@ -23,6 +23,7 @@ import pandas as pd
 
 from fleet_signal.data.config import REPO_ROOT
 from fleet_signal.data.telemetry import load_telemetry
+from fleet_signal.eval.protocol import EvalConfig
 from fleet_signal.features.build import build_features
 from fleet_signal.incidents.tracker import IncidentTracker
 from fleet_signal.registry import REGISTRY_PATH, read_registry
@@ -52,10 +53,11 @@ def replay_asset(
         tracker = IncidentTracker(scorer.artifact.params)
         for r in results:
             alert = r.status == "ok" and r.decision == "anomalous"
+            assert r.seq is not None  # set on every result once a model is loaded
             for ev in tracker.update(int(r.seq), alert, r.score):
                 lifecycle.append({**ev, "asset_id": r.asset_id, "score": r.score,
                                   "evidence": r.evidence})  # fmt: skip
-        if results:
+        if results and results[-1].seq is not None:
             lifecycle.extend(tracker.finish(int(results[-1].seq)))
         incidents = [i.as_dict() for i in tracker.incidents]
     return results, lifecycle, incidents
@@ -131,6 +133,7 @@ def main(argv: list[str] | None = None) -> None:
         runs = load_runs()
         split = runs.loc[runs["run_id"] == args.run, "split"]
         faults = load_faults()
+        grace = EvalConfig.load().grace
         f = faults[faults["run_id"] == args.run]
         print(f"\nGROUND TRUTH (shown after replay; split: {split.iloc[0] if len(split) else '?'})")
         if f.empty:
@@ -144,7 +147,7 @@ def main(argv: list[str] | None = None) -> None:
                 continue
             for inc in all_incidents.get(row["asset_id"], []):
                 opens = [o for o in inc["open_seqs"] if o >= row["fault_start_seq"]]
-                if opens and opens[0] < row["fault_end_seq"] + 10:
+                if opens and opens[0] < row["fault_end_seq"] + grace:
                     print(f"    detected: incident #{inc['incident_id']} opened at seq {opens[0]}"
                           f" -> latency {opens[0] - row['fault_start_seq']} events")  # fmt: skip
                     break

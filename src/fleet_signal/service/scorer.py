@@ -208,6 +208,7 @@ class Scorer:
                 out.append(self._base(status="degraded", **base, reason="non-finite features"))
             else:
                 s = float(scores[i])
+                assert thr is not None  # a loaded artifact always has a threshold
                 out.append(self._base(status="ok", **base, score=s, evidence=evidence[i],
                                       decision="anomalous" if s >= thr else "normal"))  # fmt: skip
         return out

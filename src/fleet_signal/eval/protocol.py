@@ -108,17 +108,20 @@ class ScoredSet:
         scored = scored[scored["run_id"].isin(self.run_ids)]
         faults = faults[faults["run_id"].isin(self.run_ids)]
         self.faults = faults.reset_index(drop=True)
-        by_asset = {(r.run_id, r.asset_id): r._asdict() for r in faults.itertuples(index=False)}
+        by_asset: dict[tuple[str, str], dict[str, Any]] = {
+            (str(r["run_id"]), str(r["asset_id"])): {str(k): v for k, v in r.items()}
+            for r in faults.to_dict("records")
+        }
         self.groups: list[_AssetRun] = []
         for (run_id, asset_id), g in scored.groupby(["run_id", "asset_id"], sort=True):
             g = g.sort_values("seq")
             self.groups.append(
                 _AssetRun(
-                    run_id,
-                    asset_id,
+                    str(run_id),
+                    str(asset_id),
                     g["seq"].to_numpy(),
                     g["score"].to_numpy(dtype=float),
-                    by_asset.get((run_id, asset_id)),
+                    by_asset.get((str(run_id), str(asset_id))),
                 )
             )
 

@@ -9,6 +9,8 @@ on a common scale. Score calibration and evidence work as for IsolationForest.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import LocalOutlierFactor
@@ -28,7 +30,7 @@ class LOFDetector(Detector):
         groups: tuple[str, ...] = ("level", "trend", "volatility", "freeze", "motion"),
         random_state: int = 0,
     ) -> None:
-        self.params = {
+        self.params: dict[str, Any] = {
             "n_neighbors": n_neighbors,
             "max_train": max_train,
             "groups": tuple(groups),
@@ -50,7 +52,8 @@ class LOFDetector(Detector):
         self.fitted_runs = sorted(train["run_id"].unique())
         self.space.fit(train)
         rng = np.random.default_rng(self.params["random_state"])
-        for asset_type, g in train.groupby("asset_type"):
+        for type_key, g in train.groupby("asset_type"):
+            asset_type = str(type_key)
             if len(g) > self.params["max_train"]:
                 g = g.iloc[np.sort(rng.choice(len(g), self.params["max_train"], replace=False))]
             x = self._inputs(g)

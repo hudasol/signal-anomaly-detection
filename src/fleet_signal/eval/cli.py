@@ -41,6 +41,45 @@ def _fmt(v: object) -> str:
     return f"{v:.3f}" if isinstance(v, float) else str(v)
 
 
+DOC_FIGURES = VALIDATION_DIR.parents[1] / "docs" / "figures"
+# Example runs shown in the docs: a normal and an overheating validation run, and the
+# post-hoc test false negative discussed in EVALUATION.md.
+DOC_RUNS: tuple[tuple[str, str], ...] = (
+    ("r2001", "drone-01"),
+    ("r2011", "drone-01"),
+    ("r3015", "rover-01"),
+)
+
+
+def render_doc_figures() -> list[str]:
+    """Regenerate every figure under docs/figures/ (no hand-copied images)."""
+    import shutil
+
+    from fleet_signal.data.ground_truth import load_faults, load_runs
+    from fleet_signal.data.plots import plot_asset_run
+    from fleet_signal.data.telemetry import load_telemetry
+    from fleet_signal.eval.official import OFFICIAL_DIR
+
+    DOC_FIGURES.mkdir(parents=True, exist_ok=True)
+    out: list[str] = []
+    for name in ("test_threshold_sensitivity.png", "test_recall_by_fault_type.png"):
+        if (OFFICIAL_DIR / name).exists():
+            shutil.copyfile(OFFICIAL_DIR / name, DOC_FIGURES / name)
+            out.append(str(DOC_FIGURES / name))
+    runs, faults = load_runs(), load_faults()
+    tel = load_telemetry(run_ids=[r for r, _ in DOC_RUNS])
+    for run_id, asset in DOC_RUNS:
+        split = str(runs.loc[runs["run_id"] == run_id, "split"].iloc[0])
+        f = faults[(faults["run_id"] == run_id) & (faults["asset_id"] == asset)]
+        fault = f.iloc[0] if len(f) else None
+        stem = f"{split}_{run_id}_{asset}"
+        if fault is not None:
+            stem += f"_{fault['fault_type']}_{fault['variant']}"
+        out.append(str(plot_asset_run(tel, run_id, asset, DOC_FIGURES / f"{stem}.png", fault,
+                                      f" · {split}")))  # fmt: skip
+    return out
+
+
 def render_all_plots() -> list[str]:
     """Every evaluation figure, drawn only from files already saved on disk."""
     from fleet_signal.eval.official import OFFICIAL_DIR
@@ -137,7 +176,7 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     if args.command == "plots":
-        for path in render_all_plots():
+        for path in [*render_all_plots(), *render_doc_figures()]:
             print(path)
         return
 

@@ -71,7 +71,8 @@ class IsolationForestDetector(Detector):
         self.fitted_runs = sorted(train["run_id"].unique())
         self.evidence_model.fit(train)
         p = self.params
-        for asset_type, g in train.groupby("asset_type"):
+        for type_key, g in train.groupby("asset_type"):
+            asset_type = str(type_key)
             x = self._inputs(g)
             model = IsolationForest(
                 n_estimators=p["n_estimators"],
