@@ -4,13 +4,34 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+
+def _find_root() -> Path:
+    """Where configs/, models/ and data/ live.
+
+    SIGNAL_HOME if set; else the source checkout this file sits in (editable
+    install); else the nearest directory at or above the working directory that
+    holds configs/data.yaml (a regular install, e.g. the Docker image).
+    """
+    env = os.environ.get("SIGNAL_HOME")
+    if env:
+        return Path(env).resolve()
+    checkout = Path(__file__).resolve().parents[3]
+    if (checkout / "configs" / "data.yaml").exists():
+        return checkout
+    for d in (Path.cwd(), *Path.cwd().parents):
+        if (d / "configs" / "data.yaml").exists():
+            return d
+    return checkout
+
+
+REPO_ROOT = _find_root()
 DEFAULT_DATA_CONFIG = REPO_ROOT / "configs" / "data.yaml"
 DEFAULT_SPLITS_CONFIG = REPO_ROOT / "configs" / "splits.yaml"
 DEFAULT_DATA_DIR = REPO_ROOT / "data"

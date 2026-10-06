@@ -1,10 +1,13 @@
 .venv
 .git
+.github
 data
 **/__pycache__
+**/*.pyc
 .pytest_cache
 .mypy_cache
 .ruff_cache
 results/replay
 results/demo
 results/data_sanity
+docs/figures

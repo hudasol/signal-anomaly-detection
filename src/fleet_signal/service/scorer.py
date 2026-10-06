@@ -1,15 +1,22 @@
 """Scoring one asset's telemetry window: the inference boundary.
 
-Every response carries an explicit `status`; the service never answers
-"normal" when it could not score safely:
+Every response carries an explicit `status`. The service answers "normal" only
+for a validated, full-context window scored by a verified model:
 
-    unavailable        model artifact missing, unreadable or wrong schema
+    unavailable        no verified model: artifact missing, not in the registry,
+                       SHA-256 mismatch, unreadable, or built for another schema
     insufficient_data  not enough context to compute the features the model was
                        evaluated with (see below)
-    degraded           the window has a gap, or features are not finite
+    degraded           the window cannot be trusted: a gap, an impossible or
+                       non-finite reading, unknown asset type or mode, seq not
+                       strictly increasing, more than one asset, timestamps not 1 Hz
     ok                 scored; decision is "normal" or "anomalous"
 
-Only `ok` carries a decision.
+Only `ok` carries a decision. The decision is per EVENT (this window's last
+event crossed the threshold or not). Incidents (open after N alerts, close after
+M quiet events) are built from the stream of decisions by
+`fleet_signal.incidents.tracker.IncidentTracker`, as `signal-replay` does; the
+false-incident rate in EVALUATION.md is for incidents, not for these decisions.
 
 Context rule. Some features look back up to 600 events ("seconds in this mode",
 events since a field last changed). Computed from a shorter window they are cut
@@ -23,6 +30,7 @@ which case nothing earlier exists to be cut off. Anything else is
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -31,7 +39,17 @@ import numpy as np
 import pandas as pd
 
 from fleet_signal.features.build import FEATURE_COLUMNS, FeatureConfig, build_features
-from fleet_signal.registry import ArtifactError, ModelArtifact, load_artifact, serving_artifact_path
+from fleet_signal.registry import (
+    REGISTRY_PATH,
+    ArtifactError,
+    ModelArtifact,
+    code_provenance,
+    load_artifact,
+    registered_artifact,
+)
+from fleet_signal.service.validation import check_window
+
+log = logging.getLogger(__name__)
 
 # Longest look-back any feature needs: mode_age is capped at 600 s.
 HISTORY_BUFFER = 650
@@ -75,6 +93,8 @@ def normalise_events(events: list[dict[str, Any]] | pd.DataFrame) -> pd.DataFram
     else:
         rows = []
         for e in events:
+            if not isinstance(e, dict):
+                raise TypeError("each event must be an object")
             e = dict(e)
             pos = e.pop("position", None)
             if isinstance(pos, dict):
@@ -88,22 +108,75 @@ def normalise_events(events: list[dict[str, Any]] | pd.DataFrame) -> pd.DataFram
     return df
 
 
+def _identify(df: pd.DataFrame) -> dict[str, Any]:
+    """Best-effort asset_id / seq of the last event, for reporting a rejected window."""
+    out: dict[str, Any] = {}
+    last = df.iloc[-1]
+    if isinstance(last["asset_id"], str):
+        out["asset_id"] = last["asset_id"]
+    seq = last["seq"]
+    if isinstance(seq, (int, np.integer)) and not isinstance(seq, (bool, np.bool_)):
+        out["seq"] = int(seq)
+    out["history"] = len(df)
+    return out
+
+
+def _single_threaded(detector: Any) -> None:
+    """Inference runs one window at a time inside a web worker: do not fan out
+    across every CPU (LOF was fitted with n_jobs=-1). Scores are unchanged."""
+    models = list(getattr(detector, "models", {}).values())
+    models += [m for m in (getattr(detector, "model", None),) if m is not None]
+    for m in models:
+        if hasattr(m, "n_jobs"):
+            m.n_jobs = 1
+
+
 class Scorer:
+    """Loads a verified artifact once and scores windows.
+
+    Only an artifact listed in the model registry is loaded, and its SHA-256 is
+    checked before it is unpickled. `allow_unregistered=True` skips the
+    registry (tests and local experiments only; not reachable from the API or env).
+    """
+
     def __init__(
         self,
         artifact_path: Path | None = None,
         threshold_override: float | None = None,
         fcfg: FeatureConfig | None = None,
+        *,
+        allow_unregistered: bool = False,
+        registry_path: Path = REGISTRY_PATH,
     ) -> None:
-        self.fcfg = fcfg or FeatureConfig.load()
         self.artifact: ModelArtifact | None = None
         self.error: str | None = None
+        self.provenance: dict[str, Any] = {}
         self.threshold_override = threshold_override
+        self._fcfg: FeatureConfig | None = fcfg
         try:
-            path = Path(artifact_path) if artifact_path else serving_artifact_path()
-            self.artifact = load_artifact(path, self.fcfg)
+            if self._fcfg is None:
+                self._fcfg = FeatureConfig.load()
+            if allow_unregistered and artifact_path is not None:
+                path, sha = Path(artifact_path), None
+            else:
+                path, sha = registered_artifact(
+                    Path(artifact_path) if artifact_path else None, registry_path
+                )
+            self.artifact = load_artifact(path, self._fcfg, expected_sha256=sha)
+            _single_threaded(self.artifact.detector)
+            self.provenance = code_provenance(path)
         except ArtifactError as exc:
             self.error = str(exc)
+            log.error("model unavailable: %s", exc)
+        except Exception as exc:  # config missing or broken: unavailable, never a crash
+            self.error = f"service misconfigured: {type(exc).__name__}"
+            log.exception("model unavailable: startup failed")
+
+    @property
+    def fcfg(self) -> FeatureConfig:
+        if self._fcfg is None:
+            raise ArtifactError(self.error or "feature config not loaded")
+        return self._fcfg
 
     @property
     def available(self) -> bool:
@@ -119,7 +192,7 @@ class Scorer:
             else self.artifact.threshold
         )
 
-    def _base(self, **kw: Any) -> ScoreResult:
+    def result(self, **kw: Any) -> ScoreResult:
         art = self.artifact
         return ScoreResult(
             model_version=art.model_version if art else None,
@@ -131,33 +204,42 @@ class Scorer:
     def score_events(self, events: list[dict[str, Any]] | pd.DataFrame) -> ScoreResult:
         """Score the LAST event of one asset's window."""
         if not self.available:
-            return self._base(status="unavailable", reason=self.error)
-        df = normalise_events(events)
+            return self.result(status="unavailable", reason=self.error)
+        try:
+            df = normalise_events(events)
+        except (TypeError, ValueError):
+            return self.result(status="degraded", reason="events are not a list of objects")
+        if df.empty:
+            return self.result(status="degraded", reason="no events")
         missing = [c for c in REQUIRED if c not in df.columns]
         if missing:
-            return self._base(status="degraded", reason=f"missing fields: {missing}")
-        if df["asset_id"].nunique() != 1:
-            return self._base(status="degraded", reason="a window must contain exactly one asset")
-        df = df.drop_duplicates(subset=["seq"], keep="last").sort_values("seq").tail(HISTORY_BUFFER)
+            return self.result(status="degraded", reason=f"missing fields: {missing}")
+        # Never repair a window (no sorting, no de-duplication): a window that is not
+        # one asset, strictly increasing seq, plausible values, is reported, not scored.
+        problem = check_window(df)
+        if problem is not None:
+            return self.result(status="degraded", reason=problem, **_identify(df))
+        df = df.tail(HISTORY_BUFFER)
         last = df.iloc[-1]
         asset_id, seq, n = str(last["asset_id"]), int(last["seq"]), len(df)
         if n < self.fcfg.min_history:
-            return self._base(
+            return self.result(
                 status="insufficient_data", asset_id=asset_id, seq=seq, history=n,
                 reason=f"{n} events of history, need {self.fcfg.min_history}",
             )  # fmt: skip
         starts_at_run_start = int(df["seq"].iloc[0]) <= self.fcfg.max_gap
         if n < HISTORY_BUFFER and not starts_at_run_start:
-            return self._base(
+            return self.result(
                 status="insufficient_data", asset_id=asset_id, seq=seq, history=n,
                 reason=(f"{n} events sent mid-run; send {HISTORY_BUFFER} (or the whole run so "
                         "far) so look-back features match evaluation"),
             )  # fmt: skip
         try:
             feats = build_features(df, self.fcfg).tail(1)
-        except (ValueError, TypeError) as exc:
-            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=n,
-                              reason=f"features could not be computed: {exc}")  # fmt: skip
+        except (ValueError, TypeError, KeyError):
+            log.exception("feature computation failed for %s seq %s", asset_id, seq)
+            return self.result(status="degraded", asset_id=asset_id, seq=seq, history=n,
+                              reason="features could not be computed from this window")  # fmt: skip
         return self._score_feature_row(feats, asset_id, seq, n)
 
     def _score_feature_row(
@@ -167,21 +249,21 @@ class Scorer:
         values = feats[list(FEATURE_COLUMNS)].to_numpy(dtype=float)
         if not bool(row["gap_ok"]):
             gap = f"telemetry gap of {row['max_gap_l']:.0f} events in window"
-            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=history,
+            return self.result(status="degraded", asset_id=asset_id, seq=seq, history=history,
                               reason=gap)  # fmt: skip
         if not np.isfinite(values).all():
             bad = [c for c, v in zip(FEATURE_COLUMNS, values[0], strict=True) if not np.isfinite(v)]
-            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=history,
+            return self.result(status="degraded", asset_id=asset_id, seq=seq, history=history,
                               reason=f"non-finite features: {bad[:5]}")  # fmt: skip
-        assert self.artifact is not None
-        det = self.artifact.detector
+        art, thr = self.artifact, self.threshold
+        if art is None or thr is None:  # cannot happen after the availability check
+            return self.result(status="unavailable", reason=self.error)
+        det = art.detector
         score = float(det.score(feats)[0])
         if not np.isfinite(score):
-            return self._base(status="degraded", asset_id=asset_id, seq=seq, history=history,
+            return self.result(status="degraded", asset_id=asset_id, seq=seq, history=history,
                               reason="detector returned no score")  # fmt: skip
-        thr = self.threshold
-        assert thr is not None
-        return self._base(
+        return self.result(
             status="ok", asset_id=asset_id, seq=seq, history=history, score=score,
             decision="anomalous" if score >= thr else "normal",
             evidence=det.evidence(feats, k=3)[0],
@@ -189,10 +271,10 @@ class Scorer:
 
     def score_feature_rows(self, feats: pd.DataFrame) -> list[ScoreResult]:
         """Batch path for replay: one result per pre-computed (causal) feature row."""
-        if not self.available:
-            return [self._base(status="unavailable", reason=self.error) for _ in range(len(feats))]
-        assert self.artifact is not None
-        det, thr = self.artifact.detector, self.threshold
+        art, thr = self.artifact, self.threshold
+        if art is None or thr is None:
+            return [self.result(status="unavailable", reason=self.error) for _ in range(len(feats))]
+        det = art.detector
         scores = det.score(feats)
         evidence = det.evidence(feats, k=3)
         out: list[ScoreResult] = []
@@ -200,15 +282,14 @@ class Scorer:
             base = {"asset_id": str(row["asset_id"]), "seq": int(row["seq"]),
                     "history": int(row["history"])}  # fmt: skip
             if not bool(row["history_ok"]):
-                out.append(self._base(status="insufficient_data", **base,
+                out.append(self.result(status="insufficient_data", **base,
                                       reason=f"need {self.fcfg.min_history} events"))  # fmt: skip
             elif not bool(row["gap_ok"]):
-                out.append(self._base(status="degraded", **base, reason="telemetry gap in window"))
+                out.append(self.result(status="degraded", **base, reason="telemetry gap in window"))
             elif not np.isfinite(scores[i]):
-                out.append(self._base(status="degraded", **base, reason="non-finite features"))
+                out.append(self.result(status="degraded", **base, reason="non-finite features"))
             else:
                 s = float(scores[i])
-                assert thr is not None  # a loaded artifact always has a threshold
-                out.append(self._base(status="ok", **base, score=s, evidence=evidence[i],
+                out.append(self.result(status="ok", **base, score=s, evidence=evidence[i],
                                       decision="anomalous" if s >= thr else "normal"))  # fmt: skip
         return out

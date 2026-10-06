@@ -39,7 +39,6 @@ from fleet_signal.registry import (
     git_sha,
     load_artifact,
     read_registry,
-    sha256_file,
     write_registry,
 )
 
@@ -55,9 +54,7 @@ def _load_frozen(names: list[str], data_version: str) -> dict[str, ModelArtifact
         if entry is None:
             raise ArtifactError(f"{name} is not in the registry; run signal-train first")
         path = REPO_ROOT / entry["artifact"]
-        art = load_artifact(path)
-        if sha256_file(path) != entry["artifact_sha256"]:
-            raise ArtifactError(f"{path} does not match the registry SHA-256")
+        art = load_artifact(path, expected_sha256=entry["artifact_sha256"])  # verified first
         if art.data_version != data_version:
             raise ArtifactError(f"{name} was trained on {art.data_version}, data is {data_version}")
         arts[name] = art

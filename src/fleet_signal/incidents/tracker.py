@@ -2,8 +2,12 @@
 
 Feed it one decision per event, in order. It applies exactly the same
 open / stay-open / close / cooldown rules as the batch grouping used in
-evaluation (a property test checks they agree on random sequences), so what
-the service does live is what was measured.
+evaluation (property tests check they agree on random sequences, with and
+without seq gaps), so incidents built from live decisions match what was measured.
+
+Used by `signal-replay`. The HTTP `/score` endpoint is stateless and returns the
+per-event decision only; whoever consumes those decisions runs this tracker
+(one per asset) to get incidents.
 
 An event that could not be scored (insufficient data, degraded, model
 unavailable) is passed as `alert=False`: it never opens an incident, and it

@@ -44,7 +44,7 @@ class LOFDetector(Detector):
         self.fitted_runs: list[str] = []
 
     def _inputs(self, feats: pd.DataFrame) -> np.ndarray:
-        z = self.space._z(feats)
+        z = self.space.zscores(feats)
         return np.clip(np.nan_to_num(z, nan=0.0), -20.0, 20.0)
 
     def fit(self, train: pd.DataFrame) -> LOFDetector:

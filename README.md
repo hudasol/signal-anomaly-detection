@@ -32,19 +32,20 @@ Precision in brackets counts each fault once; incident precision is flattered wh
 
 ## Setup
 
-The results were produced with **Python 3.12.3**; `requirements.lock` pins every package (numpy 2.5.3, pandas 2.3.3, scikit-learn 1.9.1, pyarrow 25.0.1, fastapi 0.142.2, …).
+The results were produced with **Python 3.12.3**; `requirements.lock` pins every package by version and hash (numpy 2.5.3, pandas 2.3.3, scikit-learn 1.9.1, pyarrow 25.0.1, fastapi 0.142.2, …). `requirements.runtime.lock` is the runtime-only subset the Docker image installs.
 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.lock && pip install --no-deps -e .
+pip install --require-hashes -r requirements.lock && pip install --no-deps -e .
 ```
 
-Or with Docker:
+Or with Docker (base image pinned by digest; runs as a non-root user; has a health check):
 
 ```bash
-docker build -t signal .
-docker run --rm signal pytest                      # tests inside the pinned image
-docker run --rm -p 8000:8000 signal                # the API, serving the shipped model
+docker build -t signal .                           # runtime image: the API only
+docker run --rm -p 8000:8000 signal                # serves the shipped model
+docker build --target test -t signal-test .        # runtime + test tools + tests
+docker run --rm --network none signal-test         # the test suite, offline
 ```
 
 ## Reproduce everything
@@ -90,25 +91,36 @@ Every decision is logged to `results/replay/<run>_<model_version>.jsonl`.
 
 ```bash
 uvicorn fleet_signal.service.app:app --port 8000           # serves the registry's shipped model
-SIGNAL_ARTIFACT=models/lof/<version>/model.joblib uvicorn fleet_signal.service.app:app
+SIGNAL_ARTIFACT=models/lof/<version>/model.joblib uvicorn fleet_signal.service.app:app   # must be a registered artifact
 
-curl localhost:8000/health
-curl localhost:8000/model
+curl localhost:8000/livez        # process up
+curl localhost:8000/readyz       # a verified model is loaded (503 + reason if not); /health is an alias
+curl localhost:8000/model        # threshold, incident params, versions, code provenance
 curl -X POST localhost:8000/score -H 'content-type: application/json' \
      -d '{"events": [ ...one asset, oldest first: 650 events, or all since the run started... ]}'
 ```
 
-Responses carry `status` (`ok`, `insufficient_data`, `degraded`, `unavailable`), `score`, `threshold`, `decision`, `model_version` and `evidence`. Without a usable model, `/score` returns HTTP 503 `unavailable`. Send 650 events (or everything since the run started): a shorter mid-run window would cut off look-back features, so it gets `insufficient_data`. The service never answers `normal` without a full-context score.
+Responses carry `status` (`ok`, `insufficient_data`, `degraded`, `unavailable`), `score`, `threshold`, `decision`, `model_version` and `evidence`. The service answers `normal` only for a **validated, full-context window scored by a verified model**:
+
+| Problem | Answer |
+|---|---|
+| malformed request: wrong types, unknown `mode` or `asset_type` (case-sensitive), several assets, `seq` not strictly increasing or negative, more than 1,000 events | HTTP 422 `invalid_request`, not scored |
+| request body over 2 MB | HTTP 413, rejected before parsing |
+| impossible reading (battery or link outside 0–100, speed over 100 m/s, …), a gap, timestamps not 1 Hz | `degraded`, no decision |
+| fewer than 120 events, or a mid-run window shorter than 650 (look-back features would be cut off) | `insufficient_data`, no decision |
+| no model, or the model file is not in the registry or fails its SHA-256 check (checked *before* loading) | HTTP 503 `unavailable` |
+
+`decision` is **per event**: whether this window's last event crossed the threshold. The evaluated false-alarm rate (0.12 false incidents per 10 min for the rule) is for **incidents**, which are built from the stream of decisions (open after 2 alerts, close after 5 quiet events) by the incident tracker, as `signal-replay` does. Every `/score` call writes one JSON audit line (asset, seq, status, score, threshold, decision, model version, a hash of the events); set `SIGNAL_AUDIT_LOG=<file>` to keep them in a file. Cost and scaling notes are in [MODEL_CARD.md](docs/MODEL_CARD.md#scaling-and-protocol).
 
 ## Tests
 
 ```bash
-pytest                       # 133 tests, ~15 s
+pytest                       # 173 tests, ~20 s
 ruff check . && ruff format --check .
 mypy                         # type check (clean)
 ```
 
-The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the pinned environment on Python 3.12.3 and runs ruff, mypy and pytest on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([verified run on 0b690d3](https://github.com/hudasol/signal-anomaly-detection/actions/runs/37394108168): pinned install, ruff, mypy, 133 tests).
+The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), input validation, artifact verification and the other service hardening (`test_service_hardening.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the hash-pinned environment on Python 3.12.3 and runs ruff, mypy, pytest and a dependency audit, then builds both Docker images, runs the tests inside one with no network and checks the other serves the model as a non-root user, on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([verified run on 0b690d3](https://github.com/hudasol/signal-anomaly-detection/actions/runs/37394108168): pinned install, ruff, mypy, 133 tests).
 
 ## Exceeds the bar
 
@@ -128,10 +140,11 @@ src/fleet_signal/
   detectors/     rule, stats (robust z), lof, iforest
   incidents/     batch grouping + streaming tracker
   eval/          protocol, threshold selection, bootstrap, ship decision, official test, plots
-  service/       scorer (failure states), FastAPI app, replay worker
+  service/       validation, scorer (failure states), FastAPI app, audit log, replay worker
   registry.py    artifacts + registry      train.py   signal-train
 results/validation/   selection outputs (committed)
 results/official/     the run-once test result (committed); posthoc/ = analysis after the fact
 models/               the exact evaluated artifacts + registry.json (committed, SHA-verified)
-requirements.lock     exact environment          Dockerfile   pinned image
+requirements.lock     exact environment (hashes)   requirements.runtime.lock   runtime subset
+Dockerfile            runtime image (default) + test image (--target test)
 ```

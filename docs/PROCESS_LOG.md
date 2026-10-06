@@ -251,3 +251,47 @@ Before tagging, an independent reviewer (a separate agent that had not seen the 
 - **Features:** PLAN §4's "count of link drops below a floor" became `link_min_m` plus `link_absdiff_s`, and "max single-step displacement" became `jump_excess` (displacement beyond what reported speed allows, which is normalised by speed).
 - **Escalation:** PLAN §6 said to try LOF or One-Class SVM "once" if Isolation Forest lost. In practice Isolation Forest and LOF were run as one validation grid (8 + 6 settings) and the best feasible one was taken. One-Class SVM was never tried.
 - **Open questions (a) and (b) for Awaiz** (per-event recall; unseen variants in test) were never resolved in writing. I went with per-event recall and included unseen variants, and both choices are documented, but they were not confirmed with him. The mid-point check-in was also not sent.
+
+
+## 2026-10-07: post-freeze service hardening (engineering review)
+
+A second review looked at the repo the way a software engineer at Edge would: as a service someone has to run, not as an experiment. I probed the running API myself and a separate reviewer read the code. The evaluation held up; the service did not. It could still be made to answer `ok` / `normal` on bad input, which is the one failure the brief forbids, and the docs said that could not happen.
+
+**Nothing here changes a score on valid input, a threshold, a model file or an official result.** Checked three ways: replays of r3003, r3006 (rule and LOF), r3015, r3025, r3029 (strict, window by window through the service path) and r3048 (rule and LOF) give byte-identical output and per-event logs before and after; `git diff` shows no change under `results/official/` or `models/`; and the official test was re-run from scratch in a clean clone with the new code and reproduced every number and decision.
+
+### Silent-normal paths found and closed
+
+| Input | Before | After |
+|---|---|---|
+| `mode: "MOVING"` with a 30 %/min battery drain (`"moving"` scored `anomalous` 26.2) | `ok` / `normal`: an unknown mode switched off every mode-gated rule | HTTP 422; detectors also return no score for an unknown mode |
+| `mode: "flying"` | `ok` | 422 |
+| battery −50 or 500, speed 1e308, link 101 | `ok` | `degraded`: outside physical range |
+| `speed: true`, `seq: 3.7` (truncated to 3), `seq: "12"`, temperature `"hot"` | `ok`, HTTP 500, or `degraded` with raw exception text | 422 |
+| negative `seq` (passed the start-of-run check, so a short mid-run window was scored) | `ok` | 422 / `degraded` |
+| `null` asset_id (pandas `nunique` ignores missing values) | `ok` | 422 / `degraded` |
+| duplicate `seq` with temperature 999 (kept the last copy) | decision flipped | 422 / `degraded`: the scorer no longer sorts or de-duplicates anything |
+| mixed `asset_type` (took the first row's) | `ok` | 422 / `degraded` |
+| timestamps at 2 Hz (features assume 1 Hz) | `ok` | `degraded` |
+
+Two layers: a typed request schema at the HTTP boundary (`service/validation.py`, pydantic, strict types, exact enums, one asset, strictly increasing `seq`, at most 1,000 events) and the same checks on the DataFrame inside the scorer, so `signal-replay` and direct use are covered too. Contract violations are 422 (malformed request); impossible readings are `degraded` (a data-quality problem the operator should see).
+
+### Other fixes
+
+- **Artifacts are verified before they are opened.** `joblib.load` ran before the type and SHA checks, so a crafted file could run code (a harmless test pickle wrote a file). Serving now loads only artifacts listed in the registry and checks the SHA-256 *before* unpickling; `SIGNAL_ARTIFACT` cannot point outside the registry; the official test and the demo commands check before loading too. Tested with a payload pickle: refused, marker file never written.
+- **Request size.** 130,000 events were accepted (2.1 s, and 520k events took the process to 1.8 GB). Now: at most 1,000 events (422) and a 2 MB body limit checked while reading, before parsing (413).
+- **Startup never crashes.** A corrupt `registry.json` raised at import; a missing feature config was outside the error handling. Both now leave the service up and `unavailable`. The app is built on first access, not at import. The repo root is found from `SIGNAL_HOME`, the source checkout, or the working directory, so a regular (non-editable) install works (the Docker image uses one).
+- **Clean errors.** No raw exception text in `reason`; no `assert` in the request path.
+- **Observability.** JSON logs; one audit line per `/score` call (asset, seq, status, score, threshold, decision, model version, events hash, latency), optionally to a file (`SIGNAL_AUDIT_LOG`), so a live decision can be reconstructed after a missed fault. `/livez` and `/readyz` are separate (`/health` kept as an alias). One version string (package 1.0.0) everywhere. `/model` reports `code_provenance` and `decision_unit: "event"`.
+- **CPU.** LOF was fitted with `n_jobs=-1` and used every core inside the web worker; inference now runs single-threaded (scores identical) and `/score` runs in the worker thread pool. p50 went from 32–35 ms to about 28 ms.
+- **Per-event vs incidents, said plainly.** `/score` returns a per-event decision; the evaluated 0.12 false incidents per 10 min is for incidents, built by the tracker as `signal-replay` does. The tracker's docstring claimed the service used it; corrected, and README / MODEL_CARD now say which number applies to what. (Whether the API should also return incident state is an open decision; options in the hand-over.)
+- **Docker.** Multi-stage; base image pinned by digest; runtime image runs as a non-root user, has no test, lint or type tools, a regular install and a `HEALTHCHECK`; a separate `--target test` image runs the suite. The default target is the runtime image (the first attempt built the test image by default, because Docker builds the last stage; caught by checking `whoami` and the tool list in the image).
+- **Supply chain and CI.** `requirements.lock` and a runtime-only `requirements.runtime.lock` pin every package by version and hash (same versions as before; checked). CI: read-only token, actions pinned by commit SHA, `pip-audit` on the lock (no known vulnerabilities today), and a Docker job that builds both images, runs the tests inside one with no network and checks the other serves the model as a non-root user.
+- **Smaller.** Registry writes are atomic. The robust-z helper LOF and Isolation Forest share is public (`zscores`). Stale `registry.py` docstring ("not committed") fixed. New tests: the tracker matches batch grouping when `seq` has gaps; fitted robust-z and LOF artifacts are byte-deterministic. 133 → 173 tests.
+
+### Deliberately not changed
+
+- **The feature builder.** Its source is part of the feature-schema hash, so editing `features/build.py` would invalidate the evaluated artifacts. Two findings stay as documented limits (MODEL_CARD, "Scaling and protocol"): the position key `x·10⁶ + y` (can only collide for positions about 100 km apart) and the hash covering raw bytes (a formatting change would need a re-freeze). Same for the generator's hard-coded `spawn(5)` stream count (part of the data version).
+- **Stateless 650-event protocol.** About 180 KB per call and features recomputed every tick: fine for a demo, wasteful for 200 assets (about 35 MB/s). Documented with the next step (incremental per-asset feature state) rather than rebuilt after the freeze.
+- **mypy strict mode, long functions.** Not worth the churn this close to the deadline.
+
+Seen once and not reproduced: `signal-replay` printed `terminate called without an active exception` and aborted at interpreter exit (after printing complete, correct output). Eight further runs exited cleanly. Most likely a native thread pool torn down at exit; noted, not chased.

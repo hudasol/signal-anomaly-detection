@@ -2,7 +2,7 @@
 
 Every item the brief lists, with the exact command and what it shows. Nothing here edits a model, regenerates data or touches `results/official/`. Outputs shown are from a rehearsal on the committed state.
 
-Setup, once: `pip install -r requirements.lock && pip install --no-deps -e . && signal-data generate` (about 20 s; byte-identical data). **Do not retrain:** the exact evaluated model artifacts are committed under `models/`, and their SHA-256 matches `models/registry.json` and the official result files. (`signal-train` would verify and keep them anyway, and it refuses to overwrite an evaluated model.) Docker alternative: `docker build -t signal . && docker run --rm signal sh -c "signal-data generate && signal-eval show"`.
+Setup, once: `pip install --require-hashes -r requirements.lock && pip install --no-deps -e . && signal-data generate` (about 20 s; byte-identical data). **Do not retrain:** the exact evaluated model artifacts are committed under `models/`, and their SHA-256 matches `models/registry.json` and the official result files. (`signal-train` would verify and keep them anyway, and it refuses to overwrite an evaluated model.) Docker alternative: `docker build -t signal . && docker run --rm signal sh -c "signal-data generate && signal-eval show"` (runs as a non-root user).
 
 ## 1. The split, and proof held-out runs were not used
 
@@ -125,7 +125,7 @@ git status --short results/official models/registry.json     # nothing
 signal-replay --run r3006 --detector lof --asset drone-01 | head -1   # threshold 2.2792
 ```
 
-## 7. Remove the model: inference becomes unavailable, not normal
+## 7. Remove or tamper with the model, send bad input: never "normal"
 
 ```bash
 ART=$(python -c "import json;r=json.load(open('models/registry.json'));print(r['models'][r['serving']]['artifact'])")
@@ -133,21 +133,41 @@ mv "$ART" "$ART.bak"
 
 signal-replay --run r3006 --asset drone-01        # MODEL UNAVAILABLE; every status 'unavailable'; 0 incidents
 uvicorn fleet_signal.service.app:app --port 8000 &
-curl -i localhost:8000/health                     # HTTP 503 {"status":"unavailable","reason":"model artifact not found: ..."}
+curl -i localhost:8000/readyz                     # HTTP 503 {"status":"unavailable","reason":"model artifact not found: ..."}
 curl -i -X POST localhost:8000/score -H 'content-type: application/json' -d @window.json   # HTTP 503, decision null
+kill %1
 
 mv "$ART.bak" "$ART"                              # restore
 ```
 
+Tampering is refused before the file is opened (pickles can run code on load):
+
+```bash
+cp "$ART" "$ART.bak" && printf 'x' >> "$ART"
+uvicorn fleet_signal.service.app:app --port 8000 &
+curl -s localhost:8000/readyz                     # 503 "artifact SHA-256 does not match the registry"
+kill %1; mv "$ART.bak" "$ART"; git status --short models   # restored: nothing
+```
+
+Bad input is rejected or reported, never scored (server running with the model restored):
+
+```bash
+python -c "import json;d=json.load(open('window.json'));d['events'][-1]['mode']='MOVING';json.dump(d,open('bad_mode.json','w'))"
+python -c "import json;d=json.load(open('window.json'));d['events'][-1]['battery_pct']=-50;json.dump(d,open('bad_batt.json','w'))"
+curl -s -X POST localhost:8000/score -H 'content-type: application/json' -d @window.json     # ok, anomalous
+curl -s -X POST localhost:8000/score -H 'content-type: application/json' -d @bad_mode.json   # 422 invalid_request (mode is case-sensitive)
+curl -s -X POST localhost:8000/score -H 'content-type: application/json' -d @bad_batt.json   # degraded: battery_pct outside physical range
+```
+
 (Make `window.json` with: `python -c "import json;from fleet_signal.data.telemetry import load_telemetry as L;t=L(run_ids=['r3006']);d=t[(t.asset_id=='drone-01')&(t.seq<=700)].tail(650);print(json.dumps({'events':d.drop(columns=['timestamp_utc']).to_dict('records')}))" > window.json`.)
 
-Also: fewer than 120 events gives `insufficient_data`, **a short window from the middle of a run gives `insufficient_data`** (it would cut off look-back features; e.g. r3029 rover at seq 796: 650 events → `anomalous`, last 120 only → `insufficient_data`, never a silent `normal`), and a gap gives `degraded` (`pytest tests/test_service.py -v -k "unavailable or insufficient or degraded"`).
+Also: fewer than 120 events gives `insufficient_data`, **a short window from the middle of a run gives `insufficient_data`** (it would cut off look-back features; e.g. r3029 rover at seq 796: 650 events → `anomalous`, last 120 only → `insufficient_data`, never a silent `normal`), and a gap gives `degraded` (`pytest tests/test_service.py -v -k "unavailable or insufficient or degraded"`). Every case from the engineering review (unknown or mis-cased mode, impossible readings, negative or duplicated `seq`, mixed assets, oversized bodies, a tampered or unregistered artifact, a corrupt registry) is pinned in `tests/test_service_hardening.py`.
 
 ## 8. The tests that pin it down
 
 ```bash
 pytest -v tests/test_features.py tests/test_splits.py tests/test_eval.py tests/test_incidents.py tests/test_service.py
-pytest                          # 133 passed
+pytest                          # 173 passed
 mypy                            # no issues
 ```
 
@@ -158,6 +178,7 @@ mypy                            # no issues
 | threshold logic | `test_eval.py`: budget + precision constraint, infeasible flag, run-once guard |
 | incident grouping | `test_incidents.py` (hand sequences) + `test_service.py::test_tracker_matches_batch_grouping_on_random_sequences` |
 | inference contract | `test_service.py`: unavailable / insufficient / degraded / ok, HTTP 503, replay == evaluation |
+| service hardening | `test_service_hardening.py`: 422 on malformed input, `degraded` on impossible readings, 413 on oversized bodies, SHA-256 checked before loading, registry-only artifacts, audit log |
 
 ## Video outline (4–6 min)
 
@@ -170,5 +191,5 @@ mypy                            # no issues
 | 2:45–3:30 | `signal-eval show` + recall-by-fault figure | three detectors on the same test; why the rule ships; the ship-rule gap |
 | 3:30–4:30 | §5 FP r3003 and FN r3015 | mode-transition false alarm; drain hidden by charging; what I'd change |
 | 4:30–5:15 | §6 demo-threshold + sensitivity figure | trade-off, then back to frozen (nothing changed) |
-| 5:15–5:50 | §7 rename the model | HTTP 503 unavailable, never "normal"; restore |
-| 5:50–6:00 | `pytest` | 133 passed; CI green |
+| 5:15–5:50 | §7 rename the model; then `bad_mode.json` and `bad_batt.json` | HTTP 503 unavailable, never "normal"; restore; 422 and `degraded` on bad input |
+| 5:50–6:00 | `pytest` | 173 passed; CI green |

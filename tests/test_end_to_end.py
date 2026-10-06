@@ -105,7 +105,7 @@ def test_full_pipeline_with_fitted_detector(pipeline, make, tmp_path: Path, cfg)
 
     # the live path (scorer + streaming tracker) reproduces evaluation's incidents exactly
     tel = load_telemetry(data_dir=pipeline[1], run_ids=ids["test"])
-    scorer = Scorer(path)
+    scorer = Scorer(path, allow_unregistered=True)
     for (run_id, asset_id), events in tel.groupby(["run_id", "asset_id"]):
         _, _, incidents = replay_asset(scorer, events)
         expected = res.incidents[

@@ -93,7 +93,7 @@ class IsolationForestDetector(Detector):
         """Model inputs: raw features, or robust z per (asset type, mode) from train stats."""
         if self.params["input_space"] == "raw":
             return feats[self.features].to_numpy(dtype=float)
-        z = self.evidence_model._z(feats)
+        z = self.evidence_model.zscores(feats)
         z = np.clip(np.nan_to_num(z, nan=0.0), -50.0, 50.0)
         extra = [c for c in self.features if c not in self.evidence_model.features]
         return np.hstack([z, feats[extra].to_numpy(dtype=float)]) if extra else z

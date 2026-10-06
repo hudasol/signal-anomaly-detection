@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fleet-signal"
-version = "0.1.0"
+version = "1.0.0"
 description = "Signal: evaluated anomaly detection and early warning for fleet telemetry"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -17,6 +17,7 @@ dependencies = [
     "scikit-learn>=1.4,<2",
     "joblib>=1.3",
     "fastapi>=0.110",
+    "pydantic>=2.6",
     "uvicorn>=0.29",
     "matplotlib>=3.8",
 ]

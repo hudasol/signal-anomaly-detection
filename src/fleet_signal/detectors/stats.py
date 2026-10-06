@@ -62,7 +62,10 @@ class StatsDetector(Detector):
                 )
         return self
 
-    def _z(self, feats: pd.DataFrame) -> np.ndarray:
+    def zscores(self, feats: pd.DataFrame) -> np.ndarray:
+        """Robust z of every feature against train-normal (asset_type, mode) statistics.
+
+        Public: LOF and Isolation Forest use it as their input space."""
         if not self.center:
             raise RuntimeError("StatsDetector used before fit()")
         x = feats[self.features].to_numpy(dtype=float)
@@ -80,11 +83,13 @@ class StatsDetector(Detector):
             z[rows] = (x[rows] - self.center[stat_key]) / self.scale[stat_key]
         return z
 
+    _z = zscores  # old name, kept so code that used it keeps working
+
     def _contributions(self, feats: pd.DataFrame) -> pd.DataFrame:
-        return pd.DataFrame(np.abs(self._z(feats)), index=feats.index, columns=self.features)
+        return pd.DataFrame(np.abs(self.zscores(feats)), index=feats.index, columns=self.features)
 
     def _raw_score(self, feats: pd.DataFrame) -> np.ndarray:
-        z = np.abs(self._z(feats))
+        z = np.abs(self.zscores(feats))
         out = np.full(len(feats), np.nan)  # rows with no statistics (unknown type) stay NaN
         has = ~np.isnan(z).all(axis=1)
         out[has] = np.nanmax(z[has], axis=1)

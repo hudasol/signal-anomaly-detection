@@ -7,7 +7,7 @@
 | Data version | `v1.0.0-9e903f9008` (train seeds 1000–1039) |
 | Feature version / schema | `1.0.0` / `704b8f1fda` |
 | Incident grouping | open after 2 alerts, close after 5 quiet events, re-open within 30 = same incident |
-| Artifacts | the **exact evaluated files** are committed under `models/` (SHA-256 in `models/registry.json` matches the official result files); `signal-train` verifies and keeps them and refuses to overwrite an evaluated model |
+| Artifacts | the **exact evaluated files** are committed under `models/` (SHA-256 in `models/registry.json` matches the official result files); `signal-train` verifies and keeps them and refuses to overwrite an evaluated model; serving and the official test load only registered files and check the SHA-256 before loading |
 
 **The shipped model does not meet the brief's bar:** it misses recall by one fault (0.844 vs 0.85) and latency by a wide margin (71 events vs 3). See EVALUATION.md.
 
@@ -27,7 +27,7 @@ An **advisory** early-warning signal for an operator watching a mixed inspection
 
 ## Inputs and outputs
 
-**Input:** one asset's recent events on the Blackbox telemetry contract, oldest first. Send **650 events** (the longest look-back any feature uses, "seconds in this mode", is capped at 600), or everything since the asset's first event of the run. A shorter mid-run window would cut off look-back features and change the score, so it is answered `insufficient_data` instead. `POST /score`, or `signal-replay` for stored runs.
+**Input:** one asset's recent events on the Blackbox telemetry contract, oldest first, `seq` strictly increasing. Send **650 events** (the longest look-back any feature uses, "seconds in this mode", is capped at 600), or everything since the asset's first event of the run; at most 1,000. A shorter mid-run window would cut off look-back features and change the score, so it is answered `insufficient_data` instead. `POST /score`, or `signal-replay` for stored runs. Telemetry is assumed to be **1 Hz**: features measure time in events, so when timestamps are sent they must advance one second per `seq` step.
 
 **Output:**
 
@@ -37,16 +37,24 @@ An **advisory** early-warning signal for an operator watching a mixed inspection
  "evidence": [{"signal": "temp_rise", "contribution": 0.25}], "history": 650, "reason": null}
 ```
 
-`status` is one of:
+`decision` is **per event**. Incidents (open after 2 consecutive alerts, close after 5 quiet events, re-open within 30 = same incident) are built from the stream of decisions by the incident tracker, as `signal-replay` does. The false-incident rates in this card and in EVALUATION.md are for incidents, not for individual decisions.
 
-| Status | When | Decision |
+| Answer | When | Decision |
 |---|---|---|
-| `ok` | scored | `normal` / `anomalous` |
+| `ok` | validated, full-context window, verified model | `normal` / `anomalous` |
 | `insufficient_data` | fewer than 120 events, or a mid-run window shorter than 650 events (look-back features would be cut off) | none |
-| `degraded` | gap of more than 3 events in the last 120, non-finite feature, missing field, mixed assets | none |
-| `unavailable` | model artifact missing, corrupt, or built for a different feature schema (HTTP 503) | none |
+| `degraded` | gap of more than 3 events in the last 120; an impossible reading (battery or link outside 0–100, speed outside 0–100 m/s, temperature outside −60 to 200 °C, non-finite); timestamps not 1 Hz; and, for replay or direct use of the scorer, the contract problems below | none |
+| `unavailable` (HTTP 503) | model missing, not listed in the registry, failing its SHA-256 check (checked *before* the file is unpickled), corrupt, or built for a different feature schema; registry or config unreadable | none |
+| HTTP 422 `invalid_request` | malformed request: wrong types (e.g. `"12"` or `3.7` for `seq`, `true` for a number), unknown `mode` or `asset_type` (exact, case-sensitive), more than one asset, `seq` negative, duplicated or out of order, more than 1,000 events | none |
+| HTTP 413 | request body over 2 MB, rejected before parsing | none |
 
-The service never returns `normal` when it could not score.
+The service answers `normal` only for a validated, full-context window scored by a verified model. Detectors also refuse to score an unknown asset type or mode (score NaN → `degraded`): an unknown mode used to switch off every mode-gated rule, so a battery draining at 30 %/min scored `normal` with `mode: "MOVING"` (found in the pre-release engineering review; fixed and tested).
+
+## Scaling and protocol
+
+Measured on the development container, one asset, 650-event windows sent sequentially, including input validation: `/score` p50 ≈ 28 ms, p95 ≈ 40 ms for both the rule and LOF (LOF runs single-threaded at inference; before that change and validation, p50 was 32–35 ms and p95 53–60 ms). Each call sends about 180 KB of JSON (with timestamps) and recomputes every feature for the window. At 200 assets reporting at 1 Hz that is about 35 MB/s of mostly repeated data and about 6 CPU-seconds per second: workable for a demo, wasteful for a fleet. The next step is incremental feature state per asset (send only the newest event, keep rolling windows server-side), which the streaming/batch equivalence tests already make safe to check. The service holds no per-asset state, so it can run as several replicas behind a load balancer; incident state lives with the consumer of decisions.
+
+Known code limits, not fixed after the freeze because the feature builder's source is part of the feature-schema hash (changing a byte of `features/build.py` would invalidate the evaluated artifacts): the position-freeze feature keys positions as `x·10⁶ + y`, which could only confuse two positions about 100 km apart, so it cannot happen inside the validated range of one window; and the schema hash covers that file's raw bytes, so even a formatting change there needs re-freezing. The code hash recorded next to an artifact is compared with the running code at load and reported by `/model` (`code_provenance`); the three evaluated artifacts predate that record.
 
 ## Features (35, causal, per run and asset)
 

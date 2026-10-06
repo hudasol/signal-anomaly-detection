@@ -41,7 +41,7 @@ def audit() -> list[str]:
     lines.append(f"pairwise overlap of run ids: train/val {len(train & val)}, "
                  f"train/test {len(train & test)}, val/test {len(val & test)}")  # fmt: skip
     for entry in reg["models"].values():
-        art = load_artifact(REPO_ROOT / entry["artifact"])
+        art = load_artifact(REPO_ROOT / entry["artifact"], expected_sha256=entry["artifact_sha256"])
         fitted_on = set(getattr(art.detector, "fitted_runs", []))
         if not fitted_on:  # the rule detector has no fit
             lines.append(
@@ -120,7 +120,7 @@ def show() -> list[str]:
 def threshold_demo(detector: str, threshold: float) -> dict[str, Any]:
     gen_cfg, ecfg = load_config(), EvalConfig.load()
     entry = read_registry()["models"][detector]
-    art = load_artifact(REPO_ROOT / entry["artifact"])
+    art = load_artifact(REPO_ROOT / entry["artifact"], expected_sha256=entry["artifact_sha256"])
     test = load_features("test", gen_cfg=gen_cfg)
     ss = ScoredSet(
         scored_frame(art.detector, test), load_faults(), split_run_ids(gen_cfg)["test"],

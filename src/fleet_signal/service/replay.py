@@ -28,6 +28,7 @@ from fleet_signal.features.build import build_features
 from fleet_signal.incidents.tracker import IncidentTracker
 from fleet_signal.registry import REGISTRY_PATH, read_registry
 from fleet_signal.service.scorer import HISTORY_BUFFER, Scorer, ScoreResult
+from fleet_signal.service.validation import check_window
 
 REPLAY_DIR = REPO_ROOT / "results" / "replay"
 
@@ -37,7 +38,14 @@ def replay_asset(
 ) -> tuple[list[ScoreResult], list[dict[str, Any]], list[dict[str, Any]]]:
     """Returns (per-event results, lifecycle events, incidents) for one asset's run."""
     events = events.sort_values("seq").reset_index(drop=True)
-    if strict:
+    problem = check_window(events) if len(events) else "no events"
+    if problem is not None and scorer.available:
+        # The same checks the service applies: a run that fails them is not scored.
+        results = [
+            scorer.result(status="degraded", asset_id=str(a), seq=int(q), reason=problem)
+            for a, q in zip(events["asset_id"], events["seq"], strict=True)
+        ]
+    elif strict:
         results = [
             scorer.score_events(events.iloc[max(0, i + 1 - HISTORY_BUFFER) : i + 1])
             for i in range(len(events))
@@ -51,10 +59,10 @@ def replay_asset(
     incidents: list[dict[str, Any]] = []
     if scorer.artifact is not None:
         tracker = IncidentTracker(scorer.artifact.params)
-        for r in results:
+        for r, event_seq in zip(results, events["seq"], strict=True):
             alert = r.status == "ok" and r.decision == "anomalous"
-            assert r.seq is not None  # set on every result once a model is loaded
-            for ev in tracker.update(int(r.seq), alert, r.score):
+            seq = int(r.seq) if r.seq is not None else int(event_seq)
+            for ev in tracker.update(seq, alert, r.score):
                 lifecycle.append({**ev, "asset_id": r.asset_id, "score": r.score,
                                   "evidence": r.evidence})  # fmt: skip
         if results and results[-1].seq is not None:
@@ -95,7 +103,8 @@ def main(argv: list[str] | None = None) -> None:
         print(f"MODEL UNAVAILABLE: {scorer.error}")
     else:
         art = scorer.artifact
-        assert art is not None
+        if art is None:
+            raise SystemExit("model unavailable")
         demo = "  (DEMO threshold override)" if args.threshold is not None else ""
         print(f"model {art.model_version}  threshold {scorer.threshold:.4f}{demo}  "
               f"incident params {art.incident_params}")  # fmt: skip

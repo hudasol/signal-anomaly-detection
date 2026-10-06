@@ -59,7 +59,7 @@ def _asset(result, asset: str = "drone-01") -> pd.DataFrame:
 
 
 def test_missing_model_is_unavailable_not_normal(tmp_path: Path, jump_run) -> None:
-    scorer = Scorer(tmp_path / "deleted.joblib")
+    scorer = Scorer(tmp_path / "deleted.joblib", allow_unregistered=True)
     r = scorer.score_events(_asset(jump_run).head(300))
     assert r.status == "unavailable"
     assert r.decision is None and r.score is None
@@ -69,11 +69,16 @@ def test_missing_model_is_unavailable_not_normal(tmp_path: Path, jump_run) -> No
 def test_corrupt_model_is_unavailable(tmp_path: Path, jump_run) -> None:
     bad = tmp_path / "model.joblib"
     bad.write_bytes(b"\x00garbage")
-    assert Scorer(bad).score_events(_asset(jump_run).head(300)).status == "unavailable"
+    assert (
+        Scorer(bad, allow_unregistered=True).score_events(_asset(jump_run).head(300)).status
+        == "unavailable"
+    )
 
 
 def test_short_history_is_insufficient_data(artifact: Path, jump_run) -> None:
-    r = Scorer(artifact).score_events(_asset(jump_run).head(FCFG.min_history - 1))
+    r = Scorer(artifact, allow_unregistered=True).score_events(
+        _asset(jump_run).head(FCFG.min_history - 1)
+    )
     assert r.status == "insufficient_data" and r.decision is None
     assert r.history == FCFG.min_history - 1
 
@@ -82,14 +87,14 @@ def test_short_mid_run_window_is_insufficient_not_normal(artifact: Path, jump_ru
     """A truncated window would cut off look-back features (e.g. seconds in mode)."""
     ev = _asset(jump_run)
     mid = ev[ev["seq"].between(300, 450)]  # 151 events, not from the run start
-    r = Scorer(artifact).score_events(mid)
+    r = Scorer(artifact, allow_unregistered=True).score_events(mid)
     assert r.status == "insufficient_data" and r.decision is None
     assert "mid-run" in (r.reason or "")
 
 
 def test_full_buffer_or_run_start_windows_are_scored(artifact: Path, jump_run) -> None:
     ev = _asset(jump_run)
-    s = Scorer(artifact)
+    s = Scorer(artifact, allow_unregistered=True)
     assert s.score_events(ev[ev["seq"] <= 200]).status == "ok"  # starts at run start
     assert s.score_events(ev.tail(HISTORY_BUFFER)).status == "ok"  # full look-back
 
@@ -97,7 +102,7 @@ def test_full_buffer_or_run_start_windows_are_scored(artifact: Path, jump_run) -
 def test_short_window_cannot_flip_a_decision(artifact: Path, jump_run) -> None:
     """Whatever the window length, an `ok` answer equals the full-context answer."""
     ev = _asset(jump_run)
-    s = Scorer(artifact)
+    s = Scorer(artifact, allow_unregistered=True)
     for end in range(250, 600, 25):
         full = s.score_events(ev[ev["seq"] <= end])
         for n in (120, 200, 400):
@@ -109,26 +114,26 @@ def test_short_window_cannot_flip_a_decision(artifact: Path, jump_run) -> None:
 def test_gap_in_window_is_degraded(artifact: Path, jump_run) -> None:
     ev = _asset(jump_run).head(300)
     ev = ev[~ev["seq"].between(250, 260)]
-    r = Scorer(artifact).score_events(ev)
+    r = Scorer(artifact, allow_unregistered=True).score_events(ev)
     assert r.status == "degraded" and r.decision is None and "gap" in (r.reason or "")
 
 
 def test_non_finite_input_is_degraded(artifact: Path, jump_run) -> None:
     ev = _asset(jump_run).head(300).copy()
     ev.loc[ev.index[-1], "temperature_c"] = np.nan
-    assert Scorer(artifact).score_events(ev).status == "degraded"
+    assert Scorer(artifact, allow_unregistered=True).score_events(ev).status == "degraded"
 
 
 def test_mixed_assets_rejected(artifact: Path, jump_run) -> None:
     mixed = pd.concat(
         [_asset(jump_run, "drone-01").head(200), _asset(jump_run, "rover-01").head(200)]
     )
-    r = Scorer(artifact).score_events(mixed)
+    r = Scorer(artifact, allow_unregistered=True).score_events(mixed)
     assert r.status == "degraded" and "one asset" in (r.reason or "")
 
 
 def test_ok_response_contract(artifact: Path, jump_run) -> None:
-    r = Scorer(artifact).score_events(_asset(jump_run).head(300))
+    r = Scorer(artifact, allow_unregistered=True).score_events(_asset(jump_run).head(300))
     assert r.status == "ok"
     assert r.decision in ("normal", "anomalous")
     assert isinstance(r.score, float) and r.threshold == 0.0
@@ -145,7 +150,7 @@ def test_blackbox_nested_position_events_accepted(artifact: Path, jump_run) -> N
         row["position"] = {"x_m": row.pop("x_m"), "y_m": row.pop("y_m"), "z_m": row.pop("z_m")}
         row.pop("run_id")
         nested.append(row)
-    s = Scorer(artifact)
+    s = Scorer(artifact, allow_unregistered=True)
     assert s.score_events(nested).score == pytest.approx(s.score_events(flat).score)
 
 
@@ -170,7 +175,7 @@ def test_tracker_matches_batch_grouping_on_random_sequences() -> None:
 
 
 def test_replay_strict_window_path_equals_batch_path(artifact: Path, jump_run) -> None:
-    scorer = Scorer(artifact)
+    scorer = Scorer(artifact, allow_unregistered=True)
     ev = _asset(jump_run)
     fast, _, inc_fast = replay_asset(scorer, ev, strict=False)
     strict, _, inc_strict = replay_asset(scorer, ev, strict=True)
@@ -183,7 +188,7 @@ def test_replay_strict_window_path_equals_batch_path(artifact: Path, jump_run) -
 
 def test_replay_incidents_match_evaluation(artifact: Path, jump_run) -> None:
     """The live path opens incidents exactly where the evaluation harness says it does."""
-    scorer = Scorer(artifact)
+    scorer = Scorer(artifact, allow_unregistered=True)
     ev = _asset(jump_run)
     _, _, incidents = replay_asset(scorer, ev)
     feats = build_features(ev)
@@ -197,7 +202,9 @@ def test_replay_incidents_match_evaluation(artifact: Path, jump_run) -> None:
 
 
 def test_replay_with_missing_model_never_alerts(tmp_path: Path, jump_run) -> None:
-    results, lifecycle, incidents = replay_asset(Scorer(tmp_path / "nope.joblib"), _asset(jump_run))
+    results, lifecycle, incidents = replay_asset(
+        Scorer(tmp_path / "nope.joblib", allow_unregistered=True), _asset(jump_run)
+    )
     assert {r.status for r in results} == {"unavailable"}
     assert lifecycle == [] and incidents == []
 
@@ -210,7 +217,7 @@ def _payload(df: pd.DataFrame) -> dict:
 
 
 def test_api_score_and_health(artifact: Path, jump_run) -> None:
-    client = TestClient(create_app(artifact))
+    client = TestClient(create_app(artifact, allow_unregistered=True))
     assert client.get("/health").json()["status"] == "ok"
     assert client.get("/model").json()["threshold"] == 0.0
     r = client.post("/score", json=_payload(_asset(jump_run).head(300)))
@@ -220,7 +227,7 @@ def test_api_score_and_health(artifact: Path, jump_run) -> None:
 
 
 def test_api_without_model_returns_503_unavailable(tmp_path: Path, jump_run) -> None:
-    client = TestClient(create_app(tmp_path / "renamed.joblib"))
+    client = TestClient(create_app(tmp_path / "renamed.joblib", allow_unregistered=True))
     assert client.get("/health").status_code == 503
     r = client.post("/score", json=_payload(_asset(jump_run).head(300)))
     assert r.status_code == 503
@@ -228,5 +235,5 @@ def test_api_without_model_returns_503_unavailable(tmp_path: Path, jump_run) -> 
 
 
 def test_api_rejects_empty_request(artifact: Path) -> None:
-    client = TestClient(create_app(artifact))
+    client = TestClient(create_app(artifact, allow_unregistered=True))
     assert client.post("/score", json={"events": []}).status_code == 422
