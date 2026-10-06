@@ -22,8 +22,9 @@ stats-ab89662ec6: fitted on 40 runs, all in train: True; any test run used: Fals
 lof-a588a4d11b: fitted on 40 runs, all in train: True; any test run used: False
 runs referenced in the validation selection outputs: 32, all in validation: True; any test run: False
 official test report: results/official/test_report_4530f6a108.json
-detector_code_hash now: e9b6936a73
-scoring-code commits since freeze (05fcfcb): 5
+detector_code_hash now: 422f446750
+scoring-code commits since freeze (05fcfcb): 6
+  6a0bbf8 service hardening: never 'normal' on bad input, verified artifacts, limits, audit log, Docke
   62e6158 repro + code: pinned environment, mypy in CI, true end-to-end test, Dockerfile, small fixes
   cb1df60 fix(service): never score a truncated mid-run window (was a silent-normal path)
   1cdbaaf feat(demo): acceptance runbook, audit/show/demo-threshold commands

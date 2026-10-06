@@ -1,61 +1,73 @@
-# Retrospective
+# retrospective
 
-## What went wrong
+## what went wrong
 
-**My ship rule asked the wrong question.** I declared before the test that the ML model ships only if it significantly beats the best baseline on recall or latency. On test, LOF was better on every number: 0.97 vs 0.81 precision, 0.89 vs 0.84 recall, 6× fewer false alarms, 16 vs 71 events latency. Its precision and false-alarm advantages *were* significant. But the rule only looked at recall and latency, neither of which cleared significance with 45 faults, so the rule baseline ships. I wrote the rule thinking about missed faults and forgot that an operator drowning in false alarms is also a failure. I kept the decision rather than rewrite the rule after seeing the answer, but the rule was badly specified.
+**my ship rule asked the wrong question.** before the test i said the ML model ships only if its significantly better than the best baseline on recall or latency. on test LOF was better on every number - 0.97 vs 0.81 precision, 0.89 vs 0.84 recall, 6x fewer false alarms, 16 vs 71 events latency. its precision and false alarm wins were significant. but the rule only looked at recall and latency, and with 45 faults neither one cleared significance, so the rule baseline ships. i wrote that rule thinking about missed faults and forgot that an operator drowning in false alarms is also a failure. i kept the decision instead of rewriting the rule after seeing the answer, but the rule itself was badly specified.
 
-**I tuned my selection rule only after seeing it fail.** The plan said "highest recall within 1.5 false alerts per 10 min". The first validation sweep showed that this allows about 97 false incidents against 30 faults, so precision would be about 0.3. I added a precision ≥ 0.80 constraint. This happened on validation, so it is legitimate, but it is something I should have caught by doing the arithmetic in the plan: the false-alert budget and the precision bar are in different units, and the conversion depends on how much normal time there is per fault.
+**i fixed my selection rule only after it failed.** the plan said highest recall within 1.5 false alerts per 10 min. the first validation sweep showed that allows about 97 false incidents against 30 faults, so precision would be around 0.3. so i added precision >= 0.80. it happened on validation so its legit, but i should have caught it with basic arithmetic in the plan - the false alert budget and the precision bar are in different units and the conversion depends on how much normal time there is per fault.
 
-**The planned model lost badly.** I chose Isolation Forest in the plan with reasons that sounded right. It reached recall 0.27. The faults I generated are mostly "one feature goes extreme", and Isolation Forest is weak at that in about 33 dimensions. I had the information to predict this (I designed the faults) but did not connect it to how the algorithm isolates points.
+**the model i planned lost badly.** i picked isolation forest in the plan for reasons that sounded right. it got recall 0.27. the faults i generated are mostly "one feature goes extreme" and isolation forest is weak at that in about 33 dimensions. i had the info to predict this (i designed the faults) but didnt connect it to how the algorithm actually isolates points.
 
-**I wrote a confident, wrong explanation into five documents.** In test run r3025 a speed freeze started while the drone was charging. I declared the label invalid ("a fault nobody can see, missed by every detector") without checking. An independent review then showed the robust-z baseline had caught it, through `speed_unchanged` growing to 153 against a normal maximum of 14. The real lessons were about my detectors: the rule only checks for frozen fields while moving, and LOF's input clipping flattens extreme counters. Blaming the data was the easier story, and I should have checked all three detectors' per-fault results before writing it.
+**i wrote a confident wrong explanation into five documents.** in test run r3025 a speed freeze started while the drone was charging. i said the label was invalid ("a fault nobody can see, every detector missed it") without checking. the review showed robust z caught it, through `speed_unchanged` growing to 153 against a normal max of 14. the real lesson was about my detectors - the rule only checks frozen fields while moving, and LOF's input clipping flattens extreme counters. blaming the data was the easier story. i should have checked all three detectors per fault results before writing anything.
 
-**I looked at test data before the freeze.** My generator's sanity-plot gallery drew one example of every fault variant from validation *and test*, and I viewed three test runs while checking the generator. I did not choose anything from them, but "test was never touched before the freeze" was not true, and I only disclosed it after the review. The gallery should have been validation-only from the start.
+**i looked at test data before the freeze.** my generator sanity gallery drew one example of every fault variant from validation and test, and i looked at three test runs while checking the generator. i didnt choose anything from them, but "test was never touched before the freeze" wasnt true, and i only disclosed it after the review. the gallery should have been validation only from day one.
 
-**The service could still say "normal" when it should alert.** The scorer accepted any window of 120+ events. A short mid-run window cuts off look-back features ("seconds in this mode"), so the shipped rule's battery check could never fire. On one test run, 42 of 57 sampled decisions differed from the full-window answer (for example, anomalous became normal). That is exactly the failure the brief forbids, and my tests didn't catch it because they always sent windows from the start of the run.
+**the service could still say "normal" when it should alert - twice.** first, the scorer took any window of 120+ events. a short mid run window cuts off look back features ("seconds in this mode"), so the rule's battery check could never fire. on one test run 42 of 57 sampled decisions changed (anomalous became normal). my tests missed it because they always sent windows from the start of the run.
 
-**One fault often became several incidents.** LOF split 17 of its 40 detected test faults into multiple incidents (up to 6), which flatters incident precision. It was already visible on validation, and I didn't measure it until the review.
+then the engineering review found more of the same. `mode: "MOVING"` instead of `"moving"` silently switched off every mode based rule, so a battery draining at 30 %/min came back ok / normal. battery -50, battery 500, speed 1e308 all scored normal. a negative seq got past my start of run check. a duplicate seq with temperature 999 flipped the decision because i was quietly keeping the last copy. i had fixed unknown asset types but never asked the same question about mode. the deeper mistake was that the scorer tried to repair bad input (sort it, dedupe it, take the first asset type) instead of refusing it. now theres a strict schema at the API (422) and the same checks inside the scorer (degraded), and it never repairs anything.
 
-**Small process mistakes caught late:**
+**the service would load any model file it was pointed at.** `joblib.load` ran before the SHA check, and pickles can run code when you load them - a harmless test pickle wrote a file. the SHA was there the whole time, i was just checking it after opening the file. now only registered files load and the hash is checked first.
+
+**one fault often became several incidents.** LOF split 17 of its 40 detected test faults into multiple incidents (up to 6), which flatters incident precision. it was already visible on validation and i didnt measure it until the review.
+
+**the API and the evaluation werent measuring the same thing.** evaluation counts incidents. `/score` returns one decision per event with no memory between calls. so the 0.12 false incidents per 10 min isnt what someone calling the API sees, and my tracker docstring said the service used it when it didnt. now the docs say which number applies to what.
+
+**small process mistakes caught late:**
 
 - `.gitignore`'s `data/` silently excluded `src/fleet_signal/data/`, and lint was skipping it too.
-- The data version did not change when generator code changed.
-- Fault variants were drawn at random instead of balanced.
-- The rule detector could answer "normal" for an unknown asset type. I only found this while writing the model card, after the test.
-- Several numbers in my docs were wrong (event count, which false alarms were warm-up, a threshold-curve claim). I had written them from memory or from an earlier sweep instead of the saved files.
-- Running the demo's setup step would have rewritten the registry's artifact hashes, breaking the link to the evaluated files. The evaluated artifacts are now committed and protected.
+- the data version didnt change when generator code changed.
+- fault variants were drawn at random instead of balanced.
+- the rule detector could answer normal for an unknown asset type. found it while writing the model card, after the test.
+- some numbers in my docs were wrong (event count, which false alarms were warm up, a threshold curve claim). i wrote them from memory or an old sweep instead of the saved files.
+- running the demo setup would have rewritten the registry hashes and broken the link to the evaluated files. the evaluated artifacts are now committed and protected.
+- my first multi-stage Dockerfile built the test image by default, because docker builds the last stage. caught it by checking `whoami` and which tools were in the image.
 
-## Bad assumptions
+## bad assumptions
 
-- **"Unseen variants make the test harder."** They made it easier. Runaway heating, accelerating drain and drift are more extreme than their validation versions, and every detector caught all 16 of them. The test was hard because the wider parameter ranges produced *weaker* versions of the variants validation had seen. If I want to stress generalisation, I need subtler unseen faults, not different ones.
-- **"3 events of latency is a tuning problem."** At 1 Hz with 0.15 °C sensor noise, a 2 °C/min drift is physically undetectable in 3 seconds. I flagged this in the plan as a risk but still half-expected features to fix it. The bar needs either a sequential test (CUSUM) or a label for when a fault becomes detectable.
-- **"Mode tells the detector what normal looks like."** It does, except during transitions. Trailing windows still describe the previous mode, which produced LOF's worst false alarm, and long charging sessions make counters grow in ways the training data rarely showed.
-- **"Charging is a separate, easy regime."** Charging hid two faults. Charge rate depends on state of charge, and none of my features know that.
+- **"unseen variants make the test harder."** they made it easier. runaway heating, accelerating drain and drift are more extreme than their validation versions, and every detector caught all 16. the test was hard because the wider ranges made *weaker* versions of variants validation had already seen. if i want to stress generalisation i need subtler unseen faults, not just different ones.
+- **"3 events of latency is a tuning problem."** at 1 Hz with 0.15 °C sensor noise, a 2 °C/min drift is physically undetectable in 3 seconds. i flagged this in the plan as a risk but still half expected features to fix it. that bar needs a sequential test (CUSUM) or a label for when a fault actually becomes detectable.
+- **"mode tells the detector what normal looks like."** it does, except during transitions. trailing windows still describe the previous mode - that gave LOF its worst false alarm. and long charging sessions make counters grow in ways training rarely showed.
+- **"charging is a separate easy regime."** charging hid two faults. charge rate depends on state of charge and none of my features know that.
+- **"the input will look like my data."** every service test i wrote sent clean windows from my own generator. a real client sends wrong case, wrong types, duplicates, retries. the inference boundary has to assume the input is wrong until proven otherwise.
 
-## What I'd redesign
+## what id redesign
 
-1. **The decision rule:** non-inferiority on recall plus a significant gain on precision **or** latency, declared up front, with the operator's alarm load as a first-class metric.
-2. **The fault generator:** record both "fault starts" and "fault becomes physically detectable", so latency can be reported against both.
-3. **The test design:** generalisation sets made of subtler faults (and a held-out asset type), not just new fault shapes.
-4. **Features:** residuals against expected behaviour (temperature vs a lagged-load model, charge rate vs state of charge, link vs distance) instead of raw slopes. Every error pattern in EVALUATION.md is a case where the detector compared a signal to the wrong "normal".
-5. **Detectors:** an asset that just changed mode should be judged by per-type statistics until its windows sit inside the new mode.
-6. **Order of work:** write the model card's "failure cases" section *before* freezing; it found a fail-safe bug. And get an independent review before the test, not after: the review found two more fail-safe and honesty problems I had missed.
-7. **Incident grouping:** choose open, close and cooldown on per-fault precision, and keep an incident open while the asset is still inside an unresolved fault, so one fault stays one incident.
+1. **the decision rule:** non-inferiority on recall plus a significant gain on precision **or** latency, declared up front, with the operators alarm load as a first class metric.
+2. **the fault generator:** record both "fault starts" and "fault becomes physically detectable", so latency can be reported against both.
+3. **the test design:** generalisation sets made of subtler faults (and a held out asset type), not just new fault shapes.
+4. **features:** residuals against expected behaviour (temperature vs a lagged load model, charge rate vs state of charge, link vs distance) instead of raw slopes. every error pattern in EVALUATION.md is a case where the detector compared a signal to the wrong "normal".
+5. **detectors:** an asset that just changed mode should be judged by per type stats until its windows sit inside the new mode.
+6. **order of work:** write the model card's failure cases section *before* freezing - it found a fail safe bug. and get an independent review before the test, not after. the reviews found two more fail safe problems and an honesty problem i missed.
+7. **incident grouping:** choose open, close and cooldown on per fault precision, and keep an incident open while the asset is still inside an unresolved fault, so one fault stays one incident.
+8. **the service contract first:** write the request schema and the "what do we answer for bad input" table before the scorer, and test it with hostile input, not just my own data. same for the protocol - resending 650 events every second is fine for a demo and wasteful for 200 assets. id keep feature state per asset on the server.
 
-## Technical lessons
+## technical lessons
 
-- The split is not just train / validation / test. It is also which code is allowed to *import* which data. Making ground truth physically unreachable from feature code, and testing that, was cheaper than being careful.
-- Counterfactual twins (the same seed with and without the fault) are the strongest test I wrote. They prove a fault cannot leak backwards in time or across assets.
-- Resample runs, not events, for confidence intervals. With 45 faults, a 0.04 recall difference is noise, and saying so is part of the result.
-- A run-once guard has to cover the whole path: verify artifacts, check nothing exists, *then* read test. Committing the frozen state before the run is what makes "I didn't peek" checkable.
-- A strong, boring baseline is the real bar. The rule baseline, with limits set from train data only, reached 0.93 recall on validation. It made the ML result meaningful.
-- Distance-based anomaly detection on well-standardised features fitted this fault shape far better than tree isolation. Pick the algorithm from the shape of the anomalies, not from familiarity.
+- the split isnt just train / validation / test. its also which code is allowed to *import* which data. making ground truth physically unreachable from feature code, and testing that, was cheaper than being careful.
+- counterfactual twins (same seed with and without the fault) are the strongest test i wrote. they prove a fault cant leak backwards in time or across assets.
+- resample runs, not events, for confidence intervals. with 45 faults a 0.04 recall difference is noise, and saying so is part of the result.
+- a run once guard has to cover the whole path: verify artifacts, check nothing exists, *then* read test. committing the frozen state before the run is what makes "i didnt peek" checkable.
+- a strong boring baseline is the real bar. the rule baseline, with limits set from train data only, hit 0.93 recall on validation. that made the ML result mean something.
+- distance based anomaly detection on well standardised features fit this fault shape way better than tree isolation. pick the algorithm from the shape of the anomalies, not from familiarity.
+- "never answers normal" is a property of the whole input space, not of the cases i listed. if theres a field the model branches on (mode, asset type), an unexpected value there is a silent normal waiting to happen.
+- verify before you open. a hash checked after loading a pickle protects nothing.
 
-## What my own checks missed
+## what my own checks missed
 
-- **The ship rule's blind spot.** Every test I wrote checked that the rule was *implemented* as declared (`test_registry_and_decision.py`); none asked whether the rule was the right one.
-- **The unknown-asset-type "normal" fallback.** I tested every failure state I had listed (missing model, corrupt model, short history, gaps, NaN, mixed assets) but not "an input the model has no notion of".
-- **The short-window silent-normal path.** My service tests always sent windows that started at the beginning of a run, so look-back features were never cut off. The independent review found the gap by sending a short window from the middle of a run.
-- **My own explanation of r3025.** I checked that the rule and LOF had missed it, and assumed every detector had. A one-line query over the three per-fault result files would have shown otherwise.
-- **Fragmentation.** I counted incidents, not incidents per fault, so a metric that flatters splitting faults went unnoticed.
-- **A wrong number in my own log.** I wrote "1,105 normal fleet-minutes" in the process log from memory; the saved result says 969.5. It was corrected when writing EVALUATION.md from the files. Numbers in docs should come from saved outputs, not my notes.
+- **the ship rules blind spot.** every test i wrote checked the rule was *implemented* as declared (`test_registry_and_decision.py`). none asked if it was the right rule.
+- **the unknown asset type "normal" fallback.** i tested every failure state i had listed (missing model, corrupt model, short history, gaps, NaN, mixed assets) but not "an input the model has no idea about".
+- **the short window silent normal.** my service tests always sent windows starting at the beginning of a run, so look back features were never cut off. the review found it by sending a short window from the middle of a run.
+- **unknown mode, impossible values, bad seq.** same blind spot again, one field over. i fixed asset type and didnt generalise the lesson to the other fields the model branches on.
+- **my own explanation of r3025.** i checked that the rule and LOF missed it and assumed every detector did. a one line query over the three per fault result files would have shown otherwise.
+- **fragmentation.** i counted incidents, not incidents per fault, so a metric that flatters splitting faults went unnoticed.
+- **a wrong number in my own log.** i wrote "1,105 normal fleet minutes" in the process log from memory. the saved result says 969.5. caught it when writing EVALUATION.md from the files. numbers in docs should come from saved outputs, not my notes.
