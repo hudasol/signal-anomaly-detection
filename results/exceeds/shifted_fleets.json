@@ -1,0 +1,29 @@
+{
+  "shifts": {
+    "hot_climate": {
+      "seed_start": 5000,
+      "what": "ambient 40-50 degC instead of 22-42"
+    },
+    "noisy_sensors": {
+      "seed_start": 6000,
+      "what": "temperature and battery sensor noise x2"
+    },
+    "aged_batteries": {
+      "seed_start": 7000,
+      "what": "drain under load x1.3, charge rate x0.8 (all asset types)"
+    }
+  },
+  "seed_offset": 100,
+  "drift_feature_thresholds": {
+    "temp_c": 7.874776848094222,
+    "speed_mps": 3.524755229874904,
+    "link_pct": 1.7522193714056327,
+    "temp_slope_l": 1.907749418659052,
+    "batt_slope_l": 1.7713992100589966,
+    "link_std_m": 1.6880032845256052,
+    "speed_mismatch": 0.1383373585289251,
+    "batt_res3": 0.15697362178826055,
+    "temp_res3": 0.040943631957746245,
+    "spd_d3": 0.3353112711207932
+  }
+}

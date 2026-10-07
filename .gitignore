@@ -10,6 +10,7 @@ htmlcov/
 
 # Generated data, model artifacts, scratch results
 /data/
+/data_shift/
 /models/*
 !/models/registry.json
 !/models/registry_v1.json
@@ -22,6 +23,7 @@ htmlcov/
 !/results/official/
 !/results/validation/
 !/results/v1/
+!/results/exceeds/
 
 # Editors / OS
 .DS_Store

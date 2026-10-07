@@ -1,0 +1,5 @@
+fleet,asset_runs,ok,caution,drift,median_score
+aged_batteries,180,0,59,121,2.4922968371561467
+hot_climate,180,28,142,10,1.0466401657908109
+noisy_sensors,180,0,0,180,11.892864448943474
+v2 test (reference),180,104,66,10,0.9368722568121246

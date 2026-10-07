@@ -52,7 +52,8 @@ signal-replay --run r4009 --detector rule --asset drone-01 --show-truth  # v1's 
 
 ```
 model hybrid_rule_fast-a0918187ba  threshold 1.1749  incident params {'open_n': 1, 'close_m': 5, 'cooldown_c': 30}
-  seq   698  incident #1 opened    score 1.307  evidence: fast:batt_res3, fast:batt_res10
+  drift check vs train: caution (score 1.46; batt_slope_l, temp_c, temp_slope_l)
+  seq   698  incident #1 opened    score 1.307  evidence: fast:batt_res3, fast:batt_res10  [P3 0.32]
   seq   730  incident #1 closed    score 0.501
 GROUND TRUTH: drone-01: battery_drain / step  seq 697-1200
     detected: incident #1 opened at seq 698 -> latency 1 events
@@ -167,11 +168,27 @@ curl -s -X POST localhost:8000/score -H 'content-type: application/json' -d @bad
 
 Also: fewer than 120 events gives `insufficient_data`, **a short window from the middle of a run gives `insufficient_data`** (it would cut off look-back features: never a silent `normal`), and a gap gives `degraded` (`pytest tests/test_service.py -v -k "unavailable or insufficient or degraded"`). Every case from the engineering review (unknown or mis-cased mode, impossible readings, negative or duplicated `seq`, mixed assets, oversized bodies, a tampered or unregistered artifact, a corrupt registry) is pinned in `tests/test_service_hardening.py`.
 
-## 8. The tests that pin it down
+## 8. Beyond the bar, in one replay
+
+```bash
+signal-replay --run r4009 --asset drone-01 --shadow lof --show-truth
+```
+
+```
+drone-01: 1198 events  statuses {'ok': 1079, 'insufficient_data': 119}
+  drift check vs train: caution (score 1.46; batt_slope_l, temp_c, temp_slope_l)
+  seq   698  incident #1 opened    score 1.307  evidence: fast:batt_res3, fast:batt_res10  [P3 0.32]
+  seq   730  incident #1 closed    score 0.501
+  SHADOW lof-f9f000d78f: 0 incident(s) (logged, not acted on)
+```
+
+Say: the drift check (here `caution`, because a fault moves the battery trend too), the severity (P3: the drain has just started and the battery is far from critical), and LOF running in shadow, logged but never acted on. Then open `docs/figures/generalisation_shifted_fleets.png`: the shipped system breaks on noisier sensors and aged batteries, LOF does not, and the drift monitor flags both shifts. That is why LOF runs in shadow.
+
+## 9. The tests that pin it down
 
 ```bash
 pytest -v tests/test_features.py tests/test_splits.py tests/test_eval.py tests/test_incidents.py tests/test_service.py tests/test_v2.py
-pytest                          # 187 passed
+pytest                          # 194 passed
 mypy                            # no issues
 ```
 
@@ -196,4 +213,5 @@ mypy                            # no issues
 | 3:30–4:30 | §5 r4037 FP, r4023 FN, r4000 late | speed-up false alarm; saturated freeze; the mode-change blind spot |
 | 4:30–5:15 | §6 demo-threshold + sensitivity figure | trade-off, then back to frozen |
 | 5:15–5:50 | §7 rename the model; bad input | HTTP 503, 422, `degraded`, never "normal" |
-| 5:50–6:00 | `pytest` | 187 passed; CI green |
+| 5:50–6:30 | §8 replay with shadow + generalisation figure | drift monitor, severity, shadow LOF; the shipped model's off-distribution weakness |
+| 6:30–6:40 | `pytest` | 194 passed; CI green |

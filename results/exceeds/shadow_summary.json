@@ -1,0 +1,11 @@
+{
+  "shipped": "hybrid_rule_fast-a0918187ba",
+  "shadow": "lof-f9f000d78f",
+  "decisions_stored": 215550,
+  "events_scored_by_both": 194130,
+  "agree": 0.9593674341935816,
+  "shipped_alert_shadow_quiet": 3775,
+  "shadow_alert_shipped_quiet": 4113,
+  "shipped_incidents": 79,
+  "shadow_incidents": 75
+}

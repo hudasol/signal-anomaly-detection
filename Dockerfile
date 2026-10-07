@@ -32,6 +32,7 @@ COPY configs ./configs
 COPY models ./models
 COPY results/validation ./results/validation
 COPY results/official ./results/official
+COPY results/exceeds/drift_reference.json ./results/exceeds/drift_reference.json
 RUN mkdir -p data results/replay results/demo && chown -R signal:signal data results
 USER signal
 EXPOSE 8000

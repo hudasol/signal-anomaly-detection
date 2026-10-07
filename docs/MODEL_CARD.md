@@ -22,7 +22,7 @@ An **advisory** early-warning signal for an operator watching a mixed inspection
 - **Diagnosis.** "Unusual battery drain" is a symptom, not a cause.
 - **Safety-critical alarms.** Not certified, not validated on hardware, and slow on slow faults: link decline takes a median of 76 events, and a fault starting at the exact moment of a mode change can be caught late (EVALUATION §7 pattern 2).
 - **Asset types, sensors, telemetry rates or operating envelopes it was not built on.** The fast path assumes 1 Hz and the noise levels of this simulator.
-- **Real telemetry, without re-validation.** All evidence is synthetic, and the fast path matches the simulator's battery model by design (designer bias, EVALUATION §8).
+- **Real telemetry, without re-validation.** All evidence is synthetic, and the fast path matches the simulator's battery model by design (designer bias, EVALUATION §9).
 
 ## Inputs and outputs
 
@@ -92,7 +92,15 @@ Computed by `fleet_signal.features.build_features`, identical at training, evalu
 
 Against the rule on the same test (paired 95 % CI): recall +0.044 (0.000 to +0.119), precision +0.02 (not significant), latency significantly lower (median paired difference −1 event, CI −37 to −1). The large gains are on battery drain (188 → 2 events) and overheating (64 → 11).
 
+## Running it safely
+
+- **Drift monitor** (`monitoring/drift.py`; printed by `signal-replay` for every asset): compares an asset's recent features with training, each against its own normal spread. On `drift`, treat the evaluated error rates as void for that asset. On fleets with doubled sensor noise or aged batteries, where this model's false-alarm rate jumps past the bar, it raised `drift` on every noisy-sensor asset and 121 of 180 aged-battery assets, and never on an unfaulted asset of normal data. `caution` is frequent (a third of normal assets) and only informational.
+- **Shadow LOF** (`signal-replay --shadow lof`): LOF degrades least off-distribution (EVALUATION §8). Run it in shadow, log both, and switch if the fleet drifts.
+- **Severity** (`incidents/priority.py`): every incident gets P1/P2/P3 from a stated formula (time to a critical level, sustained strength, number of signal families). No false test incident was P1, but most true incidents are P2/P3 at the moment they open, so P3 does not mean "ignore".
+
 ## Known failure cases
+
+- **Off-distribution fleets (generalisation test):** with temperature and battery sensor noise doubled, the fast path's z-scores turn noise into alarms (4.5 false incidents per 10 min); with aged batteries, the rule part's drain limits do (3.5). Recall holds. The drift monitor flags both.
 
 - **Onset at a mode change (r4000):** a drain that starts the same second the asset changes mode is hidden from the fast path (silent for 45 events, then its baseline already contains the drain). The rule part caught it 187 events later.
 - **Saturated readings (r4023):** a link reading frozen at 100 % while charging at base looks exactly like normal saturation (normal runs of 100 reach 272 readings) and was missed by every detector.

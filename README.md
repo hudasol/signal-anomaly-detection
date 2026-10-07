@@ -30,7 +30,7 @@ Task 02 of the mentorship track, built next to [blackbox-telemetry](https://gith
 | Median latency ≤ 3 events for faults expected to be caught | ❌ | ❌ **11** over all progressive faults (the original plan's definition) · ✅ 1 event on the narrower physics-based set declared for v2 |
 | Defensible advantage at a comparable operating point, or the baseline ships | ✅ baseline shipped | ✅ faster at the same false-alert rate |
 | Reproducible; saved result has model version and frozen threshold | ✅ | ✅ |
-| Tests pass, errors analysed, honest failure states | ✅ | ✅ 187 tests |
+| Tests pass, errors analysed, honest failure states | ✅ | ✅ 194 tests |
 
 Evidence per criterion, the interpretation questions decided without the mentor's sign-off, and the limits of the result: [EVALUATION.md](docs/EVALUATION.md#acceptance-criteria-the-briefs-definition-of-done).
 
@@ -92,6 +92,7 @@ signal-eval audit           # proves which runs each model was fitted / selected
 signal-eval fragmentation   # incidents per detected fault, per-fault precision
 signal-eval envelopes       # the train-normal envelopes the rule limits came from
 signal-eval replay-check    # every test run replayed through the service == the official incidents
+signal-eval exceeds         # threshold curves, ablation, shifted fleets + drift, shadow, priority
 signal-eval demo-threshold --detector hybrid_rule_fast --threshold 2.0   # DEMO ONLY, writes results/demo/
 ```
 
@@ -104,6 +105,7 @@ signal-replay --run r4009 --show-truth                     # shipped model, all 
 signal-replay --run r4009 --detector rule --asset drone-01 # the v1 baseline on the same run
 signal-replay --run r4009 --threshold 2.0                  # DEMO ONLY threshold override
 signal-replay --run r4009 --strict                         # window-by-window through the service code path
+signal-replay --run r4009 --shadow lof                     # LOF in shadow mode: logged, never acted on
 ```
 
 Every decision is logged to `results/replay/<run>_<model_version>.jsonl`.
@@ -136,20 +138,26 @@ Responses carry `status` (`ok`, `insufficient_data`, `degraded`, `unavailable`),
 ## Tests
 
 ```bash
-pytest                       # 187 tests, ~25 s
+pytest                       # 194 tests, ~30 s
 ruff check . && ruff format --check .
 mypy                         # type check (clean)
 ```
 
-The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), input validation, artifact verification and the other service hardening (`test_service_hardening.py`), the v2 fast path, hybrid, detectability and ship rule (`test_v2.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the hash-pinned environment on Python 3.12.3 and runs ruff, mypy, pytest and a dependency audit, then builds both Docker images, runs the tests inside one with no network and checks the other serves the model as a non-root user, on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([verified run on 5fba586](https://github.com/hudasol/signal-anomaly-detection/actions/runs/37689594485), the v2 state: hash-pinned install, ruff, mypy, 187 tests, dependency audit, both Docker images built, tests offline in one, the other serving the v2 model as non-root).
+The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), input validation, artifact verification and the other service hardening (`test_service_hardening.py`), the v2 fast path, hybrid, detectability and ship rule (`test_v2.py`), drift monitor, prioritisation and ablation knobs (`test_exceeds.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the hash-pinned environment on Python 3.12.3 and runs ruff, mypy, pytest and a dependency audit, then builds both Docker images, runs the tests inside one with no network and checks the other serves the model as a non-root user, on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([verified run on 5fba586](https://github.com/hudasol/signal-anomaly-detection/actions/runs/37689594485), the v2 state: hash-pinned install, ruff, mypy, 187 tests, dependency audit, both Docker images built, tests offline in one, the other serving the v2 model as non-root).
 
 ## Exceeds the bar
 
+The brief asks to meet the bar cleanly first. v2 meets 7 of 8 criteria (latency over all progressive faults is missed), so these sit on a bar that is not completely met. Details and numbers: [EVALUATION §8](docs/EVALUATION.md#8-beyond-the-bar); regenerate with `signal-eval exceeds`.
+
 | Item | What | Risk it addresses |
 |---|---|---|
-| Threshold sensitivity | validation and post-hoc test curves, operating points marked ([figure](docs/figures/test_threshold_sensitivity.png)) | an arbitrary or cherry-picked operating point |
-| Model versioning | `models/registry.json` ties artifact SHA-256, data version, feature schema, threshold, validation report and official result | not being able to say which model and data produced a number |
-| Ablation | LOF refit without each feature group (v1, [v1 EVALUATION §7](docs/v1/EVALUATION_v1.md#7-ablation-validation-exceeds-the-bar-item)) | assuming more features are better |
+| Threshold sensitivity | validation curves of all four frozen models ([figure](docs/figures/validation_v2_threshold_sensitivity.png)) and post-hoc test curves; the frozen point is the validation knee | an arbitrary or cherry-picked operating point |
+| Model versioning | `models/registry.json`: artifact SHA-256 (checked before loading), data version, feature schema, threshold, grouping, validation report, official result, freeze commit | not being able to say which model and data produced a number |
+| Ablation | the shipped design without each part: every part earns its place (e.g. without the speed covariate false alarms double; without battery residuals expected-to-catch latency goes 1.5 → 262) | assuming more features are better |
+| Generalisation test | three shifted fleets (hot climate, noisier sensors, aged batteries): **the shipped system breaks on two of them; LOF does not** ([figure](docs/figures/generalisation_shifted_fleets.png)) | a model that only works on the distribution it was tuned on |
+| Drift monitor | per-feature PSI against train, calibrated on validation normal runs: `drift` on every noisy-sensor asset, never on an unfaulted normal asset | trusting evaluated error rates on data that no longer looks like training |
+| Shadow replay | `signal-replay --shadow lof`; every test run through both models, all 215,550 decisions stored | switching models without evidence from live-like traffic |
+| Incident prioritisation | P1/P2/P3 from a stated formula (time to critical, sustained strength, breadth); no false incident is P1, but separation is modest (65 %) | every alarm looking equally urgent |
 | Pre-registered second test | v2 frozen and pushed before its test set was generated ([PLAN_V2](docs/PLAN_V2.md)); v1's result kept beside it | improving a model by re-using a test set you have studied |
 
 ## Layout

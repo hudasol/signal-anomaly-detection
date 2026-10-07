@@ -80,6 +80,32 @@ def _artifact_for(detector: str | None) -> Path | None:
     return REPO_ROOT / reg["models"][detector]["artifact"]
 
 
+def _drift_monitor() -> Any:
+    from fleet_signal.monitoring.drift import DriftMonitor
+
+    ref = REPO_ROOT / "results" / "exceeds" / "drift_reference.json"
+    return DriftMonitor.load(ref) if ref.exists() else None
+
+
+def _severities(
+    scorer: Scorer, feats: pd.DataFrame, lifecycle: list[dict[str, Any]]
+) -> dict[int, dict[str, Any]]:
+    """Severity (incidents/priority.py) for every opened / re-opened incident."""
+    from fleet_signal.incidents.priority import severity
+
+    art = scorer.artifact
+    if art is None or scorer.threshold is None or not lifecycle:
+        return {}
+    feats = feats.reset_index(drop=True)
+    scores = art.detector.score(feats)
+    pos = {int(q): i for i, q in enumerate(feats["seq"])}
+    return {
+        int(ev["seq"]): severity(art.detector, scorer.threshold, feats, scores,
+                                 pos[int(ev["seq"])]).as_dict()
+        for ev in lifecycle if ev["event"] != "closed" and int(ev["seq"]) in pos
+    }  # fmt: skip
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="signal-replay", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)  # fmt: skip
@@ -90,6 +116,11 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--threshold", type=float, default=None, help="DEMO ONLY override")
     ap.add_argument("--strict", action="store_true")
     ap.add_argument("--show-truth", action="store_true")
+    ap.add_argument(
+        "--shadow",
+        default=None,
+        help="also run this registered detector in SHADOW mode: logged, never acted on",
+    )
     args = ap.parse_args(argv)
 
     path = Path(args.artifact) if args.artifact else _artifact_for(args.detector)
@@ -115,22 +146,43 @@ def main(argv: list[str] | None = None) -> None:
         tag += f"_thr{args.threshold:g}"
     log_path = REPLAY_DIR / f"{args.run}_{tag}.jsonl"
     all_incidents: dict[str, list[dict[str, Any]]] = {}
+    shadow = Scorer(_artifact_for(args.shadow)) if args.shadow else None
+    monitor = _drift_monitor()
     with log_path.open("w") as log:
         for asset in assets:
-            results, lifecycle, incidents = replay_asset(
-                scorer, tel[tel["asset_id"] == asset], strict=args.strict
-            )
+            events = tel[tel["asset_id"] == asset]
+            results, lifecycle, incidents = replay_asset(scorer, events, strict=args.strict)
+            feats = build_features(events.sort_values("seq"), scorer.fcfg)
+            sev = _severities(scorer, feats, lifecycle)
             for r in results:
                 log.write(json.dumps(r.as_dict()) + "\n")
+            for ev in lifecycle:
+                log.write(json.dumps({"lifecycle": ev, "severity": sev.get(ev["seq"])},
+                                     default=str) + "\n")  # fmt: skip
             statuses = pd.Series([r.status for r in results]).value_counts().to_dict()
             print(f"\n{asset}: {len(results)} events  statuses {statuses}")
+            if monitor is not None:
+                d = monitor.score(feats)
+                top = ", ".join(f for f, _ in d["top"])
+                print(f"  drift check vs train: {d['status']} (score {d['score']:.2f}; {top})")
             for ev in lifecycle:
                 top = ", ".join(e["signal"] for e in ev.get("evidence") or [])
                 score = f"score {ev['score']:.3f}" if ev.get("score") is not None else ""
                 why = f"evidence: {top}" if top and ev["event"] != "closed" else ""
+                s = sev.get(ev["seq"]) if ev["event"] != "closed" else None
+                pri = f"  [{s['level']} {s['severity']:.2f}]" if s else ""
                 print(
                     f"  seq {ev['seq']:>5}  incident #{ev['incident_id']} {ev['event']:<9}"
-                    f" {score}  {why}"
+                    f" {score}  {why}{pri}"
+                )
+            if shadow is not None and shadow.artifact is not None:
+                sres, _slc, sinc = replay_asset(shadow, events, strict=args.strict)
+                for r in sres:
+                    log.write(json.dumps({"shadow": r.as_dict()}) + "\n")
+                opens = [i["open_seqs"][0] for i in sinc]
+                print(
+                    f"  SHADOW {shadow.artifact.model_version}: {len(sinc)} incident(s)"
+                    f"{' opening at ' + str(opens) if opens else ''} (logged, not acted on)"
                 )
             all_incidents[asset] = incidents
     n_inc = sum(len(v) for v in all_incidents.values())

@@ -106,6 +106,53 @@ def render_all_plots() -> list[str]:
     return [str(p) for p in out]
 
 
+def _exceeds(only: str) -> None:
+    import json as _json
+
+    from fleet_signal.eval import exceeds as ex
+
+    todo = ["thresholds", "ablation", "shifted", "shadow", "priority"] if only == "all" else [only]
+    with pd.option_context("display.width", 250, "display.max_columns", 30):
+        if "thresholds" in todo:
+            rep = ex.frozen_validation_report()
+            print(
+                "validation, frozen artifacts:",
+                {n: round(d["selected"]["recall"], 3) for n, d in rep["detectors"].items()},
+            )
+        if "ablation" in todo:
+            print(ex.ablation().round(3).to_string(index=False))
+        if "shifted" in todo:
+            r = ex.shifted_fleets()
+            print(r["performance"].round(3).to_string(index=False))
+            print(r["drift_summary"].round(3).to_string(index=False))
+        if "shadow" in todo:
+            print(_json.dumps(ex.shadow_replay(), indent=1))
+        if "priority" in todo:
+            print(_json.dumps(ex.prioritisation_check(), indent=1))
+    for path in render_exceeds_figures():
+        print(path)
+
+
+def render_exceeds_figures() -> list[str]:
+    from fleet_signal.eval.exceeds import EXCEEDS_DIR, FROZEN_VAL_DIR
+    from fleet_signal.eval.plots import plot_shifted_fleets
+
+    out = []
+    if (FROZEN_VAL_DIR / "validation_report.json").exists():
+        out.append(plot_threshold_sensitivity(
+            FROZEN_VAL_DIR, DOC_FIGURES / "validation_v2_threshold_sensitivity.png",
+            title="Validation: threshold sweep of the frozen v2 models (markers = frozen points)",
+        ))  # fmt: skip
+    if (EXCEEDS_DIR / "shifted_fleets_performance.csv").exists():
+        out.append(
+            plot_shifted_fleets(
+                EXCEEDS_DIR / "shifted_fleets_performance.csv",
+                DOC_FIGURES / "generalisation_shifted_fleets.png",
+            )
+        )
+    return [str(p) for p in out]
+
+
 def _official() -> None:
     from fleet_signal.eval.official_test import run_official_test
 
@@ -140,6 +187,10 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("fragmentation", help="post-hoc: incidents per fault, per-fault precision")
     sub.add_parser("envelopes", help="export the train envelopes the rule limits came from")
     sub.add_parser("replay-check", help="post-hoc: service replay of every test run == official")
+    ex = sub.add_parser("exceeds", help="exceeds-the-bar analyses (validation + post-hoc)")
+    ex.add_argument(
+        "--only", default="all", help="all | thresholds | ablation | shifted | shadow | priority"
+    )
     demo = sub.add_parser("demo-threshold", help="DEMO ONLY: a frozen model at another threshold")
     demo.add_argument("--detector", required=True, help="a detector in models/registry.json")
     demo.add_argument("--threshold", required=True, type=float)
@@ -181,12 +232,16 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     if args.command == "plots":
-        for path in [*render_all_plots(), *render_doc_figures()]:
+        for path in [*render_all_plots(), *render_doc_figures(), *render_exceeds_figures()]:
             print(path)
         return
 
     if args.command == "test":
         _official()
+        return
+
+    if args.command == "exceeds":
+        _exceeds(args.only)
         return
 
     if args.command == "replay-check":

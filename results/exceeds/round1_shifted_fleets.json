@@ -1,0 +1,20 @@
+{
+  "shifts": {
+    "hot_climate": {
+      "seed_start": 5000,
+      "what": "ambient 40-50 degC instead of 22-42"
+    },
+    "noisy_sensors": {
+      "seed_start": 6000,
+      "what": "temperature and battery sensor noise x2"
+    },
+    "aged_batteries": {
+      "seed_start": 7000,
+      "what": "drain under load x1.3, charge rate x0.8 (all asset types)"
+    }
+  },
+  "drift_thresholds": {
+    "caution": 1.4943017494966546,
+    "drift": 2.9886034989933092
+  }
+}

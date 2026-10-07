@@ -15,6 +15,8 @@ v1 hit 6 of the 8 acceptance criteria. recall was one fault short (0.844) and la
 - r4000: a drain started the exact second the asset changed mode, and the fast path is blind right after mode changes. caught 187 events late.
 - i built the fast path knowing exactly how my generator drains batteries. thats the strongest designer bias in the whole project.
 
+**the generalisation test humbled me.** i generated fleets the models had never seen - hotter climate, noisier sensors, older batteries. the shipped system held up in the heat but completely fell apart with noisier sensors and aged batteries (over 3 false alarms per 10 min, the bar is 2). LOF, which lost the selection, stayed under the bar on all three. so the "best" model is only best on the data it was built for. the drift monitor catches both of those shifts, but my first version of it didnt - it averaged over features and the noisy ones got drowned out. i fixed it and tested it on fresh data so i wasnt grading the fix on the data that showed me the problem.
+
 **what id do next.** compare against an expected value (drain for this load, temperature for this load) instead of the assets own recent trend. that fixes the mode-change blind spot and the incidents closing early. keep an incident open until the state is back to normal, not just the trend. and get real telemetry, because everything here is my simulator.
 
 ## v1

@@ -9,6 +9,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
 INK, INK_2, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#fcfcfb"
@@ -132,5 +133,39 @@ def plot_recall_by_fault(
     ax.legend(frameon=False, fontsize=8, loc="upper right", ncol=len(names))
     fig.tight_layout()
     fig.savefig(out_path, dpi=120, facecolor=SURFACE)
+    plt.close(fig)
+    return out_path
+
+
+def plot_shifted_fleets(csv_path: Path, out_path: Path) -> Path:
+    """Generalisation: false incidents and recall per fleet, frozen models at frozen thresholds."""
+    df = pd.read_csv(csv_path)
+    fleets = list(dict.fromkeys(df["fleet"]))[::-1]
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.0), facecolor=SURFACE)
+    panels = (("fp_per_10min", "False incidents per 10 min (log scale)", 2.0, True),
+              ("recall", "Fault-event recall", 0.85, False))  # fmt: skip
+    for ax, (col, label, bar, log) in zip(axes, panels, strict=True):
+        _style(ax)
+        for j, name in enumerate(("rule", "lof", "hybrid_rule_fast")):
+            sub = df[df["detector"] == name].set_index("fleet").reindex(fleets)
+            y = np.arange(len(fleets)) + (j - 1) * 0.22
+            ax.scatter(sub[col].clip(lower=0.01) if log else sub[col], y, s=64,
+                       color=DETECTOR_COLORS[name], marker=DETECTOR_MARKERS[name],
+                       edgecolor=SURFACE, linewidth=1.5, zorder=5,
+                       label=DETECTOR_LABELS[name])  # fmt: skip
+        ax.axvline(bar, color=MUTED, linestyle="--", linewidth=1)
+        ax.text(bar, len(fleets) - 0.45, f" bar {bar:g}", color=MUTED, fontsize=8, va="bottom")
+        if log:
+            ax.set_xscale("log")
+        ax.set_yticks(range(len(fleets)), [f.replace("_", " ") for f in fleets])
+        ax.set_xlabel(label, color=INK_2, fontsize=9)
+    axes[1].set_xlim(0.5, 1.02)
+    axes[1].set_yticklabels([])
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=3, fontsize=8, frameon=False)
+    fig.suptitle("Generalisation: frozen models on fleets they were not trained on (post-hoc)",
+                 x=0.01, ha="left", color=INK, fontsize=11)  # fmt: skip
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
+    fig.savefig(out_path, dpi=110, facecolor=SURFACE)
     plt.close(fig)
     return out_path

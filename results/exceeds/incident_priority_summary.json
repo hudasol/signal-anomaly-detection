@@ -1,0 +1,20 @@
+{
+  "incidents": 79,
+  "true": 67,
+  "false": 12,
+  "levels": {
+    "false": {
+      "P1": 0,
+      "P2": 4,
+      "P3": 8
+    },
+    "true": {
+      "P1": 3,
+      "P2": 32,
+      "P3": 32
+    }
+  },
+  "mean_severity_true": 0.36105970149253735,
+  "mean_severity_false": 0.27175,
+  "rank_auc_true_over_false": 0.654228855721393
+}

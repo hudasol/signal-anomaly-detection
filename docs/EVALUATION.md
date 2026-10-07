@@ -17,7 +17,7 @@ All numbers come from saved outputs: `results/validation/` (v2 selection) and `r
 | 5 | Median progressive latency ≤ 3 events for faults the detector is expected to catch | ❌ every detector | ❌ **11 events** over all progressive faults, the set the original plan declared · ✅ 1 event on the narrower physics-based set declared for v2 (5 of 5 caught; a miss would count as infinite) | §1, §3, §7 pattern 1 |
 | 6 | Defensible advantage over a baseline at a comparable operating point, or the baseline ships | ✅ (baseline shipped) | ✅ shipped system: recall not worse, latency significantly better, at nearly the same false-alert rate (0.12 vs 0.11) | §4 |
 | 7 | Reproducible; saved result has exact model version and frozen threshold | ✅ | ✅ | `results/official/test_*.json`: `model_version`, `artifact_sha256`, `frozen_threshold`, `incident_params`, `data_version`; every test incident reproduced by replaying through the service (180 of 180 asset-runs; `signal-eval replay-check`, saved in `results/official/posthoc/service_replay_check.json`) |
-| 8 | Tests pass, errors analysed, honest inference failure states | ✅ | ✅ | 187 tests; §7; MODEL_CARD statuses |
+| 8 | Tests pass, errors analysed, honest inference failure states | ✅ | ✅ | 194 tests; §7; MODEL_CARD statuses |
 
 **How criterion 5 is read, and why I count it as missed.** The brief limits the latency bar to "faults the detector is expected to catch". My original plan (PLAN §7.1, written before any code) declared that set as **all five fault types**, with the bar applying to the three progressive ones, and added: *"If a fault type is later dropped from this set, that is recorded as a failure, not a redefinition."* By that definition v2's latency is **11 events: a miss.**
 
@@ -182,7 +182,99 @@ Found while rehearsing the demo, then counted from the saved results. On r4009 t
 - **False positive:** r4037 quadruped, seq 860: it speeds up from about 0.9 to 1.1 m/s, battery drain rises with it, and the 10-event residual reaches −0.68 %/min. The speed covariate explains only part of that, so the fast path alerts for two events. `signal-replay --run r4037 --asset quad-01 --show-truth`.
 - **False negative:** r4023 quadruped link freeze, missed by every detector (pattern 3). The late catch r4000 (pattern 2) is the better example of the fast path's own limit.
 
-## 8. Limitations of this evaluation
+## 8. Beyond the bar
+
+The brief asks to "meet the bar cleanly, then demonstrate at least two" improvements. **The first half is not fully true here:** v2 meets 7 of the 8 criteria, and latency over all progressive faults is still missed (§ Acceptance criteria). The improvements below are real and evidenced, but they sit on a bar that is not completely met.
+
+Everything here is either chosen on **validation** or computed **post-hoc**; nothing changes a frozen model or the official result (the service still reproduces all 180 official test incidents: `signal-eval replay-check`). `signal-eval exceeds` regenerates all of it into `results/exceeds/` and `results/validation/v2_frozen/`.
+
+| Improvement | Risk it addresses | Result |
+|---|---|---|
+| **Threshold sensitivity** | an arbitrary or cherry-picked operating point | the frozen point is the knee of the validation curve (below) |
+| **Model versioning** | not knowing which model, data, schema and threshold produced a number | registry entry per artifact: SHA-256 (checked before loading), data version, feature schema, threshold, grouping, validation report, official result, frozen commit |
+| **Ablation** | assuming more features are better | every part earns its place, each for a different reason |
+| **Generalisation test** | a model that only works on the distribution it was tuned on | the shipped system **collapses** under noisier sensors and aged batteries; LOF does not |
+| **Drift monitor** | trusting evaluated error rates on data that no longer looks like training | flags both of those shifts as `drift`; never `drift` on an unfaulted asset in unshifted data |
+| **Shadow replay** | switching models without evidence from live-like traffic | shipped and LOF run side by side on every test run; all 215,550 decisions stored |
+| **Incident prioritisation** | every alarm looking equally urgent | transparent severity formula; no false incident ranked P1, but separation is modest |
+
+### Threshold sensitivity (validation, frozen models)
+
+![validation threshold sweep](figures/validation_v2_threshold_sensitivity.png)
+
+On validation (`results/validation/v2_frozen/hybrid_rule_fast_threshold_curve.csv`) the frozen threshold 1.175 sits at the knee. One step lower (1.018) adds one fault (recall 0.93 → 0.97) but false incidents go from 3 to 37 and precision falls to 0.55, below the 0.80 constraint. One step higher (1.563) removes all 3 false incidents but loses a fault (recall 0.90) and slows expected-to-catch latency from 1.5 to 2 events. The post-hoc test curve (§4) has the same shape.
+
+### Model versioning
+
+`models/registry.json` holds, per artifact: path and SHA-256 (serving refuses a file that does not match, and checks **before** unpickling), model version (a hash of detector parameters, threshold, grouping, data version, feature schema and training runs), data version, feature version and schema hash, threshold and incident grouping, the validation report (`results/validation/v2_frozen/validation_report.json`, which covers all four frozen artifacts), the official test result file, and provenance (the freeze commit `d121e2a`). Each official result file repeats the model version, SHA-256, frozen threshold and data version, so a number in a doc can be traced to the exact file that produced it. v1's registry is kept as `models/registry_v1.json`.
+
+### Ablation (validation)
+
+The shipped design refitted without each piece; each variant gets its own threshold under the same constraints and grouping (`results/exceeds/ablation_validation.csv`):
+
+| Removed | Precision | Recall | False / 10 min | Expected-to-catch latency | All-progressive latency | What it shows |
+|---|---|---|---|---|---|---|
+| nothing (shipped) | 0.94 | 0.93 | 0.05 | 1.5 | 7 | |
+| fast path (rule only) | 0.88 | 0.93 | 0.08 | 262 | 80.5 | the fast path is the entire latency gain |
+| rule (fast path only) | 0.86 | **0.57** | 0.05 | 1.5 | 5 | the rule carries recall on non-progressive faults |
+| battery residuals | 0.98 | 0.90 | 0.02 | **262** | 75 | battery residuals make expected-to-catch faults fast |
+| temperature residuals | 0.94 | 0.97 | 0.05 | 1.5 | **56** | temperature residuals make overheating fast (cost: none on validation) |
+| 3-event residuals | 0.96 | 0.93 | 0.03 | **3.0** | 7 | the 3-event view gives the last 1.5 events |
+| 10-event residuals | 1.00 | 0.93 | 0.00 | 1.0 | **58.5** | the 10-event view carries slower drifts |
+| speed covariate | **0.89** | 0.93 | **0.09** | 1.5 | 7.5 | without it, speed changes look like drain: false alarms double |
+
+Two variants look better on one column (no 10-event residuals: 0 false incidents; no temperature residuals: recall 0.97) and much worse on latency. On 30 validation faults the differences of one fault are noise; the latency differences are not.
+
+### Generalisation test (post-hoc)
+
+Three fleets generated with a **different distribution** than anything the models saw, each with the v2 test's composition (15 normal + 45 fault runs, wide ranges, unseen variants), on fresh seeds; only the stated physical parameter differs. The frozen models are evaluated at their frozen thresholds (`results/exceeds/shifted_fleets_performance.csv`).
+
+![generalisation](figures/generalisation_shifted_fleets.png)
+
+| Fleet | What changed | Shipped (rule + fast): precision / recall / false per 10 min | Rule | LOF |
+|---|---|---|---|---|
+| v2 test (reference) | nothing | 0.85 / 0.98 / 0.12 | 0.83 / 0.93 / 0.11 | 0.92 / 0.87 / 0.06 |
+| hot climate | ambient 40–50 °C (was 22–42) | 0.93 / 0.89 / 0.05 | 0.80 / 0.89 / 0.13 | 0.87 / 0.84 / 0.08 |
+| **noisier sensors** | temperature and battery noise ×2 | 0.15 / 0.98 / **4.54** ❌ | 0.81 / 0.91 / 0.11 | 0.60 / 0.96 / 0.47 |
+| **aged batteries** | drain under load ×1.3, charge rate ×0.8 | 0.16 / 0.89 / **3.46** ❌ | 0.12 / 0.91 / **4.60** ❌ | 0.68 / 0.91 / 0.34 |
+
+**What this says, plainly.** Each half of the shipped system has a hard-coded assumption about the fleet:
+- the fast path's z-scores assume the training sensor noise, so doubling it turns noise into alarms (442 false incidents);
+- the rule's battery limits assume the training drain envelope, so aged batteries break it (443 for the rule alone).
+
+LOF, which judges whole feature vectors against train statistics, degrades but stays inside the false-alert bar on both. On distributions like the one it was built for, the shipped system is the best of the three; off them, LOF is the most robust. That is a strong argument for the shadow deployment below, and for the drift monitor deciding when the shipped model's evaluated numbers no longer apply.
+
+### Drift monitor
+
+`monitoring/drift.py`: for one asset's window, PSI of 10 features against the train distribution per (asset type, mode), each feature judged against its own normal spread (its largest PSI on **validation normal** runs); score = largest ratio; `caution` at 1, `drift` at 2. Reference and thresholds are in `results/exceeds/drift_reference.json`; `signal-replay` prints the check for every asset.
+
+| Fleet | ok | caution | drift (of 180 asset-runs) | Feature that moved most |
+|---|---|---|---|---|
+| v2 test (reference) | 104 | 66 | 10 | temp_c |
+| hot climate | 28 | 142 | 10 | temp_c |
+| noisy sensors | 0 | 0 | **180** | temp_res3, batt_res3 |
+| aged batteries | 0 | 59 | **121** | batt_slope_l |
+
+- **`drift` is the actionable signal.** It fires on every asset of the noisy-sensor fleet and two-thirds of the aged-battery fleet, the two shifts that break the shipped model, and names the right features. On the unshifted test it fires only on **faulted** assets (10 of 45; faults move distributions too), never on the 135 unfaulted ones.
+- **`caution` is noisy.** It flags 44 of 135 unfaulted unshifted assets (33 %), because each feature's threshold comes from only 30 validation windows. Treat it as informational; calibrating on more normal data is the next step.
+- **The monitor was redesigned once, and I am reporting both versions.** Round 1 compared the *mean* PSI over all features with one threshold. On the first set of shifted fleets it barely reacted to doubled sensor noise (23 of 180 at `caution`, against 14 on unshifted data), because features with big normal run-to-run swings (ambient temperature, cruise speed) swamped the noise-sensitive ones. I changed it to judge each feature against its own spread, and evaluated the new version on **freshly generated** fleets (new seeds), so it was not graded on the data that prompted the change. Round 1's files are kept as `results/exceeds/round1_*`.
+
+### Shadow replay
+
+`signal-replay --run <run> --shadow lof` runs a second registered model next to the shipped one on the same telemetry. It never acts on the shadow's output and logs every decision of both. `signal-eval exceeds --only shadow` does this for every v2 test run and stores all **215,550** decisions in `results/exceeds/shadow_decisions.parquet` for later review. On the 194,130 events both scored, they agree 96 % of the time; the shipped model alerts alone on 3,775 events, LOF alone on 4,113; 79 vs 75 incidents. This is the mechanism for the deployment the generalisation test argues for: ship rule + fast, shadow LOF, and promote LOF if the fleet drifts.
+
+### Incident prioritisation
+
+`incidents/priority.py`: severity = 0.40 × urgency + 0.35 × strength + 0.25 × breadth, each 0–1. P1 ≥ 0.60, P2 ≥ 0.35, else P3.
+- **urgency**: time to a critical level at the current trend (battery 10 %, temperature 70 °C, link 20 %; ≤ 5 min → 1, ≤ 15 → 0.6, ≤ 60 → 0.3).
+- **strength**: sustained score over the last 10 events relative to the threshold.
+- **breadth**: number of signal families anomalous in the detector's own parts, up to 3.
+
+Weights and critical levels are hand-set from the configuration, not tuned, and every severity can be recomputed by hand from the logged components. `signal-replay` shows the level on every incident.
+
+Checked post-hoc on the shipped model's 79 test incidents (`results/exceeds/incident_priority_test.csv`): **no false incident is P1**, and 8 of 12 are P3. But true incidents are mostly P2/P3 too (3 P1, 32 P2, 32 P3), and a true incident outranks a false one only **65 %** of the time. The reason is visible in the data: most true incidents open early, before anything is close to critical, so urgency is low at the moment of opening. *Next:* re-score severity while the incident is open, so it rises as the fault approaches a critical level.
+
+## 9. Limitations of this evaluation
 
 - **Small sets.** 45 test faults; only **5** expected-to-catch faults, so the expected-to-catch median rests on five numbers.
 - **Designer bias is strongest in v2.** I wrote the generator's battery model and then built a detector for abrupt battery-slope changes. The fast path's success on battery drains is the least surprising result here; it says the feature matches the simulator, not that it would match a real battery.
@@ -192,3 +284,4 @@ Found while rehearsing the demo, then counted from the saved results. On r4009 t
 - **The rule baseline also meets criterion 4 on this test**, so v2's advantage over it is latency (§4), not the recall bar itself.
 - **Train and validation are v1's**, so validation has now selected v1 and v2. It was never test data, but it is no longer fresh either.
 - Latency medians over *detected* faults (the all-progressive column) still have survivor bias; the expected-to-catch median does not.
+- **Off-distribution fragility** (§8): the shipped system fails the false-alert bar on fleets with noisier sensors or aged batteries. The drift monitor catches both, but the model itself does not adapt.

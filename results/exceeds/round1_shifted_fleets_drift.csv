@@ -1,0 +1,721 @@
+run_id,asset_id,normal_run,score,status,top,fleet
+r4000,drone-01,False,1.0981588773391793,ok,"temp_c, link_pct, link_std_m",v2 test (reference)
+r4000,quad-01,False,1.3027922789128525,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4000,rover-01,False,1.5900940340455132,caution,"temp_c, temp_slope_l, batt_slope_l",v2 test (reference)
+r4001,drone-01,False,1.0951488842006794,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4001,quad-01,False,1.23046710773971,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4001,rover-01,False,1.2663636156424987,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4002,drone-01,True,1.124350181447901,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4002,quad-01,True,1.06497882590691,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4002,rover-01,True,1.1164537710361964,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4003,drone-01,False,1.1190121917317832,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4003,quad-01,False,1.0952506441107466,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4003,rover-01,False,1.1755087724809452,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4004,drone-01,False,1.1547899313323549,ok,"temp_c, temp_slope_l, link_pct",v2 test (reference)
+r4004,quad-01,False,1.1573814233252178,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4004,rover-01,False,1.2603209463792702,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4005,drone-01,False,0.8812019743118406,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4005,quad-01,False,0.9912958261758125,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4005,rover-01,False,1.0542581930970072,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4006,drone-01,False,1.0743801323699356,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4006,quad-01,False,1.2294829552414779,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4006,rover-01,False,1.130834496357791,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4007,drone-01,False,1.0693638227692919,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4007,quad-01,False,1.437201958041205,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4007,rover-01,False,1.3566383752517799,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4008,drone-01,False,0.8337546620899587,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4008,quad-01,False,0.993264234949879,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4008,rover-01,False,1.1273063988636436,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4009,drone-01,False,1.2011163000133864,ok,"temp_c, batt_slope_l, temp_slope_l",v2 test (reference)
+r4009,quad-01,False,1.0717641786025334,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4009,rover-01,False,1.0041388949463317,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4010,drone-01,True,1.167519070041625,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4010,quad-01,True,1.3050291802679475,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4010,rover-01,True,1.517958131798791,caution,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4011,drone-01,False,1.0101253529018839,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4011,quad-01,False,1.25028041462456,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4011,rover-01,False,0.9808301761840175,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4012,drone-01,False,1.0607528471714727,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4012,quad-01,False,1.2520043619179941,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4012,rover-01,False,1.517611879423684,caution,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4013,drone-01,False,0.8935292065398348,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4013,quad-01,False,1.3457968250680232,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4013,rover-01,False,1.2432559184147391,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4014,drone-01,False,1.0908742248978833,ok,"temp_c, link_std_m, speed_mps",v2 test (reference)
+r4014,quad-01,False,1.2647558960495977,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4014,rover-01,False,1.5482647803738139,caution,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4015,drone-01,False,0.9453774914165234,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4015,quad-01,False,1.2048828758629986,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4015,rover-01,False,1.231209304344572,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4016,drone-01,False,1.0022267811141243,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4016,quad-01,False,1.1879589449206642,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4016,rover-01,False,1.451466433154191,ok,"temp_c, link_std_m, speed_mps",v2 test (reference)
+r4017,drone-01,False,1.1789467124805557,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4017,quad-01,False,1.342435224664784,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4017,rover-01,False,1.383216477148715,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4018,drone-01,False,1.1010563256059795,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4018,quad-01,False,1.1278235117540298,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4018,rover-01,False,1.2429818286705772,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4019,drone-01,False,1.0186410480419337,ok,"temp_c, temp_slope_l, batt_slope_l",v2 test (reference)
+r4019,quad-01,False,1.0834969109935997,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4019,rover-01,False,1.110853681368643,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4020,drone-01,False,0.9663075526551177,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4020,quad-01,False,0.9171046493645016,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4020,rover-01,False,1.240052551923058,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4021,drone-01,True,1.0873529286146983,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4021,quad-01,True,1.2266369832173922,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4021,rover-01,True,1.1813963564050864,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4022,drone-01,True,0.8780717868811516,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4022,quad-01,True,0.9681711724897397,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4022,rover-01,True,1.0494538794035386,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4023,drone-01,False,0.9596382658863009,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4023,quad-01,False,1.0912655659699264,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4023,rover-01,False,1.1985369572430673,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4024,drone-01,False,0.9393070324542722,ok,"temp_c, temp_slope_l, batt_slope_l",v2 test (reference)
+r4024,quad-01,False,0.8392085561782343,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4024,rover-01,False,0.9787535778853818,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4025,drone-01,False,1.243356483601356,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4025,quad-01,False,1.298756551063414,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4025,rover-01,False,1.0684347788578887,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4026,drone-01,False,1.1244030765878228,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4026,quad-01,False,1.1992103881942304,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4026,rover-01,False,1.5985051841965192,caution,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4027,drone-01,True,1.0184209550509764,ok,"temp_c, link_pct, temp_slope_l",v2 test (reference)
+r4027,quad-01,True,0.9919295356038619,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4027,rover-01,True,1.236935922673003,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4028,drone-01,True,0.9893114920992243,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4028,quad-01,True,1.1853498139547505,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4028,rover-01,True,1.243579299293359,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4029,drone-01,False,1.2522571643287765,ok,"temp_c, batt_slope_l, temp_slope_l",v2 test (reference)
+r4029,quad-01,False,1.0124892165067572,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4029,rover-01,False,1.8476513262993195,caution,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4030,drone-01,False,1.4337974627717478,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4030,quad-01,False,1.0119029380188065,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4030,rover-01,False,1.2005069598350924,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4031,drone-01,False,1.1621989736093752,ok,"temp_c, batt_slope_l, link_pct",v2 test (reference)
+r4031,quad-01,False,0.9896085949766231,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4031,rover-01,False,1.679309304938028,caution,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4032,drone-01,False,0.9408364474529449,ok,"temp_c, batt_slope_l, temp_slope_l",v2 test (reference)
+r4032,quad-01,False,1.259861534678289,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4032,rover-01,False,1.4147934065261143,ok,"temp_c, link_std_m, link_pct",v2 test (reference)
+r4033,drone-01,True,0.9468115210490256,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4033,quad-01,True,1.0642391385373022,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4033,rover-01,True,1.617146800374138,caution,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4034,drone-01,False,0.8224222127430357,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4034,quad-01,False,0.9517002486211487,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4034,rover-01,False,1.4632962554626452,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4035,drone-01,False,1.0799730207507092,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4035,quad-01,False,1.163385906909806,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4035,rover-01,False,1.4499033928450358,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4036,drone-01,True,1.0099916864947351,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4036,quad-01,True,1.2860836777860059,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4036,rover-01,True,1.3158889493142125,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4037,drone-01,False,1.1776017239864538,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4037,quad-01,False,1.3313818883920567,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4037,rover-01,False,1.1971795952941795,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4038,drone-01,True,0.9961645103134289,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4038,quad-01,True,1.1125213229253048,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4038,rover-01,True,1.4387262811863324,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4039,drone-01,False,0.8331263439530663,ok,"temp_c, temp_slope_l, link_std_m",v2 test (reference)
+r4039,quad-01,False,1.6249850650457975,caution,"batt_slope_l, temp_c, speed_mps",v2 test (reference)
+r4039,rover-01,False,1.0117266015284168,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4040,drone-01,True,1.0122890015136519,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4040,quad-01,True,1.160425771554251,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4040,rover-01,True,1.2751817755838881,ok,"temp_c, temp_slope_l, link_pct",v2 test (reference)
+r4041,drone-01,True,1.062616005991369,ok,"temp_c, temp_slope_l, batt_slope_l",v2 test (reference)
+r4041,quad-01,True,1.0589132197466573,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4041,rover-01,True,1.161961668939914,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4042,drone-01,False,1.187059932698586,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4042,quad-01,False,1.1217932437804559,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4042,rover-01,False,1.351620438650183,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4043,drone-01,False,1.212701220698662,ok,"temp_c, speed_mps, batt_slope_l",v2 test (reference)
+r4043,quad-01,False,1.070105220574035,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4043,rover-01,False,1.282387330689543,ok,"temp_c, batt_slope_l, temp_slope_l",v2 test (reference)
+r4044,drone-01,False,1.7121622192595296,caution,"temp_c, link_pct, link_std_m",v2 test (reference)
+r4044,quad-01,False,1.026838876802271,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4044,rover-01,False,1.120017505430494,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4045,drone-01,False,1.28795819274705,ok,"temp_c, batt_slope_l, temp_slope_l",v2 test (reference)
+r4045,quad-01,False,1.2512980939213478,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4045,rover-01,False,1.6249979171150088,caution,"temp_c, batt_slope_l, temp_slope_l",v2 test (reference)
+r4046,drone-01,False,1.0780714776472469,ok,"temp_c, batt_slope_l, link_std_m",v2 test (reference)
+r4046,quad-01,False,1.206516129886454,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4046,rover-01,False,1.1434250411551754,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4047,drone-01,False,0.9787646305916009,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4047,quad-01,False,1.0367061554419927,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4047,rover-01,False,1.232786810717427,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4048,drone-01,True,0.9254460009670739,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4048,quad-01,True,1.4279591179078903,ok,"temp_c, batt_slope_l, temp_slope_l",v2 test (reference)
+r4048,rover-01,True,1.2275833827258167,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4049,drone-01,False,0.9438203416088571,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4049,quad-01,False,1.3386214028348355,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4049,rover-01,False,1.1661915677216397,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4050,drone-01,False,1.0621514277241448,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4050,quad-01,False,0.9222697806109353,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4050,rover-01,False,1.502555521424552,caution,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4051,drone-01,False,1.5474182369557803,caution,"temp_c, link_pct, link_std_m",v2 test (reference)
+r4051,quad-01,False,1.1323355992325341,ok,"temp_c, batt_slope_l, speed_mps",v2 test (reference)
+r4051,rover-01,False,1.3564399351416903,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4052,drone-01,False,1.03881677468674,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4052,quad-01,False,1.0391457107531539,ok,"temp_c, link_pct, temp_slope_l",v2 test (reference)
+r4052,rover-01,False,1.266825383507578,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4053,drone-01,True,1.119851150220111,ok,"temp_c, batt_slope_l, link_pct",v2 test (reference)
+r4053,quad-01,True,1.066809432234391,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4053,rover-01,True,1.1849277630056014,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4054,drone-01,True,0.9784822325210907,ok,"temp_c, link_pct, speed_mps",v2 test (reference)
+r4054,quad-01,True,0.9432111615350884,ok,"temp_c, speed_mps, link_std_m",v2 test (reference)
+r4054,rover-01,True,1.082712202276718,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4055,drone-01,False,0.9624481741246486,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4055,quad-01,False,1.1077205707680748,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4055,rover-01,False,1.170862868329199,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4056,drone-01,False,0.9528857108446823,ok,"temp_c, link_pct, temp_slope_l",v2 test (reference)
+r4056,quad-01,False,1.1519150248885595,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4056,rover-01,False,1.5037441370409752,caution,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4057,drone-01,False,1.2773236344071246,ok,"temp_c, temp_slope_l, link_pct",v2 test (reference)
+r4057,quad-01,False,0.971927069454062,ok,"temp_c, speed_mps, temp_slope_l",v2 test (reference)
+r4057,rover-01,False,1.0588194243837632,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4058,drone-01,True,1.0859965098169724,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4058,quad-01,True,1.1503662708367552,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4058,rover-01,True,1.433313688175844,ok,"temp_c, temp_slope_l, link_pct",v2 test (reference)
+r4059,drone-01,False,0.9205800505160567,ok,"temp_c, temp_slope_l, speed_mps",v2 test (reference)
+r4059,quad-01,False,1.0451326898995004,ok,"temp_c, speed_mps, link_pct",v2 test (reference)
+r4059,rover-01,False,1.2146513275764648,ok,"temp_c, batt_slope_l, link_std_m",v2 test (reference)
+r5000,drone-01,False,1.2046382538881955,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5000,quad-01,False,1.7516437270315641,caution,"temp_c, batt_slope_l, temp_slope_l",hot_climate
+r5000,rover-01,False,1.4193600723419142,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5001,drone-01,False,1.2097321018804459,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5001,quad-01,False,1.5615578036889315,caution,"temp_c, link_pct, speed_mps",hot_climate
+r5001,rover-01,False,1.6201077347099944,caution,"temp_c, speed_mps, link_pct",hot_climate
+r5002,drone-01,True,1.1578449090925256,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5002,quad-01,True,1.2329219390011221,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5002,rover-01,True,1.359913857082933,ok,"temp_c, temp_slope_l, speed_mps",hot_climate
+r5003,drone-01,False,1.247021243253493,ok,"temp_c, batt_slope_l, temp_slope_l",hot_climate
+r5003,quad-01,False,1.6898470317999887,caution,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5003,rover-01,False,1.6512155512082214,caution,"temp_c, batt_slope_l, temp_slope_l",hot_climate
+r5004,drone-01,False,1.3766053070525004,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5004,quad-01,False,1.484511169711642,ok,"temp_c, batt_slope_l, link_pct",hot_climate
+r5004,rover-01,False,1.4351170249354939,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5005,drone-01,False,1.2327578989511736,ok,"temp_c, link_pct, speed_mps",hot_climate
+r5005,quad-01,False,1.4058108654504031,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5005,rover-01,False,1.518471896151178,caution,"temp_c, speed_mps, link_pct",hot_climate
+r5006,drone-01,False,1.4666208340163933,ok,"temp_c, temp_slope_l, speed_mps",hot_climate
+r5006,quad-01,False,1.4067302926219205,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5006,rover-01,False,1.4225051654179954,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5007,drone-01,False,1.285996400592681,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5007,quad-01,False,1.932431829414788,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5007,rover-01,False,1.3751217329513616,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5008,drone-01,False,1.0845201383320031,ok,"temp_c, temp_slope_l, speed_mps",hot_climate
+r5008,quad-01,False,1.270106266593567,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5008,rover-01,False,1.5746680269493005,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5009,drone-01,False,1.3829252997024533,ok,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5009,quad-01,False,1.4384588711795951,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5009,rover-01,False,1.2210244483963173,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5010,drone-01,True,1.1109057801332116,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5010,quad-01,True,1.3409869970787944,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5010,rover-01,True,1.559931426711306,caution,"temp_c, speed_mps, link_pct",hot_climate
+r5011,drone-01,False,1.211205973871883,ok,"temp_c, link_pct, link_std_m",hot_climate
+r5011,quad-01,False,1.4453263084431451,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5011,rover-01,False,1.506336395528108,caution,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5012,drone-01,False,1.0954748938433896,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5012,quad-01,False,1.161986203258273,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5012,rover-01,False,1.289957948126217,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5013,drone-01,False,1.321486732060155,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5013,quad-01,False,1.3090918569340524,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5013,rover-01,False,1.2703995323205808,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5014,drone-01,False,1.2101539507872805,ok,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5014,quad-01,False,1.4437707493484464,ok,"temp_c, link_pct, speed_mps",hot_climate
+r5014,rover-01,False,1.405036058462555,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5015,drone-01,False,1.1858406858264068,ok,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5015,quad-01,False,1.318464020466928,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5015,rover-01,False,1.6511976946143552,caution,"temp_c, batt_slope_l, temp_slope_l",hot_climate
+r5016,drone-01,False,1.1279756630306348,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5016,quad-01,False,1.4144342587986214,ok,"temp_c, link_pct, link_std_m",hot_climate
+r5016,rover-01,False,1.587792676149808,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5017,drone-01,False,1.3219780100276437,ok,"temp_c, batt_slope_l, temp_slope_l",hot_climate
+r5017,quad-01,False,1.4733038334309787,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5017,rover-01,False,1.215658498017775,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5018,drone-01,False,1.183311323079707,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5018,quad-01,False,1.5204288128547427,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5018,rover-01,False,1.391629509206148,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5019,drone-01,False,1.2723888746047451,ok,"temp_c, temp_slope_l, speed_mps",hot_climate
+r5019,quad-01,False,1.2414923840709582,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5019,rover-01,False,1.34291673771681,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5020,drone-01,False,1.1707620183256333,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5020,quad-01,False,1.4755019310045452,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5020,rover-01,False,1.6946416495788668,caution,"temp_c, speed_mps, link_std_m",hot_climate
+r5021,drone-01,True,1.190496176545221,ok,"temp_c, temp_slope_l, speed_mps",hot_climate
+r5021,quad-01,True,1.3903285905864644,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5021,rover-01,True,1.4572995727185338,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5022,drone-01,True,1.2573866350183456,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5022,quad-01,True,1.8058349457835383,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5022,rover-01,True,1.3131234540630154,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5023,drone-01,False,1.1182009189773559,ok,"temp_c, link_pct, speed_mps",hot_climate
+r5023,quad-01,False,1.4290848945555055,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5023,rover-01,False,1.559433234358674,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5024,drone-01,False,1.3838237026378328,ok,"temp_c, batt_slope_l, temp_slope_l",hot_climate
+r5024,quad-01,False,1.4860562145873621,ok,"temp_c, link_pct, speed_mps",hot_climate
+r5024,rover-01,False,1.2596692480851401,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5025,drone-01,False,1.3165349787590392,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5025,quad-01,False,1.4787747659374815,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5025,rover-01,False,1.191297246863623,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5026,drone-01,False,1.2299010849945724,ok,"temp_c, link_std_m, speed_mps",hot_climate
+r5026,quad-01,False,1.6099118612809344,caution,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5026,rover-01,False,1.4234230058506745,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5027,drone-01,True,1.2372612868973736,ok,"temp_c, link_pct, temp_slope_l",hot_climate
+r5027,quad-01,True,1.2905273891716398,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5027,rover-01,True,1.4774972116768335,ok,"temp_c, link_pct, speed_mps",hot_climate
+r5028,drone-01,True,1.3333493013124351,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5028,quad-01,True,1.3130666104892499,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5028,rover-01,True,1.2725047630455135,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5029,drone-01,False,1.2589999763265085,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5029,quad-01,False,1.4001553782178675,ok,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5029,rover-01,False,1.7355963769959852,caution,"temp_c, batt_slope_l, temp_slope_l",hot_climate
+r5030,drone-01,False,1.5489006536996084,caution,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5030,quad-01,False,1.2769766776409137,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5030,rover-01,False,1.3715395354136626,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5031,drone-01,False,1.6283489870155752,caution,"temp_c, batt_slope_l, link_pct",hot_climate
+r5031,quad-01,False,1.3179055673922888,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5031,rover-01,False,1.3091119653258179,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5032,drone-01,False,1.0849078479589276,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5032,quad-01,False,1.3624078735998228,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5032,rover-01,False,1.5665100715466747,caution,"temp_c, speed_mps, link_std_m",hot_climate
+r5033,drone-01,True,1.2447359574525538,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5033,quad-01,True,1.2814248607080791,ok,"temp_c, temp_slope_l, speed_mps",hot_climate
+r5033,rover-01,True,1.3304558964391604,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5034,drone-01,False,1.2937391829304132,ok,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5034,quad-01,False,1.612801926844768,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5034,rover-01,False,1.3791338317159607,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5035,drone-01,False,1.199976086735508,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5035,quad-01,False,1.3388521251988224,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5035,rover-01,False,1.4074531441564733,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5036,drone-01,True,1.2044804340885928,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5036,quad-01,True,1.2426394264663563,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5036,rover-01,True,1.3347317838929735,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5037,drone-01,False,1.2096257781594095,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5037,quad-01,False,1.467196987445109,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5037,rover-01,False,1.7760167414694543,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5038,drone-01,True,1.0782738381383945,ok,"temp_c, link_pct, speed_mps",hot_climate
+r5038,quad-01,True,1.5038040615224484,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5038,rover-01,True,1.6170099853013529,caution,"temp_c, speed_mps, link_pct",hot_climate
+r5039,drone-01,False,1.1478257631733735,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5039,quad-01,False,1.6013978441152907,caution,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5039,rover-01,False,1.4485113053037566,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5040,drone-01,True,1.2500845452811817,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5040,quad-01,True,1.3832023031380483,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5040,rover-01,True,1.5195419598659792,caution,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5041,drone-01,True,1.2325947857625277,ok,"temp_c, temp_slope_l, link_pct",hot_climate
+r5041,quad-01,True,1.3753268562372463,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5041,rover-01,True,1.4480225375678397,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5042,drone-01,False,1.0590129947736153,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5042,quad-01,False,1.2563672802240864,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5042,rover-01,False,1.3176159256149291,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5043,drone-01,False,1.3584946988233702,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5043,quad-01,False,1.296423017576972,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5043,rover-01,False,1.2824683705305688,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5044,drone-01,False,1.81845288578396,caution,"temp_c, link_pct, link_std_m",hot_climate
+r5044,quad-01,False,1.5138684347562252,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5044,rover-01,False,1.4078044456757193,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5045,drone-01,False,1.1951740386551457,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5045,quad-01,False,1.2802064022554789,ok,"temp_c, temp_slope_l, link_std_m",hot_climate
+r5045,rover-01,False,1.8545642977293952,caution,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5046,drone-01,False,1.2740486481079887,ok,"temp_c, batt_slope_l, link_pct",hot_climate
+r5046,quad-01,False,1.3565862631422503,ok,"temp_c, link_pct, batt_slope_l",hot_climate
+r5046,rover-01,False,1.4249880142015752,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5047,drone-01,False,0.9396108959163325,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5047,quad-01,False,1.4137326314140144,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5047,rover-01,False,1.5015014796597823,caution,"temp_c, speed_mps, link_pct",hot_climate
+r5048,drone-01,True,1.2976770848748642,ok,"temp_c, temp_slope_l, link_pct",hot_climate
+r5048,quad-01,True,1.2547124508133922,ok,"temp_c, temp_slope_l, link_pct",hot_climate
+r5048,rover-01,True,1.3689893995386215,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5049,drone-01,False,1.184144547997048,ok,"temp_c, link_std_m, speed_mps",hot_climate
+r5049,quad-01,False,1.5093470000797617,caution,"temp_c, temp_slope_l, batt_slope_l",hot_climate
+r5049,rover-01,False,1.530558329265084,caution,"temp_c, batt_slope_l, speed_mps",hot_climate
+r5050,drone-01,False,1.231410355061443,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5050,quad-01,False,1.3586304110904281,ok,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5050,rover-01,False,1.439738096168634,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5051,drone-01,False,1.7034055695985977,caution,"temp_c, link_pct, link_std_m",hot_climate
+r5051,quad-01,False,1.12400509128087,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5051,rover-01,False,1.3053260425604856,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5052,drone-01,False,1.1843371946986,ok,"temp_c, link_pct, batt_slope_l",hot_climate
+r5052,quad-01,False,1.2719910313324105,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5052,rover-01,False,1.343756881371959,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5053,drone-01,True,1.247046522190162,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5053,quad-01,True,1.3918504873368858,ok,"temp_c, temp_slope_l, link_std_m",hot_climate
+r5053,rover-01,True,1.4685575026778566,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5054,drone-01,True,1.218670733882894,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5054,quad-01,True,1.2964686808253787,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5054,rover-01,True,1.3874376558913748,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5055,drone-01,False,1.1477052486288257,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5055,quad-01,False,1.2358385308047501,ok,"temp_c, speed_mps, temp_slope_l",hot_climate
+r5055,rover-01,False,1.4826286554601449,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5056,drone-01,False,1.3056834907416648,ok,"temp_c, temp_slope_l, speed_mps",hot_climate
+r5056,quad-01,False,1.4060836110332413,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5056,rover-01,False,1.5360445150112159,caution,"temp_c, speed_mps, link_std_m",hot_climate
+r5057,drone-01,False,1.4139481911036222,ok,"temp_c, temp_slope_l, batt_slope_l",hot_climate
+r5057,quad-01,False,1.4816636345162375,ok,"temp_c, batt_slope_l, link_pct",hot_climate
+r5057,rover-01,False,1.7133601237679035,caution,"temp_c, speed_mps, batt_slope_l",hot_climate
+r5058,drone-01,True,1.3588030527925625,ok,"temp_c, link_pct, speed_mps",hot_climate
+r5058,quad-01,True,1.0046660849846978,ok,"temp_c, temp_slope_l, link_std_m",hot_climate
+r5058,rover-01,True,1.3801227982402826,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5059,drone-01,False,1.2643148985705266,ok,"temp_c, speed_mps, link_pct",hot_climate
+r5059,quad-01,False,1.3634005649982401,ok,"temp_c, speed_mps, link_std_m",hot_climate
+r5059,rover-01,False,1.354776317869773,ok,"temp_c, speed_mps, link_pct",hot_climate
+r6000,drone-01,False,1.1896310472388496,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6000,quad-01,False,1.0800618140020188,ok,"temp_c, batt_slope_l, temp_slope_l",noisy_sensors
+r6000,rover-01,False,1.1553323486236933,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6001,drone-01,False,0.9608496900900168,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6001,quad-01,False,1.9813373762130688,caution,"link_pct, temp_c, link_std_m",noisy_sensors
+r6001,rover-01,False,1.5784110965356697,caution,"temp_c, speed_mps, link_pct",noisy_sensors
+r6002,drone-01,True,1.0707505872386076,ok,"temp_c, speed_mps, temp_res3",noisy_sensors
+r6002,quad-01,True,1.489739095798177,ok,"temp_c, link_std_m, speed_mps",noisy_sensors
+r6002,rover-01,True,1.538008047933102,caution,"temp_c, link_pct, speed_mps",noisy_sensors
+r6003,drone-01,False,0.9652597381404412,ok,"temp_c, temp_slope_l, speed_mps",noisy_sensors
+r6003,quad-01,False,1.7777405412424823,caution,"batt_slope_l, temp_c, temp_slope_l",noisy_sensors
+r6003,rover-01,False,1.160587584218294,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6004,drone-01,False,1.3944080562337182,ok,"temp_c, temp_slope_l, link_pct",noisy_sensors
+r6004,quad-01,False,1.1253101037150945,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6004,rover-01,False,1.3854422409548859,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6005,drone-01,False,1.5975170626642856,caution,"temp_c, link_pct, speed_mps",noisy_sensors
+r6005,quad-01,False,1.1277659523069352,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6005,rover-01,False,1.29419744705487,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6006,drone-01,False,0.9872107985123302,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6006,quad-01,False,1.0152849125036008,ok,"temp_c, speed_mps, temp_res3",noisy_sensors
+r6006,rover-01,False,1.243062511101674,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6007,drone-01,False,0.9212615648741028,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6007,quad-01,False,1.1999954696610382,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6007,rover-01,False,1.2323794679057247,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6008,drone-01,False,1.1404951065662239,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6008,quad-01,False,1.5177372022251947,caution,"temp_c, temp_slope_l, speed_mps",noisy_sensors
+r6008,rover-01,False,1.3668381886251475,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6009,drone-01,False,1.5942605339335931,caution,"batt_slope_l, temp_c, link_std_m",noisy_sensors
+r6009,quad-01,False,1.025974945152193,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6009,rover-01,False,1.3311602627423806,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6010,drone-01,True,1.2713096391918657,ok,"temp_c, temp_slope_l, link_std_m",noisy_sensors
+r6010,quad-01,True,1.0745185407180755,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6010,rover-01,True,1.3059897254519428,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6011,drone-01,False,1.1119185745488993,ok,"temp_c, temp_slope_l, link_pct",noisy_sensors
+r6011,quad-01,False,1.435812202540213,ok,"temp_c, link_pct, temp_slope_l",noisy_sensors
+r6011,rover-01,False,1.3006694760146742,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6012,drone-01,False,0.9984837256270094,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6012,quad-01,False,1.1810666020345622,ok,"temp_c, temp_slope_l, batt_slope_l",noisy_sensors
+r6012,rover-01,False,1.300420649003255,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6013,drone-01,False,1.1756212346306367,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6013,quad-01,False,1.3555725389753435,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6013,rover-01,False,1.251244031953373,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6014,drone-01,False,0.9055613515091512,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6014,quad-01,False,1.1912319526528534,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6014,rover-01,False,1.163404945319771,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6015,drone-01,False,1.2125029243494643,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6015,quad-01,False,1.1773857478632073,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6015,rover-01,False,1.297081378058017,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6016,drone-01,False,1.141409247158364,ok,"temp_c, temp_slope_l, batt_slope_l",noisy_sensors
+r6016,quad-01,False,1.5854889640050334,caution,"temp_c, speed_mps, link_pct",noisy_sensors
+r6016,rover-01,False,1.3176219099943847,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6017,drone-01,False,1.0057353432044924,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6017,quad-01,False,1.7708544359818685,caution,"temp_c, link_pct, link_std_m",noisy_sensors
+r6017,rover-01,False,1.53417419788946,caution,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6018,drone-01,False,1.0294635507475216,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6018,quad-01,False,1.328371467475687,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6018,rover-01,False,1.2850051476156765,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6019,drone-01,False,1.009983074130113,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6019,quad-01,False,1.0195952953321643,ok,"temp_c, link_std_m, speed_mps",noisy_sensors
+r6019,rover-01,False,1.2629052371041192,ok,"temp_c, temp_slope_l, batt_slope_l",noisy_sensors
+r6020,drone-01,False,0.9710094362685575,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6020,quad-01,False,1.3118549425997323,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6020,rover-01,False,1.532793226164509,caution,"temp_c, speed_mps, link_pct",noisy_sensors
+r6021,drone-01,True,1.0817143907803053,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6021,quad-01,True,1.1768974177464704,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6021,rover-01,True,1.13590420634625,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6022,drone-01,True,0.9337344950832043,ok,"temp_c, link_pct, batt_slope_l",noisy_sensors
+r6022,quad-01,True,1.0662081768858633,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6022,rover-01,True,1.5477936904034721,caution,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6023,drone-01,False,0.86562990455338,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6023,quad-01,False,1.2410500825291295,ok,"temp_c, link_std_m, link_pct",noisy_sensors
+r6023,rover-01,False,1.1661003664858194,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6024,drone-01,False,1.0520448925728143,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6024,quad-01,False,1.178452663591411,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6024,rover-01,False,1.635510555235361,caution,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6025,drone-01,False,0.9555792907168058,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6025,quad-01,False,1.1933261580567556,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6025,rover-01,False,1.427513160040863,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6026,drone-01,False,1.0699753689380058,ok,"temp_c, speed_mps, temp_res3",noisy_sensors
+r6026,quad-01,False,1.1703300183749445,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6026,rover-01,False,1.374299483181488,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6027,drone-01,True,1.1936645247515354,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6027,quad-01,True,1.222933011348027,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6027,rover-01,True,1.3342496284376417,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6028,drone-01,True,1.2100827263652545,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6028,quad-01,True,0.9585438773191305,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6028,rover-01,True,0.9596958980410892,ok,"temp_c, speed_mps, batt_res3",noisy_sensors
+r6029,drone-01,False,1.1582164599647933,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6029,quad-01,False,0.9947641548325864,ok,"temp_c, speed_mps, temp_res3",noisy_sensors
+r6029,rover-01,False,1.6723967927707215,caution,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6030,drone-01,False,1.665257624841915,caution,"temp_c, batt_slope_l, link_pct",noisy_sensors
+r6030,quad-01,False,1.1159075781711558,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6030,rover-01,False,1.2943468011717019,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6031,drone-01,False,1.3206987854477543,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6031,quad-01,False,0.8038392152933136,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6031,rover-01,False,1.309172232594959,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6032,drone-01,False,1.1149794097232,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6032,quad-01,False,1.3600839875869695,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6032,rover-01,False,2.1194269448261718,caution,"temp_c, link_std_m, link_pct",noisy_sensors
+r6033,drone-01,True,1.033669517752386,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6033,quad-01,True,1.1845362399361392,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6033,rover-01,True,1.2067816646051266,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6034,drone-01,False,0.9098145549865873,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6034,quad-01,False,1.3594281960866859,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6034,rover-01,False,1.0352728036702168,ok,"speed_mps, temp_c, link_pct",noisy_sensors
+r6035,drone-01,False,1.0710282460850256,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6035,quad-01,False,1.2321778134905368,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6035,rover-01,False,1.4886951337068204,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6036,drone-01,True,1.1016400423305046,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6036,quad-01,True,1.0734281182551466,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6036,rover-01,True,1.1677224028614328,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6037,drone-01,False,1.1419404101570523,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6037,quad-01,False,0.9301922825380761,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6037,rover-01,False,1.0000472763064185,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6038,drone-01,True,0.9322064636225992,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6038,quad-01,True,0.9190863993166728,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6038,rover-01,True,1.176256752008896,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6039,drone-01,False,0.9514340276041839,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6039,quad-01,False,1.5773189316503398,caution,"batt_slope_l, temp_c, speed_mps",noisy_sensors
+r6039,rover-01,False,1.2279482907623516,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6040,drone-01,True,1.2038387764425273,ok,"temp_c, temp_slope_l, link_pct",noisy_sensors
+r6040,quad-01,True,1.1385014091364276,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6040,rover-01,True,1.599296380753198,caution,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6041,drone-01,True,0.7877271954170484,ok,"temp_c, speed_mps, temp_res3",noisy_sensors
+r6041,quad-01,True,0.8578280761312278,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6041,rover-01,True,1.2390012863007287,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6042,drone-01,False,1.0580545498365752,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6042,quad-01,False,1.0022680626634182,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6042,rover-01,False,1.3314293773793455,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6043,drone-01,False,1.1529506042812074,ok,"temp_c, temp_slope_l, batt_slope_l",noisy_sensors
+r6043,quad-01,False,1.2272551990481122,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6043,rover-01,False,1.4274811999641623,ok,"temp_c, temp_slope_l, speed_mps",noisy_sensors
+r6044,drone-01,False,1.8298355508670086,caution,"temp_c, link_pct, link_std_m",noisy_sensors
+r6044,quad-01,False,1.2867902169139476,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6044,rover-01,False,1.4209431405737676,ok,"temp_c, temp_slope_l, batt_slope_l",noisy_sensors
+r6045,drone-01,False,1.1440764766155218,ok,"temp_c, link_std_m, temp_slope_l",noisy_sensors
+r6045,quad-01,False,1.4240859447111642,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6045,rover-01,False,1.8836826146064591,caution,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6046,drone-01,False,1.0753417553049864,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6046,quad-01,False,1.2042133453497121,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6046,rover-01,False,1.2512663244686164,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6047,drone-01,False,0.9827718855501919,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6047,quad-01,False,0.8904629119668297,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6047,rover-01,False,1.1998366290403653,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6048,drone-01,True,1.0128075210638359,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6048,quad-01,True,1.1451527169321885,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6048,rover-01,True,1.0705387784578455,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6049,drone-01,False,1.0672108730220555,ok,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6049,quad-01,False,1.4365832861083003,ok,"temp_c, batt_slope_l, link_pct",noisy_sensors
+r6049,rover-01,False,1.4244967692994535,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6050,drone-01,False,1.0306131824167235,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6050,quad-01,False,1.2260717705188824,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6050,rover-01,False,1.0134569338132713,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6051,drone-01,False,1.9877211772176,caution,"temp_c, link_std_m, link_pct",noisy_sensors
+r6051,quad-01,False,1.4064142668330633,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6051,rover-01,False,1.5974059841287498,caution,"temp_c, batt_slope_l, speed_mps",noisy_sensors
+r6052,drone-01,False,1.0933534617558531,ok,"temp_c, temp_slope_l, speed_mps",noisy_sensors
+r6052,quad-01,False,1.3157569279499075,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6052,rover-01,False,1.166733793520144,ok,"temp_c, link_pct, speed_mps",noisy_sensors
+r6053,drone-01,True,1.191886069919188,ok,"temp_c, batt_slope_l, temp_slope_l",noisy_sensors
+r6053,quad-01,True,1.010585672693294,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6053,rover-01,True,1.3101564805807098,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6054,drone-01,True,0.8566648598870236,ok,"temp_c, link_pct, temp_slope_l",noisy_sensors
+r6054,quad-01,True,1.044889049879298,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6054,rover-01,True,0.9511827524041132,ok,"temp_c, speed_mps, temp_res3",noisy_sensors
+r6055,drone-01,False,1.1987199505986372,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6055,quad-01,False,1.3221900231127652,ok,"temp_c, temp_slope_l, batt_slope_l",noisy_sensors
+r6055,rover-01,False,1.183069148684042,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6056,drone-01,False,0.9091379428339668,ok,"temp_c, speed_mps, temp_slope_l",noisy_sensors
+r6056,quad-01,False,1.0039178048709239,ok,"temp_c, speed_mps, link_std_m",noisy_sensors
+r6056,rover-01,False,1.6101311039807888,caution,"temp_c, speed_mps, link_pct",noisy_sensors
+r6057,drone-01,False,0.8133550628809397,ok,"temp_slope_l, temp_c, speed_mps",noisy_sensors
+r6057,quad-01,False,1.0951384592831652,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6057,rover-01,False,1.1050355181442568,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6058,drone-01,True,0.8238990729313478,ok,"temp_c, speed_mps, temp_res3",noisy_sensors
+r6058,quad-01,True,1.2322877618023538,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6058,rover-01,True,1.3374956786653691,ok,"temp_c, temp_slope_l, link_pct",noisy_sensors
+r6059,drone-01,False,1.0046654172184257,ok,"temp_c, speed_mps, link_pct",noisy_sensors
+r6059,quad-01,False,1.1927752970682395,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r6059,rover-01,False,1.1312348696071899,ok,"temp_c, speed_mps, batt_slope_l",noisy_sensors
+r7000,drone-01,False,1.685077573892832,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7000,quad-01,False,1.8333050172262841,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7000,rover-01,False,1.5129441851749277,caution,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7001,drone-01,False,1.7980995919752445,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7001,quad-01,False,1.893068473083242,caution,"temp_c, link_pct, batt_slope_l",aged_batteries
+r7001,rover-01,False,1.7821403506413414,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7002,drone-01,True,1.780255379898976,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7002,quad-01,True,1.8257901548768498,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7002,rover-01,True,1.7286177089542996,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7003,drone-01,False,1.5916182968920884,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7003,quad-01,False,1.866884131202943,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7003,rover-01,False,1.6919550288448058,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7004,drone-01,False,1.774729944106354,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7004,quad-01,False,1.3755077070936137,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7004,rover-01,False,1.8472994515469225,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7005,drone-01,False,1.8249112946490307,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7005,quad-01,False,1.4089324419243978,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7005,rover-01,False,1.0945846500670051,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7006,drone-01,False,2.0614704845871397,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7006,quad-01,False,1.3647733436269276,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7006,rover-01,False,1.7436751264715546,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7007,drone-01,False,1.6307738132578755,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7007,quad-01,False,1.1709670788054591,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7007,rover-01,False,1.1695854754348274,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7008,drone-01,False,1.6993351597672106,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7008,quad-01,False,2.135565005801559,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7008,rover-01,False,1.7522366277086365,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7009,drone-01,False,1.739194754868676,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7009,quad-01,False,1.8728741778869302,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7009,rover-01,False,1.3654766248591428,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7010,drone-01,True,1.373004265444402,ok,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7010,quad-01,True,1.0334801454645564,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7010,rover-01,True,1.121990355783947,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7011,drone-01,False,1.360390504980358,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7011,quad-01,False,1.1360164008437483,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7011,rover-01,False,1.5209154300367287,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7012,drone-01,False,1.5942592631811026,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7012,quad-01,False,1.4521093033871013,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7012,rover-01,False,1.3800277932963776,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7013,drone-01,False,1.5768839276767415,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7013,quad-01,False,1.248185018088331,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7013,rover-01,False,1.2412627346899021,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7014,drone-01,False,1.6443340960511688,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7014,quad-01,False,1.239528881364194,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7014,rover-01,False,1.326880029001809,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7015,drone-01,False,1.664965292737279,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7015,quad-01,False,1.311145500929993,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7015,rover-01,False,1.7963724726872505,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7016,drone-01,False,1.6955785267106922,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7016,quad-01,False,1.2866870078262473,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7016,rover-01,False,1.4138734464443679,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7017,drone-01,False,1.600689841187275,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7017,quad-01,False,1.4197261890384154,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7017,rover-01,False,1.3259987696661648,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7018,drone-01,False,1.7483067861681403,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7018,quad-01,False,1.854821234050906,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7018,rover-01,False,1.4117973881029928,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7019,drone-01,False,1.6231642510310942,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7019,quad-01,False,1.3193889668890493,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7019,rover-01,False,1.442539604830549,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7020,drone-01,False,1.5215097903956012,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7020,quad-01,False,1.0055386868805836,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7020,rover-01,False,1.4221864249270983,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7021,drone-01,True,1.691762409943697,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7021,quad-01,True,1.6852657033388965,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7021,rover-01,True,1.5045053998369151,caution,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7022,drone-01,True,1.564577977232486,caution,"temp_c, batt_slope_l, link_std_m",aged_batteries
+r7022,quad-01,True,1.4908646301971884,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7022,rover-01,True,1.4930871807550115,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7023,drone-01,False,1.5047476493033425,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7023,quad-01,False,1.4299951732479699,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7023,rover-01,False,1.6814223309799659,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7024,drone-01,False,1.702351978046528,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7024,quad-01,False,1.6548344516005975,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7024,rover-01,False,1.6706448425160398,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7025,drone-01,False,1.5895113763601199,caution,"batt_slope_l, temp_c, link_pct",aged_batteries
+r7025,quad-01,False,1.616693522972944,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7025,rover-01,False,1.5336710479361855,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7026,drone-01,False,1.2530206392024446,ok,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7026,quad-01,False,1.1707559276530666,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7026,rover-01,False,1.4778288246599047,ok,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7027,drone-01,True,1.2707894186599895,ok,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7027,quad-01,True,1.3819175420176362,ok,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7027,rover-01,True,1.298895840585557,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7028,drone-01,True,1.5839288212802731,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7028,quad-01,True,1.453920450455841,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7028,rover-01,True,1.3618747122307586,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7029,drone-01,False,1.7177274324642497,caution,"batt_slope_l, temp_c, link_pct",aged_batteries
+r7029,quad-01,False,1.4951849123753091,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7029,rover-01,False,1.8217629975722018,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7030,drone-01,False,1.882716169172653,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7030,quad-01,False,1.7351605370837528,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7030,rover-01,False,1.6356547878740746,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7031,drone-01,False,1.6702652384921701,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7031,quad-01,False,1.7950603966883247,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7031,rover-01,False,1.4583651624214895,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7032,drone-01,False,1.4026815120998355,ok,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7032,quad-01,False,1.493481919464655,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7032,rover-01,False,2.462922248253858,caution,"temp_c, link_std_m, link_pct",aged_batteries
+r7033,drone-01,True,1.1298035681351553,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7033,quad-01,True,1.1716909627217071,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7033,rover-01,True,1.2015244161932206,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7034,drone-01,False,1.376405555224362,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7034,quad-01,False,1.7347637084503595,caution,"temp_c, batt_slope_l, link_std_m",aged_batteries
+r7034,rover-01,False,1.2469026447855445,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7035,drone-01,False,1.45733496442004,ok,"temp_c, batt_slope_l, link_std_m",aged_batteries
+r7035,quad-01,False,1.3915673475104975,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7035,rover-01,False,1.0554462149461181,ok,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7036,drone-01,True,1.4974984363242456,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7036,quad-01,True,1.498046627940638,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7036,rover-01,True,1.619734298111045,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7037,drone-01,False,1.630553356820513,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7037,quad-01,False,1.4954989738006759,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7037,rover-01,False,1.4831066560705972,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7038,drone-01,True,1.4538071457430233,ok,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7038,quad-01,True,1.185606286996929,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7038,rover-01,True,1.3137723383511908,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7039,drone-01,False,1.7049501770455122,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7039,quad-01,False,1.986514766608705,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7039,rover-01,False,1.33790737936488,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7040,drone-01,True,1.6507294353151587,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7040,quad-01,True,1.4150156755408483,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7040,rover-01,True,1.3300617612890975,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7041,drone-01,True,1.4765647067034622,ok,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7041,quad-01,True,1.5114347591978459,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7041,rover-01,True,1.628752623831404,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7042,drone-01,False,1.5953596279147104,caution,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7042,quad-01,False,1.2860109135962772,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7042,rover-01,False,1.7759006730815514,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7043,drone-01,False,1.734021963437223,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7043,quad-01,False,1.3211882178845389,ok,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7043,rover-01,False,1.2805389285335023,ok,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7044,drone-01,False,2.8524056609166752,caution,"link_pct, temp_c, batt_slope_l",aged_batteries
+r7044,quad-01,False,1.7110180078329518,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7044,rover-01,False,1.222932112250303,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7045,drone-01,False,1.440028862173586,ok,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7045,quad-01,False,1.2038172508563079,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7045,rover-01,False,1.5865769051866028,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7046,drone-01,False,1.5079095868170092,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7046,quad-01,False,1.6002019405855665,caution,"batt_slope_l, temp_c, link_std_m",aged_batteries
+r7046,rover-01,False,1.4130996922399415,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7047,drone-01,False,1.591005828585231,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7047,quad-01,False,1.5188147969183172,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7047,rover-01,False,1.6076595236706386,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7048,drone-01,True,1.5960100203363508,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7048,quad-01,True,1.8613787261505252,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7048,rover-01,True,1.3497158990619353,ok,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7049,drone-01,False,1.4083105076747904,ok,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7049,quad-01,False,1.4340789991328353,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7049,rover-01,False,1.733727259660424,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7050,drone-01,False,1.4354056981911305,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7050,quad-01,False,1.536645966461048,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7050,rover-01,False,1.233545156823935,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7051,drone-01,False,2.1591912905725223,caution,"batt_slope_l, temp_c, link_std_m",aged_batteries
+r7051,quad-01,False,1.2345893400847747,ok,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7051,rover-01,False,1.498340204631421,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7052,drone-01,False,1.4422766449605025,ok,"temp_c, batt_slope_l, link_std_m",aged_batteries
+r7052,quad-01,False,1.4993177151784218,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7052,rover-01,False,1.6056402825577059,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7053,drone-01,True,1.3315020972316045,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7053,quad-01,True,1.2578081159143955,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7053,rover-01,True,1.7036102828518753,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7054,drone-01,True,1.7391160517849582,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7054,quad-01,True,1.8868561677848965,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7054,rover-01,True,1.7846538191862709,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7055,drone-01,False,1.4642214106231695,ok,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7055,quad-01,False,1.3540553870463925,ok,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7055,rover-01,False,1.557387826168996,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7056,drone-01,False,1.3513492372515983,ok,"temp_c, batt_slope_l, link_pct",aged_batteries
+r7056,quad-01,False,1.0469099893742728,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7056,rover-01,False,1.7772740522891097,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7057,drone-01,False,2.1689597143007644,caution,"batt_slope_l, temp_c, temp_slope_l",aged_batteries
+r7057,quad-01,False,1.7866541944213261,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7057,rover-01,False,1.6448419724692485,caution,"temp_c, speed_mps, batt_slope_l",aged_batteries
+r7058,drone-01,True,1.6833089080350743,caution,"batt_slope_l, temp_c, speed_mps",aged_batteries
+r7058,quad-01,True,1.3586603915070778,ok,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7058,rover-01,True,1.5280253084670228,caution,"temp_c, batt_slope_l, speed_mps",aged_batteries
+r7059,drone-01,False,1.5067649573159483,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7059,quad-01,False,1.6990258702450283,caution,"temp_c, batt_slope_l, temp_slope_l",aged_batteries
+r7059,rover-01,False,1.441627017769945,ok,"temp_c, speed_mps, batt_slope_l",aged_batteries
