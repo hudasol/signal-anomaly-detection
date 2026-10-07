@@ -8,7 +8,7 @@
 | Data version | `v1.0.0-ee836a6bb4` (train seeds 1000–1039; v2 test seeds 4000–4059) |
 | Feature version / schema | `2.0.0` / `b539bdefb8` (41 features) |
 | Artifacts | the exact evaluated files are committed under `models/` (SHA-256 in `models/registry.json` matches the official result files); serving checks the SHA-256 before loading |
-| Previous version | v1 (shipped the rule baseline alone): [v1/MODEL_CARD_v1.md](v1/MODEL_CARD_v1.md), tag `v1.0.0` |
+| Previous version | v1 (shipped the rule baseline alone): [v1/MODEL_CARD_v1.md](v1/MODEL_CARD_v1.md), tag `iteration-1` |
 
 **Official v2 test (run once):** precision 0.85, recall 0.98, 0.12 false incidents per 10 min, median latency **1 event** on the faults expected to be caught within 3 events, **11 events** over all progressive faults. It meets 7 of the 8 acceptance criteria. The latency criterion is met only on a narrower physics-based set declared for v2, not by the original plan's definition, so it counts as missed (EVALUATION.md).
 

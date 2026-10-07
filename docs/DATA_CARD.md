@@ -2,7 +2,7 @@
 
 ## Summary
 
-Synthetic, deterministic telemetry for a three-asset inspection fleet (one drone, one rover, one quadruped), with fault scenarios injected on top of causally simulated normal behaviour. 140 runs × 3 assets × 20 minutes at 1 Hz = **502,961 events** in v2 (1,039 events, 0.2 %, deliberately lost in transit). v1 (data version `v1.0.0-9e903f9008`, tag `v1.0.0`) had 502,976 events; the two differ only in the test seeds. Ground truth is stored separately from the telemetry and is used only for evaluation.
+Synthetic, deterministic telemetry for a three-asset inspection fleet (one drone, one rover, one quadruped), with fault scenarios injected on top of causally simulated normal behaviour. 140 runs × 3 assets × 20 minutes at 1 Hz = **502,961 events** in v2 (1,039 events, 0.2 %, deliberately lost in transit). v1 (data version `v1.0.0-9e903f9008`, tag `iteration-1`) had 502,976 events; the two differ only in the test seeds. Ground truth is stored separately from the telemetry and is used only for evaluation.
 
 ```bash
 signal-data generate     # one command, ~20 s, byte-identical on every run

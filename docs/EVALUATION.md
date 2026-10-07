@@ -2,7 +2,7 @@
 
 > **Headline.** The shipped v2 system, the **rule baseline plus a fast-path residual detector** (`hybrid_rule_fast`), meets **7 of the 8** acceptance criteria on a **fresh, pre-registered test set** (seeds 4000–4059, run once): precision 0.85, recall 0.98 (44 of 45), 0.12 false incidents per 10 min. It ships under a ship rule declared before that test existed, on a **significant latency gain** with no recall loss. **Latency (criterion 5) is not met by the project's original definition**: over all progressive faults the median is 11 events. It is met (1 event, 5 of 5 caught) only on a narrower, physics-based "expected to catch" set declared for v2. The original plan (PLAN §7.1) said that narrowing the set later would count as a failure, so I count it as one. Slow overheating and link decline cannot be seen in 3 seconds at this sensor noise.
 >
-> v1 (tag `v1.0.0`) missed two criteria on its own test set; that result stands unchanged in [v1/EVALUATION_v1.md](v1/EVALUATION_v1.md). v2 was designed from v1's test-set error analysis, so v1's test set is spent and v2 is judged only on new data (PLAN_V2 §1).
+> v1 (tag `iteration-1`) missed two criteria on its own test set; that result stands unchanged in [v1/EVALUATION_v1.md](v1/EVALUATION_v1.md). v2 was designed from v1's test-set error analysis, so v1's test set is spent and v2 is judged only on new data (PLAN_V2 §1).
 
 All numbers come from saved outputs: `results/validation/` (v2 selection) and `results/official/` (the v2 test, run once). Figures are regenerated with `signal-eval plots`.
 

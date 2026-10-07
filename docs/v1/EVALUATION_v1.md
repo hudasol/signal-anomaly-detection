@@ -1,6 +1,6 @@
 # Evaluation (v1, archived)
 
-> **Archived v1 document.** This is the evaluation of v1 (tag `v1.0.0`, test seeds 3000–3059, run once on 2026-10-06), kept unchanged except for file paths. The current system and its evaluation are in [../EVALUATION.md](../EVALUATION.md).
+> **Archived v1 document.** This is the evaluation of v1 (tag `iteration-1`, test seeds 3000–3059, run once on 2026-10-06), kept unchanged except for file paths. The current system and its evaluation are in [../EVALUATION.md](../EVALUATION.md).
 
 > **Headline: the shipped system does not meet the brief's bar.** The rule baseline (shipped by the pre-declared decision rule) misses the recall bar by one fault (0.844 vs 0.85) and the latency bar by a wide margin (71 events vs 3). LOF meets precision, recall and false alerts but also misses latency (16 vs 3). No detector meets the 3-event latency bar for slow progressive faults (§8 pattern 5).
 

@@ -114,6 +114,6 @@
   "official_test_report": "results/official/test_report_e9deed50ee.json",
   "provenance": {
     "frozen_code_commit": "d121e2a",
-    "note": "v2 models frozen and pushed in d121e2a before the v2 test set (seeds 4000-4059) was generated; official result in eb83aa7. v1: models/registry_v1.json, tag v1.0.0."
+    "note": "v2 models frozen and pushed in d121e2a before the v2 test set (seeds 4000-4059) was generated; official result in eb83aa7. v1: models/registry_v1.json, tag iteration-1."
   }
 }

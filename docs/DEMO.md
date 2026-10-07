@@ -1,6 +1,6 @@
 # Acceptance demo runbook (v2)
 
-Every item the brief lists, with the exact command and what it shows. Nothing here edits a model, regenerates data or touches `results/official/`. Outputs below are from a rehearsal on the committed state. v1's runbook is in git history (tag `v1.0.0`).
+Every item the brief lists, with the exact command and what it shows. Nothing here edits a model, regenerates data or touches `results/official/`. Outputs below are from a rehearsal on the committed state. v1's runbook is in git history (tag `iteration-1`).
 
 Setup, once: `pip install --require-hashes -r requirements.lock && pip install --no-deps -e . && signal-data generate` (about 20 s; byte-identical data). **Do not retrain:** the exact evaluated artifacts are committed under `models/`, SHA-256 checked against `models/registry.json`. Docker alternative: `docker build -t signal . && docker run --rm signal sh -c "signal-data generate && signal-eval show"`.
 

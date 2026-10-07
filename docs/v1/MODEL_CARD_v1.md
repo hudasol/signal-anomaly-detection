@@ -1,6 +1,6 @@
 # Model card: Signal anomaly detector (v1, archived)
 
-> **Archived v1 document.** This is the evaluation of v1 (tag `v1.0.0`, test seeds 3000–3059, run once on 2026-10-06), kept unchanged except for file paths. The current system and its evaluation are in [../EVALUATION_v1.md](../EVALUATION.md).
+> **Archived v1 document.** This is the evaluation of v1 (tag `iteration-1`, test seeds 3000–3059, run once on 2026-10-06), kept unchanged except for file paths. The current system and its evaluation are in [../EVALUATION_v1.md](../EVALUATION.md).
 
 | | |
 |---|---|

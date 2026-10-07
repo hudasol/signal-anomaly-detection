@@ -310,7 +310,7 @@ Also added: a criterion-by-criterion acceptance table (EVALUATION, top; README s
 
 ## 2026-10-08 (night): v2, built to close the two missed criteria
 
-Plan and reasoning: docs/PLAN_V2.md (pre-registration). Short version: v1's test set has been studied, so v2 is judged on a **new** test set (seeds 4000–4059) generated only after the v2 freeze is committed and pushed. v1 is tagged `v1.0.0`, and its results and registry are archived under `results/v1/` and `models/registry_v1.json`, unchanged.
+Plan and reasoning: docs/PLAN_V2.md (pre-registration). Short version: v1's test set has been studied, so v2 is judged on a **new** test set (seeds 4000–4059) generated only after the v2 freeze is committed and pushed. v1 is tagged `iteration-1`, and its results and registry are archived under `results/v1/` and `models/registry_v1.json`, unchanged.
 
 **What the data said before any code.** At 1 Hz, battery is reported to 0.01 % with 0.01 noise and drains almost constantly while moving, so an extra 1–6.5 %/min drain is 3–22× the noise of a 3-event difference. Temperature (0.15 °C noise, 0.1 °C resolution) needs over 21 °C/min to be that visible in 3 events, and link changes are buried in fading. So only battery drains can physically be caught within 3 events. That became the pre-declared "expected to catch" set (PLAN_V2 §4).
 
@@ -355,3 +355,5 @@ Two things I am leaving as they are and stating instead:
 - **The v2 artifacts record `git_sha` be2652b.** They were trained from the working tree just before the freeze commit d121e2a. The code that produced them is identified by `detector_code_hash` 3f62fb42be, which matches d121e2a, and by the artifact SHA-256s in that commit.
 
 The CI run for d121e2a failed only in its Docker job, because the Dockerfile copies `results/official/`, which did not exist until the official run; the test job passed.
+
+**Tag names.** The v1 snapshot was first tagged `v1.0.0` locally. The brief asks for a `v1.0.0` tag on the **submission**, and a reviewer checking out `v1.0.0` would have got the older v1 system. Neither tag had reached GitHub (the session's git proxy refuses tag pushes), so the snapshot was renamed **`iteration-1`** (commit be2652b), and `v1.0.0` is reserved for the final submitted state. PLAN_V2 §1 still says "tag `v1.0.0`" for the v1 snapshot; it is the pre-registration and is not edited, so read that as `iteration-1`.

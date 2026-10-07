@@ -17,7 +17,7 @@ Task 02 of the mentorship track, built next to [blackbox-telemetry](https://gith
 
 **Why it ships:** under the ship rule declared before the v2 test, it is not worse than the rule on recall (paired CI +0.000 to +0.119) and significantly faster. Most of that speed comes from battery drain (188 → 2 events) and overheating (64 → 11). The paired median gain is only 1 event, and the rule alone also passes the precision / recall / false-alert bar on this test set (EVALUATION §2, §4).
 
-**v1** (tag `v1.0.0`) shipped the rule baseline alone and missed two criteria on its own test set (recall 0.844, latency 71). That result is unchanged in [docs/v1/](docs/v1/EVALUATION_v1.md). v2 was built from v1's test-set error analysis, so v1's test set is spent and v2 is judged only on new data: [docs/PLAN_V2.md](docs/PLAN_V2.md) is the pre-registration.
+**v1** (tag `iteration-1`) shipped the rule baseline alone and missed two criteria on its own test set (recall 0.844, latency 71). That result is unchanged in [docs/v1/](docs/v1/EVALUATION_v1.md). v2 was built from v1's test-set error analysis, so v1's test set is spent and v2 is judged only on new data: [docs/PLAN_V2.md](docs/PLAN_V2.md) is the pre-registration.
 
 ### Against the brief's acceptance criteria
 
@@ -82,7 +82,7 @@ signal-eval test             # 6. OFFICIAL test: runs once per model version, th
 signal-eval plots            #    re-render every figure from saved outputs
 ```
 
-The committed `results/official/` already holds the official v2 result, so step 6 refuses to run in this repo, by design. To reproduce it, run the steps in a scratch clone after deleting `results/official/` and compare with the committed files. The **exact evaluated artifacts are committed** under `models/` (SHA-256 in `models/registry.json` and in each official result file). v1 is reproducible from tag `v1.0.0`.
+The committed `results/official/` already holds the official v2 result, so step 6 refuses to run in this repo, by design. To reproduce it, run the steps in a scratch clone after deleting `results/official/` and compare with the committed files. The **exact evaluated artifacts are committed** under `models/` (SHA-256 in `models/registry.json` and in each official result file). v1 is reproducible from tag `iteration-1`.
 
 Post-hoc analysis and audit helpers (read-only):
 
