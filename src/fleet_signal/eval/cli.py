@@ -3,6 +3,7 @@
     signal-eval validate        fit on train, select on validation -> results/validation/
     signal-eval validate --detectors rule
     signal-eval select-model    ML grid + ablation on validation
+    signal-eval select-v2       v2: fast path + hybrids + grouping, chosen on validation
     signal-eval test            OFFICIAL test, once per frozen model version
     signal-eval plots           re-render all figures from saved outputs
     signal-eval audit           prove the split
@@ -129,6 +130,7 @@ def main(argv: list[str] | None = None) -> None:
     val = sub.add_parser("validate", help="select incident params and thresholds on validation")
     val.add_argument("--detectors", default="rule,stats,lof")
     sub.add_parser("select-model", help="ML grid (Isolation Forest, LOF) + ablation on validation")
+    sub.add_parser("select-v2", help="v2 selection on validation: fast path, hybrids, grouping")
     sub.add_parser("test", help="OFFICIAL run-once test evaluation of the frozen models")
     sub.add_parser("plots", help="re-render every evaluation plot from saved outputs")
     sub.add_parser("audit", help="prove the split: which runs fitted / selected / tested")
@@ -182,6 +184,21 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.command == "test":
         _official()
+        return
+
+    if args.command == "select-v2":
+        from fleet_signal.eval.select_v2 import run as run_v2
+
+        out = run_v2()
+        cols = ["candidate", "open_n", "feasible", "meets_bar", "threshold", "precision",
+                "recall", "fp_per_10min", "progressive_latency_median",
+                "expected_latency_median", "n_expected", "n_expected_detected"]  # fmt: skip
+        with pd.option_context("display.width", 250, "display.max_columns", 20):
+            print(out["lof_grid"].round(3).to_string(index=False))
+            print()
+            print(out["grid"].reindex(columns=cols).round(3).to_string(index=False))
+        print(f"\nchosen: {out['chosen']['name']} (open after {out['chosen']['open_n']}); "
+              f"best baseline on validation: {out['best_baseline']}")  # fmt: skip
         return
 
     if args.command == "select-model":

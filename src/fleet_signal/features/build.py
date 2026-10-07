@@ -55,6 +55,15 @@ FEATURE_GROUPS: dict[str, tuple[str, ...]] = {
         "pos_unchanged",
     ),
     "motion": ("implied_speed", "speed_mismatch", "jump_excess"),
+    # v2 fast path: abrupt change relative to the asset's own recent trend.
+    "fast": (
+        "batt_res3",
+        "batt_res10",
+        "temp_res3",
+        "temp_res10",
+        "spd_d3",
+        "spd_d10",
+    ),
     "context": (
         "mode_age",
         *(f"mode_{m}" for m in MODES),
@@ -63,6 +72,7 @@ FEATURE_GROUPS: dict[str, tuple[str, ...]] = {
 }
 FEATURE_COLUMNS: tuple[str, ...] = tuple(c for cols in FEATURE_GROUPS.values() for c in cols)
 STATUS_COLUMNS: tuple[str, ...] = ("history", "history_ok", "max_gap_l", "gap_ok")
+FAST_HORIZONS: tuple[int, ...] = (3, 10)  # must match the "fast" feature names above
 
 
 @dataclass(frozen=True)
@@ -75,10 +85,13 @@ class FeatureConfig:
     max_gap: int
     unchanged_cap: int
     mismatch_median: int
+    fast_baseline: int = 30
 
     @classmethod
     def load(cls, path: Path = DEFAULT_FEATURE_CONFIG) -> FeatureConfig:
         raw = yaml.safe_load(Path(path).read_text())
+        if tuple(raw["fast_horizons"]) != FAST_HORIZONS:
+            raise ValueError(f"fast_horizons {raw['fast_horizons']} must be {list(FAST_HORIZONS)}")
         return cls(
             feature_version=raw["feature_version"],
             short=raw["windows"]["short"],
@@ -88,6 +101,7 @@ class FeatureConfig:
             max_gap=raw["max_gap"],
             unchanged_cap=raw["unchanged_cap"],
             mismatch_median=raw["mismatch_median"],
+            fast_baseline=raw["fast_baseline"],
         )
 
     def as_dict(self) -> dict[str, Any]:
@@ -134,6 +148,35 @@ def events_since_change(values: np.ndarray, cap: int) -> np.ndarray:
     idx = np.arange(n)
     last_change = np.maximum.accumulate(np.where(changed, idx, 0))
     return np.minimum(idx - last_change, cap).astype(float)
+
+
+def events_since_any_change(cols: list[np.ndarray], cap: int) -> np.ndarray:
+    """Like `events_since_change`, but a change in ANY of the columns resets the count."""
+    n = len(cols[0])
+    if n == 0:
+        return np.zeros(0)
+    changed = np.ones(n, dtype=bool)
+    changed[1:] = np.logical_or.reduce([c[1:] != c[:-1] for c in cols])
+    idx = np.arange(n)
+    last_change = np.maximum.accumulate(np.where(changed, idx, 0))
+    return np.minimum(idx - last_change, cap).astype(float)
+
+
+def _shift(a: np.ndarray, k: int) -> np.ndarray:
+    """a[i - k] at position i (NaN for the first k): the value k events ago."""
+    out = np.full(len(a), np.nan)
+    if k < len(a):
+        out[k:] = a[: len(a) - k]
+    return out
+
+
+def residual_slope(t: np.ndarray, y: np.ndarray, k: int, base: int) -> np.ndarray:
+    """Slope over the last k steps minus the slope over the `base` events before them.
+
+    A steady trend gives ~0; a change that started within the last k events shows up
+    at full size after k events. Units: per second (callers scale to per minute).
+    """
+    return rolling_slope(t, y, k + 1) - _shift(rolling_slope(t, y, base), k)
 
 
 def _roll(s: pd.Series, w: int, fn: str) -> np.ndarray:
@@ -183,8 +226,7 @@ def _features_one(g: pd.DataFrame, cfg: FeatureConfig) -> pd.DataFrame:
     f["batt_unchanged"] = events_since_change(batt, cap)
     f["link_unchanged"] = events_since_change(link, cap)
     f["speed_unchanged"] = events_since_change(speed, cap)
-    pos_key = x * 1e6 + y  # unchanged only if both x and y repeat
-    f["pos_unchanged"] = events_since_change(pos_key, cap)
+    f["pos_unchanged"] = events_since_any_change([x, y], cap)  # both x and y repeat
 
     dt = np.diff(t, prepend=np.nan)
     step = np.hypot(np.diff(x, prepend=np.nan), np.diff(y, prepend=np.nan))
@@ -195,6 +237,13 @@ def _features_one(g: pd.DataFrame, cfg: FeatureConfig) -> pd.DataFrame:
     # Distance moved beyond what the reported speed allows, worst of the last k steps.
     excess = pd.Series(step - speed * dt)
     f["jump_excess"] = _roll(excess, k, "max")
+
+    b = cfg.fast_baseline
+    speed_s = pd.Series(speed)
+    for k in FAST_HORIZONS:
+        f[f"batt_res{k}"] = residual_slope(t, batt, k, b) * per_min
+        f[f"temp_res{k}"] = residual_slope(t, temp, k, b) * per_min
+        f[f"spd_d{k}"] = _roll(speed_s, k, "mean") - _shift(_roll(speed_s, b, "mean"), k)
 
     mode_changed = np.ones(n, dtype=bool)
     mode_changed[1:] = mode[1:] != mode[:-1]

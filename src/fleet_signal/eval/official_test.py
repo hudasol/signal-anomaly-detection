@@ -27,7 +27,8 @@ from fleet_signal.data.config import REPO_ROOT, load_config
 from fleet_signal.data.ground_truth import load_faults
 from fleet_signal.data.splits import split_run_ids
 from fleet_signal.eval.bootstrap import bootstrap_ci, paired_difference, paired_latency
-from fleet_signal.eval.decision import best_baseline, ship_decision
+from fleet_signal.eval.decision import ship_decision_v2
+from fleet_signal.eval.detectability import with_detectability
 from fleet_signal.eval.official import OFFICIAL_DIR, official_path, write_official
 from fleet_signal.eval.protocol import EvalConfig, ScoredSet, breakdown, meets_bar
 from fleet_signal.eval.threshold import sweep
@@ -41,9 +42,6 @@ from fleet_signal.registry import (
     read_registry,
     write_registry,
 )
-
-BASELINES = ("rule", "stats")
-ML = "lof"
 
 
 def _load_frozen(names: list[str], data_version: str) -> dict[str, ModelArtifact]:
@@ -66,8 +64,20 @@ def comparison_key(arts: dict[str, ModelArtifact]) -> str:
     return hashlib.sha256(joined.encode()).hexdigest()[:10]
 
 
-def run_official_test(names: tuple[str, ...] = ("rule", "stats", "lof")) -> dict[str, Any]:
+def v2_names() -> tuple[tuple[str, ...], str, str]:
+    """(detectors to evaluate, the selected candidate, the best baseline) from v2 selection."""
+    from fleet_signal.eval.select_v2 import SELECTION
+
+    sel = json.loads(SELECTION.read_text())
+    cand = sel["chosen"]["name"]
+    names = tuple(dict.fromkeys(("rule", "stats", "lof", cand)))
+    return names, cand, sel["best_baseline"]
+
+
+def run_official_test(names: tuple[str, ...] | None = None) -> dict[str, Any]:
     gen_cfg, ecfg = load_config(), EvalConfig.load()
+    default_names, candidate, chosen_baseline = v2_names()
+    names = names or default_names
     arts = _load_frozen(list(names), gen_cfg.version)
     key = comparison_key(arts)
     targets = [official_path(n, a.model_version) for n, a in arts.items()]
@@ -80,7 +90,7 @@ def run_official_test(names: tuple[str, ...] = ("rule", "stats", "lof")) -> dict
     test = load_features("test", gen_cfg=gen_cfg)
     assert_only_split(test, "test", gen_cfg)
     test_ids = split_run_ids(gen_cfg)["test"]
-    faults = load_faults()
+    faults = with_detectability(load_faults(), gen_cfg)
     n_assets = len(gen_cfg.data["fleet"])
     seen = seen_variants(gen_cfg)
 
@@ -125,19 +135,19 @@ def run_official_test(names: tuple[str, ...] = ("rule", "stats", "lof")) -> dict
         for i, a in enumerate(arts) for b in list(arts)[i + 1 :]
     }  # fmt: skip
     decision: dict[str, Any] | None = None
-    if ML in arts and any(b in arts for b in BASELINES):
-        base = best_baseline(summaries, BASELINES)
-        rec = paired_difference(
-            results[ML][1].per_run, results[base][1].per_run, n_assets,
-            ecfg.n_resamples, ecfg.bootstrap_seed,
-        )["recall"]  # fmt: skip
-        lat = paired_latency(
-            results[ML][1].per_fault, results[base][1].per_fault, ecfg.progressive,
+    if candidate in arts and chosen_baseline in arts:
+        base = chosen_baseline  # chosen on VALIDATION recall (v2 fix)
+        diff = paired_difference(
+            results[candidate][1].per_run, results[base][1].per_run, n_assets,
             ecfg.n_resamples, ecfg.bootstrap_seed,
         )  # fmt: skip
-        decision = ship_decision(ML, base, rec, lat)
-        decision["recall_ml_minus_baseline"] = rec
-        decision["latency_ml_minus_baseline"] = lat
+        lat = paired_latency(
+            results[candidate][1].per_fault, results[base][1].per_fault, ecfg.progressive,
+            ecfg.n_resamples, ecfg.bootstrap_seed,
+        )  # fmt: skip
+        decision = ship_decision_v2(candidate, base, diff["recall"], diff["precision"], lat)
+        decision["candidate_minus_baseline"] = diff
+        decision["latency_candidate_minus_baseline"] = lat
 
     report = _jsonable(
         {
@@ -145,7 +155,7 @@ def run_official_test(names: tuple[str, ...] = ("rule", "stats", "lof")) -> dict
             "official": True,
             "comparison_key": key,
             "data_version": gen_cfg.version,
-            "incident_params": next(iter(arts.values())).incident_params,
+            "incident_params": {n: a.incident_params for n, a in arts.items()},
             "false_alert_budget_per_10min": ecfg.budget,
             "min_precision": ecfg.min_precision,
             "bar": ecfg.bar,

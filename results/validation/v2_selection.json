@@ -1,0 +1,26 @@
+{
+  "data_version": "v1.0.0-ee836a6bb4",
+  "shared_incident_params": {
+    "open_n": 2,
+    "close_m": 5,
+    "cooldown_c": 30
+  },
+  "best_baseline": "rule",
+  "lof_k": 20,
+  "chosen": {
+    "name": "hybrid_rule_fast",
+    "open_n": 1,
+    "validation": {
+      "threshold": 1.174862872982021,
+      "precision": 0.9375,
+      "per_fault_precision": 0.9032258064516129,
+      "recall": 0.9333333333333333,
+      "fp_per_10min": 0.04620083674848778,
+      "progressive_latency_median": 7.0,
+      "expected_latency_median": 1.5,
+      "n_expected": 6,
+      "n_expected_detected": 6
+    }
+  },
+  "rule": "feasible, then meets the bar on validation, then recall, then expected-to-catch latency, then all-progressive latency"
+}

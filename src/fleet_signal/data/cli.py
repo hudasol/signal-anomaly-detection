@@ -18,6 +18,7 @@ from fleet_signal.data.config import (
 )
 from fleet_signal.data.generator import generate_dataset
 from fleet_signal.data.ground_truth import load_episodes, load_faults, load_runs
+from fleet_signal.data.splits import build_run_plan
 from fleet_signal.data.telemetry import load_telemetry, resolve_version_dir
 
 DEFAULT_PLOT_DIR = REPO_ROOT / "results" / "data_sanity"
@@ -26,8 +27,14 @@ DEFAULT_PLOT_DIR = REPO_ROOT / "results" / "data_sanity"
 def _cmd_generate(args: argparse.Namespace) -> None:
     cfg = load_config(Path(args.config), Path(args.splits))
     started = time.perf_counter()
-    path = generate_dataset(cfg, Path(args.out))
-    print(f"data version {cfg.version} written to {path} in {time.perf_counter() - started:.1f}s")
+    plan = build_run_plan(cfg)
+    only = [x.strip() for x in args.only_splits.split(",")] if args.only_splits else None
+    if only:
+        plan = [r for r in plan if r.split in only]
+    path = generate_dataset(cfg, Path(args.out), runs=plan)
+    what = f" (splits: {', '.join(only)} only)" if only else ""
+    print(f"data version {cfg.version}{what} written to {path} "
+          f"in {time.perf_counter() - started:.1f}s")  # fmt: skip
 
 
 def _cmd_summary(args: argparse.Namespace) -> None:
@@ -99,6 +106,12 @@ def main(argv: list[str] | None = None) -> None:
     gen.add_argument("--config", default=str(DEFAULT_DATA_CONFIG))
     gen.add_argument("--splits", default=str(DEFAULT_SPLITS_CONFIG))
     gen.add_argument("--out", default=str(DEFAULT_DATA_DIR))
+    gen.add_argument(
+        "--only-splits",
+        default=None,
+        help="e.g. 'train,validation': generate the test split later (after a freeze). "
+        "Each run depends only on its own seed, so the runs are identical either way.",
+    )
     gen.set_defaults(func=_cmd_generate)
 
     summ = sub.add_parser("summary", help="print split, scenario and episode counts")

@@ -200,6 +200,9 @@ class ScoredSet:
                             if self.seen is None
                             else (f["fault_type"], f["variant"]) in self.seen
                         ),
+                        "fast_detectable": (
+                            bool(f["fast_detectable"]) if "fast_detectable" in f else None
+                        ),
                         "fault_start_seq": fs,
                         "fault_end_seq": fe,
                         "detected": first_open is not None,
@@ -251,7 +254,25 @@ def summarise(
     ] if len(per_fault) else pd.Series(dtype=float)  # fmt: skip
     out["progressive_latency_median"] = float(lat.median()) if len(lat) else float("nan")
     out["progressive_latency_p90"] = float(lat.quantile(0.9)) if len(lat) else float("nan")
+    out.update(expected_latency(per_fault))
     return out
+
+
+def expected_latency(per_fault: pd.DataFrame) -> dict[str, Any]:
+    """Latency over the faults a detector is expected to catch fast (eval/detectability.py).
+
+    A missed expected fault counts as infinite latency, so missing hard cases can only
+    make the median worse (no survivor bias). NaN when the column is absent (v1 files).
+    """
+    if not len(per_fault) or "fast_detectable" not in per_fault:
+        return {"expected_latency_median": float("nan"), "n_expected": 0, "n_expected_detected": 0}
+    exp = per_fault[per_fault["fast_detectable"].eq(True)]
+    lat = np.where(exp["detected"], exp["latency_events"].astype(float), np.inf)
+    return {
+        "expected_latency_median": float(np.median(lat)) if len(lat) else float("nan"),
+        "n_expected": int(len(exp)),
+        "n_expected_detected": int(exp["detected"].sum()),
+    }
 
 
 def breakdown(per_fault: pd.DataFrame, by: list[str]) -> pd.DataFrame:
@@ -275,11 +296,27 @@ def _quantile(s: pd.Series, q: float) -> float:
     return float(v.quantile(q)) if len(v) else float("nan")
 
 
+def _le(value: Any, bound: float) -> bool:
+    return value is not None and np.isfinite(value) and float(value) <= bound
+
+
 def meets_bar(summary: dict[str, Any], ecfg: EvalConfig) -> dict[str, bool]:
     b = ecfg.bar
     return {
         "precision": summary["precision"] >= b["precision"],
         "recall": summary["recall"] >= b["recall"],
         "false_alerts": summary["fp_per_10min"] <= b["false_alerts_per_10min"],
-        "latency": summary["progressive_latency_median"] <= b["median_latency_events"],
+        # Pre-registered for v2 (PLAN_V2 §4): judged on the faults the detector is
+        # expected to catch (misses = infinite latency); all-progressive reported too.
+        # Without an expected-to-catch set (v1 files, or no such fault) it falls back to
+        # all progressive faults.
+        "latency": _le(
+            summary.get("expected_latency_median")
+            if summary.get("n_expected", 0)
+            else summary["progressive_latency_median"],
+            b["median_latency_events"],
+        ),
+        "latency_all_progressive": _le(
+            summary["progressive_latency_median"], b["median_latency_events"]
+        ),
     }

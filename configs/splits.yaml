@@ -29,7 +29,10 @@ splits:
       sensor_freeze: 6
       motion_anomaly: 6
   test:
-    seed_start: 3000
+    # v2: a fresh test set. v1 used seeds 3000-3059 (run once, 2026-10-06; tag v1.0.0).
+    # v2's design was informed by error analysis on that v1 test, so v1 test is
+    # spent and v2 is judged only on these new seeds, generated after the v2 freeze.
+    seed_start: 4000
     fault_ranges: wide
     include_test_only_variants: true
     composition:

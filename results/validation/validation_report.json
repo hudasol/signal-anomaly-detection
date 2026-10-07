@@ -1,6 +1,6 @@
 {
   "split": "validation",
-  "data_version": "v1.0.0-9e903f9008",
+  "data_version": "v1.0.0-ee836a6bb4",
   "incident_params": {
     "open_n": 2,
     "close_m": 5,
@@ -23,6 +23,9 @@
         "per_fault_precision": 0.8484848484848485,
         "progressive_latency_median": 81.5,
         "progressive_latency_p90": 347.0,
+        "expected_latency_median": 263.0,
+        "n_expected": 6.0,
+        "n_expected_detected": 5.0,
         "threshold": -0.0867346959161708,
         "open_n": 2.0,
         "close_m": 5.0,
@@ -42,6 +45,9 @@
         "per_fault_precision": 0.8484848484848485,
         "progressive_latency_median": 81.5,
         "progressive_latency_p90": 347.0,
+        "expected_latency_median": 263.0,
+        "n_expected": 6,
+        "n_expected_detected": 5,
         "threshold": -0.0867346959161708,
         "open_n": 2,
         "close_m": 5,
@@ -220,6 +226,9 @@
         "per_fault_precision": 0.75,
         "progressive_latency_median": 474.0,
         "progressive_latency_p90": 530.8,
+        "expected_latency_median": null,
+        "n_expected": 6.0,
+        "n_expected_detected": 3.0,
         "threshold": 151.91092312830733,
         "open_n": 2.0,
         "close_m": 5.0,
@@ -239,6 +248,9 @@
         "per_fault_precision": 0.75,
         "progressive_latency_median": 474.0,
         "progressive_latency_p90": 530.8,
+        "expected_latency_median": null,
+        "n_expected": 6,
+        "n_expected_detected": 3,
         "threshold": 151.91092312830733,
         "open_n": 2,
         "close_m": 5,
@@ -402,203 +414,6 @@
         "fn": 11354,
         "tn": 116907
       }
-    },
-    "lof": {
-      "selected": {
-        "precision": 0.9,
-        "recall": 0.8333333333333334,
-        "f1": 0.8653846153846153,
-        "fp_per_10min": 0.061601115664650374,
-        "n_faults": 30.0,
-        "n_detected": 25.0,
-        "n_incidents": 40.0,
-        "n_false_incidents": 4.0,
-        "normal_fleet_minutes": 649.338888888889,
-        "per_fault_precision": 0.8620689655172413,
-        "progressive_latency_median": 25.0,
-        "progressive_latency_p90": 328.40000000000003,
-        "threshold": 2.279166115803289,
-        "open_n": 2.0,
-        "close_m": 5.0,
-        "cooldown_c": 30.0,
-        "feasible": true
-      },
-      "summary": {
-        "precision": 0.9,
-        "recall": 0.8333333333333334,
-        "f1": 0.8653846153846153,
-        "fp_per_10min": 0.061601115664650374,
-        "n_faults": 30,
-        "n_detected": 25,
-        "n_incidents": 40,
-        "n_false_incidents": 4,
-        "normal_fleet_minutes": 649.338888888889,
-        "per_fault_precision": 0.8620689655172413,
-        "progressive_latency_median": 25.0,
-        "progressive_latency_p90": 328.40000000000003,
-        "threshold": 2.279166115803289,
-        "open_n": 2,
-        "close_m": 5,
-        "cooldown_c": 30
-      },
-      "ci95": {
-        "precision": [
-          0.8055555555555556,
-          0.9761904761904762
-        ],
-        "recall": [
-          0.6874553571428571,
-          0.9629629629629629
-        ],
-        "f1": [
-          0.7645739910313902,
-          0.945799226604795
-        ],
-        "fp_per_10min": [
-          0.015139698434952754,
-          0.12407105644778936
-        ]
-      },
-      "by_fault_type": [
-        {
-          "fault_type": "battery_drain",
-          "n": 6,
-          "detected": 4,
-          "latency_median": 6.5,
-          "latency_p90": 88.50000000000003,
-          "recall": 0.6666666666666666
-        },
-        {
-          "fault_type": "link_degradation",
-          "n": 6,
-          "detected": 4,
-          "latency_median": 320.0,
-          "latency_p90": 344.5,
-          "recall": 0.6666666666666666
-        },
-        {
-          "fault_type": "motion_anomaly",
-          "n": 6,
-          "detected": 6,
-          "latency_median": 2.0,
-          "latency_p90": 12.0,
-          "recall": 1.0
-        },
-        {
-          "fault_type": "overheating",
-          "n": 6,
-          "detected": 6,
-          "latency_median": 21.5,
-          "latency_p90": 30.5,
-          "recall": 1.0
-        },
-        {
-          "fault_type": "sensor_freeze",
-          "n": 6,
-          "detected": 5,
-          "latency_median": 152.0,
-          "latency_p90": 167.4,
-          "recall": 0.8333333333333334
-        }
-      ],
-      "by_variant": [
-        {
-          "fault_type": "battery_drain",
-          "variant": "step",
-          "n": 6,
-          "detected": 4,
-          "latency_median": 6.5,
-          "latency_p90": 88.50000000000003,
-          "recall": 0.6666666666666666
-        },
-        {
-          "fault_type": "link_degradation",
-          "variant": "decline",
-          "n": 3,
-          "detected": 2,
-          "latency_median": 343.5,
-          "latency_p90": 345.5,
-          "recall": 0.6666666666666666
-        },
-        {
-          "fault_type": "link_degradation",
-          "variant": "oscillation",
-          "n": 3,
-          "detected": 2,
-          "latency_median": 219.5,
-          "latency_p90": 283.1,
-          "recall": 0.6666666666666666
-        },
-        {
-          "fault_type": "motion_anomaly",
-          "variant": "jump",
-          "n": 3,
-          "detected": 3,
-          "latency_median": 1.0,
-          "latency_p90": 1.0,
-          "recall": 1.0
-        },
-        {
-          "fault_type": "motion_anomaly",
-          "variant": "speed_mismatch",
-          "n": 3,
-          "detected": 3,
-          "latency_median": 3.0,
-          "latency_p90": 17.400000000000002,
-          "recall": 1.0
-        },
-        {
-          "fault_type": "overheating",
-          "variant": "linear",
-          "n": 6,
-          "detected": 6,
-          "latency_median": 21.5,
-          "latency_p90": 30.5,
-          "recall": 1.0
-        },
-        {
-          "fault_type": "sensor_freeze",
-          "variant": "battery_pct",
-          "n": 2,
-          "detected": 2,
-          "latency_median": 166.5,
-          "latency_p90": 170.1,
-          "recall": 1.0
-        },
-        {
-          "fault_type": "sensor_freeze",
-          "variant": "link_quality_pct",
-          "n": 1,
-          "detected": 0,
-          "latency_median": null,
-          "latency_p90": null,
-          "recall": 0.0
-        },
-        {
-          "fault_type": "sensor_freeze",
-          "variant": "speed_mps",
-          "n": 1,
-          "detected": 1,
-          "latency_median": 3.0,
-          "latency_p90": 3.0,
-          "recall": 1.0
-        },
-        {
-          "fault_type": "sensor_freeze",
-          "variant": "temperature_c",
-          "n": 2,
-          "detected": 2,
-          "latency_median": 109.0,
-          "latency_p90": 143.4,
-          "recall": 1.0
-        }
-      ],
-      "window_confusion": {
-        "tp": 4683,
-        "fp": 337,
-        "fn": 7734,
-        "tn": 116694
-      }
     }
   },
   "paired": {
@@ -622,50 +437,6 @@
         "diff": 0.015400278916162594,
         "ci_low": -0.0770674282374653,
         "ci_high": 0.10627615633742674
-      }
-    },
-    "rule_minus_lof": {
-      "precision": {
-        "diff": -0.016279069767441867,
-        "ci_low": -0.13587818105965793,
-        "ci_high": 0.10239697145274587
-      },
-      "recall": {
-        "diff": 0.09999999999999998,
-        "ci_low": 0.0,
-        "ci_high": 0.21875
-      },
-      "f1": {
-        "diff": 0.0424652139669206,
-        "ci_low": -0.04936413903508586,
-        "ci_high": 0.13939909514533305
-      },
-      "fp_per_10min": {
-        "diff": 0.015400278916162594,
-        "ci_low": -0.06231711942581464,
-        "ci_high": 0.09272311085033118
-      }
-    },
-    "stats_minus_lof": {
-      "precision": {
-        "diff": -0.07391304347826089,
-        "ci_low": -0.27156565212291817,
-        "ci_high": 0.0966151607538801
-      },
-      "recall": {
-        "diff": -0.43333333333333335,
-        "ci_low": -0.6666666666666666,
-        "ci_high": -0.19351736972704725
-      },
-      "f1": {
-        "diff": -0.32637752318603375,
-        "ci_low": -0.5465084916031412,
-        "ci_high": -0.127948452364792
-      },
-      "fp_per_10min": {
-        "diff": 0.0,
-        "ci_low": -0.0763107530530934,
-        "ci_high": 0.07668937102497948
       }
     }
   }

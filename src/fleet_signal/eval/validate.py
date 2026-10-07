@@ -22,6 +22,7 @@ from fleet_signal.data.ground_truth import load_faults
 from fleet_signal.data.splits import split_run_ids
 from fleet_signal.detectors.base import Detector
 from fleet_signal.eval.bootstrap import bootstrap_ci, paired_difference
+from fleet_signal.eval.detectability import with_detectability
 from fleet_signal.eval.protocol import EvalConfig, EvalResult, ScoredSet, breakdown
 from fleet_signal.eval.threshold import select_incident_params, select_threshold, sweep
 from fleet_signal.features.store import assert_only_split, load_features
@@ -61,7 +62,7 @@ def build_scored_set(
     ids = split_run_ids(gen_cfg)[split]
     return ScoredSet(
         scored_frame(det, feats),
-        load_faults(),
+        with_detectability(load_faults(), gen_cfg),
         ids,
         ecfg,
         n_assets=len(gen_cfg.data["fleet"]),

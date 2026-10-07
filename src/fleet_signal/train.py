@@ -1,6 +1,10 @@
 """`signal-train`: fit detectors on train, freeze thresholds chosen on validation, save artifacts.
 
-    signal-train                    rule, stats and lof -> models/ + models/registry.json
+    signal-train    rule, stats, lof and the v2-selected system -> models/, models/registry.json
+
+v2: run `signal-eval select-v2` first. Baselines and LOF use the shared incident
+grouping; the selected system uses its own validation-chosen grouping (open after
+1 or 2 alerts) and threshold.
 
 Deterministic: the same data version and code give the same model versions and
 thresholds, and (since 2026-10-06) the same artifact bytes; creation time and
@@ -24,8 +28,9 @@ from fleet_signal.detectors.lof import LOFDetector
 from fleet_signal.detectors.rule import RuleDetector
 from fleet_signal.detectors.stats import StatsDetector
 from fleet_signal.eval.protocol import EvalConfig
-from fleet_signal.eval.validate import VALIDATION_DIR, select_on_validation
+from fleet_signal.eval.validate import select_on_validation
 from fleet_signal.features.build import FeatureConfig
+from fleet_signal.incidents.grouping import IncidentParams
 from fleet_signal.registry import (
     EvaluatedModelError,
     ModelArtifact,
@@ -36,8 +41,6 @@ from fleet_signal.registry import (
     save_artifact,
 )
 
-ML_SELECTION = VALIDATION_DIR / "ml_selection.json"
-
 FACTORIES: dict[str, type[Detector]] = {
     "rule": RuleDetector,
     "stats": StatsDetector,
@@ -45,23 +48,41 @@ FACTORIES: dict[str, type[Detector]] = {
 }
 
 
-def _make(name: str) -> Detector:
-    """The ML detector is built with the hyperparameters chosen by `signal-eval select-model`."""
-    if name == "lof" and ML_SELECTION.exists():
-        chosen = json.loads(ML_SELECTION.read_text())["chosen"]
-        if chosen["model"] != "lof":
-            raise SystemExit(f"model selection chose {chosen['model']}, not lof")
-        return LOFDetector(**chosen["params"])
-    return FACTORIES[name]()
+def _selection() -> dict[str, object]:
+    from fleet_signal.eval.select_v2 import SELECTION
+
+    if not SELECTION.exists():
+        raise SystemExit("run `signal-eval select-v2` first (results/validation/v2_selection.json)")
+    return dict(json.loads(SELECTION.read_text()))
 
 
-def train_and_freeze(names: list[str]) -> list[ModelArtifact]:
+def _make(name: str, sel: dict[str, object]) -> Detector:
+    from fleet_signal.eval.select_v2 import build_candidate
+
+    if name in FACTORIES and name != "lof":
+        return FACTORIES[name]()
+    return build_candidate(name, int(sel["lof_k"]))  # type: ignore[call-overload]
+
+
+def train_and_freeze(names: list[str] | None = None) -> list[ModelArtifact]:
+    from fleet_signal.eval.select_v2 import chosen_params
+
     gen_cfg, ecfg, fcfg = load_config(), EvalConfig.load(), FeatureConfig.load()
-    detectors = [_make(n) for n in names]
-    sel = select_on_validation(detectors, gen_cfg, ecfg)  # fits on train, selects on validation
+    sel_json = _selection()
+    chosen = str(sel_json["chosen"]["name"])  # type: ignore[index]
+    names = names or list(dict.fromkeys(["rule", "stats", "lof", chosen]))
+    shared = IncidentParams(**sel_json["shared_incident_params"])  # type: ignore[arg-type]
+    detectors, sels = [], {}
+    for n in names:
+        det = _make(n, sel_json)
+        params = chosen_params(sel_json) if n == chosen else shared
+        # fits on train, selects the threshold on validation (deterministic)
+        sels[n] = select_on_validation([det], gen_cfg, ecfg, params)
+        detectors.append(det)
     sha = git_sha()
     arts = []
     for det in detectors:
+        sel = sels[det.name]
         pick = sel.picks[det.name]
         art = ModelArtifact(
             detector=det,
@@ -98,10 +119,11 @@ def register_guard(name: str) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="signal-train", description=__doc__)
-    parser.add_argument("--detectors", default="rule,stats,lof")
+    parser.add_argument("--detectors", default=None, help="default: rule,stats,lof,<selected>")
     args = parser.parse_args(argv)
     started = time.perf_counter()
-    arts = train_and_freeze([n.strip() for n in args.detectors.split(",") if n.strip()])
+    names = [n.strip() for n in args.detectors.split(",") if n.strip()] if args.detectors else None
+    arts = train_and_freeze(names)
     for art in arts:
         print(f"{art.model_version:<22} threshold={art.threshold:.4f} params={art.incident_params}")
     print(f"done in {time.perf_counter() - started:.1f}s; registry: models/registry.json")

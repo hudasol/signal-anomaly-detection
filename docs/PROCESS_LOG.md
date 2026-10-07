@@ -306,3 +306,16 @@ The two questions in PLAN §13 could not be asked in time. Instead of leaving th
 - Neither decision changes the ship decision or whether the shipped system meets the bar (it does not).
 
 Also added: a criterion-by-criterion acceptance table (EVALUATION, top; README summary). Six of eight criteria are met; recall for the shipped rule (one fault short) and latency (every detector) are not, and are reported as misses rather than fixed after the test.
+
+
+## 2026-10-08 (night): v2, built to close the two missed criteria
+
+Plan and reasoning: docs/PLAN_V2.md (pre-registration). Short version: v1's test set has been studied, so v2 is judged on a **new** test set (seeds 4000–4059) generated only after the v2 freeze is committed and pushed. v1 is tagged `v1.0.0`, and its results and registry are archived under `results/v1/` and `models/registry_v1.json`, unchanged.
+
+**What the data said before any code.** At 1 Hz, battery is reported to 0.01 % with 0.01 noise and drains almost constantly while moving, so an extra 1–6.5 %/min drain is 3–22× the noise of a 3-event difference. Temperature (0.15 °C noise, 0.1 °C resolution) needs over 21 °C/min to be that visible in 3 events, and link changes are buried in fading. So only battery drains can physically be caught within 3 events. That became the pre-declared "expected to catch" set (PLAN_V2 §4).
+
+**Checked on train/validation before building the detector:** the 3-event battery residual has a normal spread of about 0.3 %/min in every mode, and the six validation battery drains (2.4–2.9 %/min) reach −2 to −3.3 within 2–3 events, about 8–11× that spread, including the two that started while charging.
+
+**A selection rule I changed on validation (before the test existed).** The first selection pass only let systems containing LOF be shipped. It chose LOF + fast (validation recall 0.97, but expected-to-catch latency 5.0): one threshold over the hybrid is effectively set by LOF, which pushes the fast path's trigger up. Rule + fast met every bar item on validation (precision 0.94, recall 0.93, 0.05 false / 10 min, expected-to-catch latency 1.5). The LOF-only restriction was my own and would have selected a system that fails the latency bar on validation, so I widened the candidates to every system and ranked by "meets the bar on validation" first. LOF remains the ML detector evaluated on the same test, as the brief requires. Logged here because it was a choice made after seeing validation results; it is legitimate only because the test set did not exist yet.
+
+**Frozen:** `rule-ac784bbf45`, `stats-b688d29f11`, `lof-f9f000d78f`, `hybrid_rule_fast-a0918187ba` (open after 1 alert, threshold 1.175). `signal-train` reproduced the selection's validation numbers exactly. 187 tests pass (14 new: fast-path features and detector, hybrid, detectability, the v2 ship rule, partial generation).

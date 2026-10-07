@@ -12,13 +12,16 @@ htmlcov/
 /data/
 /models/*
 !/models/registry.json
-# The three artifacts the official test evaluated are committed (provenance).
+!/models/registry_v1.json
+# The artifacts an official test evaluated are committed (provenance), v1 and v2.
 !/models/rule/
 !/models/stats/
 !/models/lof/
+!/models/hybrid_rule_fast/
 /results/*
 !/results/official/
 !/results/validation/
+!/results/v1/
 
 # Editors / OS
 .DS_Store

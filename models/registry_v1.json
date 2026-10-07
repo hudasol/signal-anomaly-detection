@@ -1,0 +1,95 @@
+{
+  "serving": "rule",
+  "models": {
+    "rule": {
+      "model_version": "rule-64d39edc1d",
+      "artifact": "models/rule/rule-64d39edc1d/model.joblib",
+      "artifact_sha256": "d5d9e974cce6268e7cb095cadac5a6845497ed70eac6061f6241c89eb7e047d7",
+      "threshold": -0.0867346959161708,
+      "incident_params": {
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "data_version": "v1.0.0-9e903f9008",
+      "feature_version": "1.0.0",
+      "feature_schema_hash": "704b8f1fda",
+      "n_train_runs": 40,
+      "validation_report": "results/v1/validation/validation_report.json",
+      "validation_summary": {
+        "precision": 0.8837209302325582,
+        "recall": 0.9333333333333333,
+        "fp_per_10min": 0.07700139458081297,
+        "progressive_latency_median": 81.5
+      },
+      "official_test_result": "results/v1/official/test_rule_rule-64d39edc1d.json",
+      "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
+      "created_utc": "2026-10-05T21:33:52.126236+00:00"
+    },
+    "stats": {
+      "model_version": "stats-ab89662ec6",
+      "artifact": "models/stats/stats-ab89662ec6/model.joblib",
+      "artifact_sha256": "7b4bd186c9865637a305bc8d07d93a58a8cbcdd051dcbb5e3fe7db151d06ef00",
+      "threshold": 151.91092312830733,
+      "incident_params": {
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "data_version": "v1.0.0-9e903f9008",
+      "feature_version": "1.0.0",
+      "feature_schema_hash": "704b8f1fda",
+      "n_train_runs": 40,
+      "validation_report": "results/v1/validation/validation_report.json",
+      "validation_summary": {
+        "precision": 0.8260869565217391,
+        "recall": 0.4,
+        "fp_per_10min": 0.061601115664650374,
+        "progressive_latency_median": 474.0
+      },
+      "official_test_result": "results/v1/official/test_stats_stats-ab89662ec6.json",
+      "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
+      "created_utc": "2026-10-05T21:33:52.129785+00:00"
+    },
+    "lof": {
+      "model_version": "lof-a588a4d11b",
+      "artifact": "models/lof/lof-a588a4d11b/model.joblib",
+      "artifact_sha256": "843a5658aed91750980750bd4b744df0f4e8799da4a8a1e2494269ab72fccf09",
+      "threshold": 2.279166115803289,
+      "incident_params": {
+        "open_n": 2,
+        "close_m": 5,
+        "cooldown_c": 30
+      },
+      "data_version": "v1.0.0-9e903f9008",
+      "feature_version": "1.0.0",
+      "feature_schema_hash": "704b8f1fda",
+      "n_train_runs": 40,
+      "validation_report": "results/v1/validation/validation_report.json",
+      "validation_summary": {
+        "precision": 0.9,
+        "recall": 0.8333333333333334,
+        "fp_per_10min": 0.061601115664650374,
+        "progressive_latency_median": 25.0
+      },
+      "official_test_result": "results/v1/official/test_lof_lof-a588a4d11b.json",
+      "git_sha": "ca162fa48bb442a67ad9c2b8ce00623ed9dee35b",
+      "created_utc": "2026-10-05T21:33:52.133445+00:00"
+    }
+  },
+  "ship_decision": {
+    "ship": "rule",
+    "best_baseline": "rule",
+    "reason": "recall difference +0.044 (CI -0.078 to +0.163) does not show ML is better; latency advantage not established"
+  },
+  "official_test_report": "results/v1/official/test_report_4530f6a108.json",
+  "provenance": {
+    "evaluated_artifacts_committed": true,
+    "frozen_code_commit": "05fcfcb",
+    "official_result_commit": "6683640",
+    "note_on_git_sha": "Each artifact's git_sha (ca162fa) is HEAD at training time; the freeze code itself was uncommitted in the working tree and committed as 05fcfcb before the test split was read.",
+    "code_changes_since_freeze": "Run `signal-eval audit`: it lists, live from git, every commit since 05fcfcb that touched scoring code, and the current detector_code_hash. A stored snapshot would go stale.",
+    "verified_unchanged": "After each post-test code change the frozen artifacts were re-scored on validation and matched the committed report exactly; a scratch clone after 07aab1d re-ran the whole pipeline including the test and reproduced every official number and decision.",
+    "detector_code_hash_coverage": "Recorded in metadata.json for artifacts saved after 2026-10-06 (pre-release review). The three evaluated artifacts predate it; their code is identified by frozen_code_commit plus the git history above."
+  }
+}

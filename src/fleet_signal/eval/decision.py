@@ -57,3 +57,54 @@ def ship_decision(
             "ml_no_recall_loss": bool(no_recall_loss),
         },
     }
+
+
+# ---------------------------------------------------------------- v2 (PLAN_V2 §6)
+
+RECALL_MARGIN = 0.05  # non-inferiority margin on recall
+
+
+def ship_decision_v2(
+    candidate: str,
+    baseline_name: str,
+    recall_diff: dict[str, float],
+    precision_diff: dict[str, float],
+    latency_diff: dict[str, float],
+    margin: float = RECALL_MARGIN,
+) -> dict[str, Any]:
+    """Declared before the v2 test set existed. Differences are candidate minus baseline.
+
+    The candidate ships if it is NOT WORSE on recall (lower end of the paired 95% CI
+    above -margin) AND it is significantly better on precision (CI above zero) OR on
+    progressive latency (paired CI below zero). Otherwise the baseline ships.
+    `baseline_name` is the baseline with the higher VALIDATION recall.
+    """
+    non_inferior = recall_diff["ci_low"] > -margin
+    precision_win = precision_diff["ci_low"] > 0
+    latency_win = latency_diff.get("n_paired", 0) > 0 and latency_diff["ci_high"] < 0
+    ships = non_inferior and (precision_win or latency_win)
+    if ships:
+        wins = [w for w, ok in (("precision", precision_win), ("latency", latency_win)) if ok]
+        reason = (
+            f"recall not worse (CI low {recall_diff['ci_low']:+.3f} > -{margin}) and "
+            f"significantly better on {' and '.join(wins)}"
+        )
+    else:
+        parts = []
+        if not non_inferior:
+            parts.append(f"recall may be worse (CI low {recall_diff['ci_low']:+.3f})")
+        if not (precision_win or latency_win):
+            parts.append("no significant precision or latency gain")
+        reason = "; ".join(parts)
+    return {
+        "ship": candidate if ships else baseline_name,
+        "ml": candidate,
+        "best_baseline": baseline_name,
+        "reason": reason,
+        "rule": "v2: recall non-inferior (0.05) AND precision or latency significantly better",
+        "criteria": {
+            "recall_non_inferior": bool(non_inferior),
+            "precision_ci_excludes_zero_in_candidate_favour": bool(precision_win),
+            "latency_ci_excludes_zero_in_candidate_favour": bool(latency_win),
+        },
+    }

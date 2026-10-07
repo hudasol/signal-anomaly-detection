@@ -114,7 +114,13 @@ def test_breakdown_and_bar(toy: ScoredSet) -> None:
     table = breakdown(res.per_fault, ["fault_type"])
     assert table.loc[0, "recall"] == 1.0
     bar = meets_bar(res.summary, ECFG)
-    assert bar == {"precision": False, "recall": True, "false_alerts": True, "latency": True}
+    assert bar == {
+        "precision": False,
+        "recall": True,
+        "false_alerts": True,
+        "latency": True,
+        "latency_all_progressive": True,
+    }
 
 
 # ---------------------------------------------------------------- threshold selection

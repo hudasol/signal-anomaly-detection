@@ -5,7 +5,7 @@
 # of one tuned W (see PROCESS_LOG): short windows react fast (latency),
 # long windows separate a sustained drift from a normal transient.
 
-feature_version: "1.0.0"
+feature_version: "2.0.0"
 
 windows:
   short: 10
@@ -26,3 +26,9 @@ unchanged_cap: 300
 # Rolling median length for the speed/position consistency check
 # (robust to single GPS outliers).
 mismatch_median: 5
+
+# v2 fast-path residuals (PLAN_V2 §3): change over the last k events minus the
+# trend over the `fast_baseline` events before them. A fault that starts
+# abruptly shows up here within k events; a normal steady trend cancels out.
+fast_horizons: [3, 10]
+fast_baseline: 30
