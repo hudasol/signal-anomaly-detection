@@ -24,8 +24,13 @@ lof-f9f000d78f: fitted on 40 runs, all in train: True; any test run used: False
 hybrid_rule_fast-a0918187ba: fitted on 40 runs, all in train: True; any test run used: False
 runs referenced in the validation selection outputs: 32, all in validation: True; any test run: False
 official test report: results/official/test_report_e9deed50ee.json
-scoring-code commits since freeze (d121e2a): 0
+detector_code_hash now: 3f62fb42be
+scoring-code commits since freeze (d121e2a): 2
+  86d4307 beyond the bar: generalisation test, drift monitor, ablation, shadow replay, ...
+  ebda1e7 v2 docs, evaluation and rehearsal fixes: ...
 ```
+
+The two commits touched only the replay command (shadow mode, drift line, severity, a broken-pipe fix), not scoring: `detector_code_hash` (detectors + feature builder) is the same as at the freeze, and `signal-eval replay-check` still reproduces all 180 official test incidents.
 
 Then point at:
 
