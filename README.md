@@ -91,6 +91,7 @@ signal-eval show            # the official comparison, from the saved report
 signal-eval audit           # proves which runs each model was fitted / selected / tested on
 signal-eval fragmentation   # incidents per detected fault, per-fault precision
 signal-eval envelopes       # the train-normal envelopes the rule limits came from
+signal-eval replay-check    # every test run replayed through the service == the official incidents
 signal-eval demo-threshold --detector hybrid_rule_fast --threshold 2.0   # DEMO ONLY, writes results/demo/
 ```
 
@@ -140,7 +141,7 @@ ruff check . && ruff format --check .
 mypy                         # type check (clean)
 ```
 
-The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), input validation, artifact verification and the other service hardening (`test_service_hardening.py`), the v2 fast path, hybrid, detectability and ship rule (`test_v2.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the hash-pinned environment on Python 3.12.3 and runs ruff, mypy, pytest and a dependency audit, then builds both Docker images, runs the tests inside one with no network and checks the other serves the model as a non-root user, on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([verified run on 8171eba](https://github.com/hudasol/signal-anomaly-detection/actions/runs/37540260342): hash-pinned install, ruff, mypy, 173 tests, dependency audit, both Docker images built, tests offline in one, the other serving as non-root).
+The tests pin down preprocessing (`test_features.py`), split logic (`test_splits.py`), generator and label isolation (`test_generator.py`), threshold logic and metrics (`test_eval.py`), incident grouping (`test_incidents.py`), detectors (`test_detectors.py`), artifacts and the ship rule (`test_registry_and_decision.py`), the inference contract with replay (`test_service.py`), input validation, artifact verification and the other service hardening (`test_service_hardening.py`), the v2 fast path, hybrid, detectability and ship rule (`test_v2.py`), and the full pipeline with fitted detectors (`test_end_to_end.py`). CI installs the hash-pinned environment on Python 3.12.3 and runs ruff, mypy, pytest and a dependency audit, then builds both Docker images, runs the tests inside one with no network and checks the other serves the model as a non-root user, on every push: [GitHub Actions](https://github.com/hudasol/signal-anomaly-detection/actions) ([verified run on 5fba586](https://github.com/hudasol/signal-anomaly-detection/actions/runs/37689594485), the v2 state: hash-pinned install, ruff, mypy, 187 tests, dependency audit, both Docker images built, tests offline in one, the other serving the v2 model as non-root).
 
 ## Exceeds the bar
 
