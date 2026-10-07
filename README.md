@@ -18,6 +18,17 @@ Precision in brackets counts each fault once; incident precision is flattered wh
 
 **The rule baseline ships**, by the decision rule declared before the test: LOF's recall and latency gains were not statistically established on 45 test faults. LOF is, however, significantly better on precision and false alerts, which that rule did not consider. The recommendation is to run LOF in shadow mode next to the rule (see [EVALUATION.md §5](docs/EVALUATION.md#5-ship-decision)). No detector meets the brief's 3-event latency bar for slow progressive faults ([§8](docs/EVALUATION.md#8-error-analysis), pattern 5).
 
+### Against the brief's acceptance criteria
+
+| | | |
+|---|---|---|
+| ✅ | dataset: normal + 5 fault types, repeatable, ground truth stored | ✅ leakage-safe split, documented and audited |
+| ✅ | baselines and ML on the same test data, run once | ❌ **recall 0.844 < 0.85 for the shipped rule** (LOF passes 0.97 / 0.89 / 0.02) |
+| ❌ | **latency ≤ 3 events: no detector** (rule 71, LOF 16) | ✅ baseline ships, stated explicitly, LOF's advantage reported |
+| ✅ | reproducible; saved result holds model version, SHA-256 and frozen threshold | ✅ tests pass, errors analysed, honest failure states |
+
+Details, evidence per criterion, and two interpretation questions decided without the mentor's sign-off (recall unit; unseen variants in test): [EVALUATION.md](docs/EVALUATION.md#acceptance-criteria-the-briefs-definition-of-done).
+
 ## Docs
 
 | | |

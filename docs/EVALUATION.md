@@ -4,6 +4,21 @@
 
 All numbers below come from saved outputs: `results/validation/` (selection) and `results/official/` (the test, run once). Figures are re-rendered from those files with `signal-eval plots`. Corrections made after an independent pre-release review are listed in PROCESS_LOG.md ("Pre-release review").
 
+## Acceptance criteria (the brief's definition of done)
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| 1 | Normal behaviour + at least five fault scenarios, repeatable runs, stored ground truth | ✅ | 5 fault types (overheating, battery drain, link degradation, sensor freeze, motion anomaly) in 16 variants plus normal runs; generation is deterministic per seed (byte-identical on regeneration); ground truth is stored apart from telemetry and only evaluation code can load it (DATA_CARD) |
+| 2 | Leakage-safe, documented train / validation / test separation | ✅ | split by seed and time (train 1000–1039, validation 2000–2039, test 3000–3059), zero overlap, `signal-eval audit`, leakage tests; the pre-freeze viewing of three test plots is disclosed (§1) |
+| 3 | Both baselines and the ML detector evaluated on the same held-out test data | ✅ | rule, robust z and LOF on the same 60 test runs in one run-once evaluation (§2) |
+| 4 | Official test ≥ 0.75 precision, ≥ 0.85 recall, ≤ 2 false incidents / 10 min | ❌ shipped rule; ✅ LOF | rule 0.81 / **0.844** / 0.12 (one fault short on recall); LOF 0.97 / 0.89 / 0.02 (§2) |
+| 5 | Median progressive latency ≤ 3 events | ❌ every detector | rule 71, LOF 16, robust z 534.5; why a 3-event bar is out of physical reach for slow drifts at these labels: §8 pattern 5 |
+| 6 | Defensible advantage over a baseline at a comparable operating point, or the conclusion says the baseline ships | ✅ (the "baseline ships" branch) | under the pre-declared rule LOF's recall and latency gains are not established, so **the rule baseline ships** and the conclusion says so (§5); LOF's significant precision and false-alert advantage at matched operating points is reported, not hidden (§4) |
+| 7 | Reproducible retraining / evaluation from documented commands; saved result holds exact model version and frozen threshold | ✅ | README "Reproduce everything"; each `results/official/test_*.json` holds `model_version`, `artifact_sha256`, `frozen_threshold`, `incident_params`, `data_version`, `feature_schema_hash`; the official test was re-run from scratch in clean clones twice and reproduced every number |
+| 8 | Tests pass, errors analysed, inference handles insufficient data and model failure honestly | ✅ | 173 tests in CI; six error patterns plus one false positive and one false negative explained (§8); `insufficient_data` / `degraded` / `unavailable` and 422 / 413 instead of a silent `normal` (MODEL_CARD) |
+
+**Six of eight are met; two are not, and they cannot be fixed honestly now.** The test set was used once, as the brief requires. Lowering a threshold, regrouping incidents or switching the shipped model to LOF after seeing the test would make criteria 4 or 6 look met by choosing from test results, which is the failure the whole protocol exists to prevent. The misses are reported as misses.
+
 ## 1. Protocol
 
 | | |
@@ -20,6 +35,16 @@ All numbers below come from saved outputs: `results/validation/` (selection) and
 | Uncertainty | 95 % bootstrap CIs resampling **whole runs** (2,000 resamples); paired for comparisons |
 
 An alarm that was already open before a fault started counts as a true positive (it overlaps the fault) but **not** as detecting it, so a noisy detector cannot take credit for faults it never reacted to.
+
+### Interpretations decided without sign-off
+
+Two questions about the brief went to the mentor before the build (PLAN §13) and were not answered before the deadline. I decided them myself, chose the reading the brief's own wording supports, and checked that **no conclusion depends on the choice**. If the intended reading differs, the alternative numbers below come from the same saved files (labelled post-hoc); the official result is not re-run.
+
+| Question | Decision | Why | Under the other reading |
+|---|---|---|---|
+| (a) What unit is "recall on fault-window detection"? | **Per fault**: each injected fault counts once; detected if an incident opens in `[fault_start, fault_end + 10)` | The same criterion counts "false incident alerts", and latency is measured to an incident opening, so the bar is about incidents. Counting every flagged second would reward alarming continuously, which the incident grouping exists to stop. | Per-event (window) recall: rule 0.37, LOF 0.42, robust z 0.05 (§2). Every detector fails; the rule still ships; nothing changes. |
+| (b) May test contain wider parameter ranges and fault variants never seen in validation? | **Yes**, kept as generated: wider ranges, 16 of 45 faults are unseen variants | The brief warns against a test set that only contains anomalies like the training ones, and I wrote both the generator and the rules (designer bias). Regenerating test after seeing the result would make it a second, chosen test. | Seen variants only (29 faults): rule recall 0.76, LOF 0.83. The unseen variants were *easier* (both caught 16 of 16), so this reading is stricter: **LOF's pass of the recall bar depends on them.** The rule still ships (LOF − rule on that subset is +0.07, paired run-level bootstrap 95 % CI −0.10 to +0.24, post-hoc) and the shipped system still misses the bar. |
+| (c) Which faults is a detector "expected to catch" for latency? | The progressive faults it **did** catch (median over detected faults) | No pre-declared notion of "detectable" exists in the labels; using detected faults is the most lenient honest reading. | Any stricter reading can only add faults with longer latency; the bar is missed either way (§8 pattern 5). |
 
 **Split.** Test is 60 runs (15 normal, 45 fault), seeds 3000–3059. It contains 969.5 minutes of normal fleet time. 16 of its 45 faults are variants never seen in validation.
 
@@ -137,7 +162,7 @@ How it was made concrete, and its weaknesses (the code, `eval/decision.py`, was 
 - "Meaningfully faster" became "the paired bootstrap CI of the median latency difference excludes zero", computed over **progressive faults both detectors caught** (20 pairs: rule caught 21 of 27, LOF 25 of 27). Pairing only faults both caught biases the comparison towards easier faults and drops the 5 progressive faults only LOF caught (and the 1 only the rule caught).
 - "Best baseline" is picked in code by **test** recall. It made no difference here (the rule was also best on validation, 0.93 vs 0.40), but it is a choice made on test and should have been fixed on validation.
 
-**Result: the rule baseline ships.** LOF's recall gain (CI −0.08 to +0.16) and latency gain (CI −53.5 to +3.5) are not established with 45 test faults. The registry (`models/registry.json`, `"serving": "rule"`) and the service follow this decision.
+**Result: the rule baseline ships.** This is the brief's "if it does not, your conclusion explicitly says the baseline should ship instead" branch: under the rule declared before the test, the ML detector's advantage on the criteria that decide shipping was not established. LOF's recall gain (CI −0.08 to +0.16) and latency gain (CI −53.5 to +3.5) are not established with 45 test faults. The registry (`models/registry.json`, `"serving": "rule"`) and the service follow this decision.
 
 **What the rule missed.** LOF is significantly better on precision (+0.16) and false alerts (−0.10 per 10 min), with no recall loss, and better at every matched false-alert rate. My ship rule only considered recall and latency. I wrote it thinking about missed faults and did not weigh the operator's alarm load. That was a gap in how I specified the decision, not a property of the data. I am not changing the official decision after seeing the test; changing the rule now would be choosing it from test results.
 

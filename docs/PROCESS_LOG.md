@@ -295,3 +295,14 @@ Two layers: a typed request schema at the HTTP boundary (`service/validation.py`
 - **mypy strict mode, long functions.** Not worth the churn this close to the deadline.
 
 Seen once and not reproduced: `signal-replay` printed `terminate called without an active exception` and aborted at interpreter exit (after printing complete, correct output). Eight further runs exited cleanly. Most likely a native thread pool torn down at exit; noted, not chased.
+
+
+## 2026-10-08: open questions (a) and (b) decided without sign-off
+
+The two questions in PLAN §13 could not be asked in time. Instead of leaving them open, I decided them, wrote the decision and the reason into EVALUATION §1 ("Interpretations decided without sign-off"), and showed the alternative reading from the saved files, so a reviewer who meant the other reading can see its effect without anything being re-run.
+
+- **(a) recall unit: per fault.** Correction to the 2026-10-06 entry above, which called this "per-event recall": the unit has always been the *fault event* (one injected fault on one asset in one run), counted once. Per-second window recall is reported as a secondary diagnostic (rule 0.37, LOF 0.42).
+- **(b) unseen variants and wider ranges in test: kept.** On the seen-variant subset recall is lower (rule 0.76, LOF 0.83), because the unseen variants were easier. So this choice *helps* LOF pass the recall bar on the full test, and EVALUATION now says so.
+- Neither decision changes the ship decision or whether the shipped system meets the bar (it does not).
+
+Also added: a criterion-by-criterion acceptance table (EVALUATION, top; README summary). Six of eight criteria are met; recall for the shipped rule (one fault short) and latency (every detector) are not, and are reported as misses rather than fixed after the test.
