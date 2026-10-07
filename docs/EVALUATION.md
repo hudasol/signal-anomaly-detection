@@ -17,7 +17,7 @@ All numbers come from saved outputs: `results/validation/` (v2 selection) and `r
 | 5 | Median progressive latency ≤ 3 events for faults the detector is expected to catch | ❌ every detector | ❌ **11 events** over all progressive faults, the set the original plan declared · ✅ 1 event on the narrower physics-based set declared for v2 (5 of 5 caught; a miss would count as infinite) | §1, §3, §7 pattern 1 |
 | 6 | Defensible advantage over a baseline at a comparable operating point, or the baseline ships | ✅ (baseline shipped) | ✅ shipped system: recall not worse, latency significantly better, at nearly the same false-alert rate (0.12 vs 0.11) | §4 |
 | 7 | Reproducible; saved result has exact model version and frozen threshold | ✅ | ✅ | `results/official/test_*.json`: `model_version`, `artifact_sha256`, `frozen_threshold`, `incident_params`, `data_version`; every test incident reproduced by replaying through the service (180 of 180 asset-runs; `signal-eval replay-check`, saved in `results/official/posthoc/service_replay_check.json`) |
-| 8 | Tests pass, errors analysed, honest inference failure states | ✅ | ✅ | 194 tests; §7; MODEL_CARD statuses |
+| 8 | Tests pass, errors analysed, honest inference failure states | ✅ | ✅ | 195 tests; §7; MODEL_CARD statuses |
 
 **How criterion 5 is read, and why I count it as missed.** The brief limits the latency bar to "faults the detector is expected to catch". My original plan (PLAN §7.1, written before any code) declared that set as **all five fault types**, with the bar applying to the three progressive ones, and added: *"If a fault type is later dropped from this set, that is recorded as a failure, not a redefinition."* By that definition v2's latency is **11 events: a miss.**
 

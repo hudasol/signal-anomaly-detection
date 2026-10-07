@@ -370,3 +370,10 @@ The brief asks to meet the bar cleanly, then show at least two improvements. v2 
 - **Shadow replay**: `signal-replay --shadow`, and all 215,550 decisions of both models on the test set stored.
 - **Incident prioritisation**: a hand-set, stated formula, checked post-hoc rather than tuned. No false incident is P1, but true-vs-false ranking is only 65 %, because incidents open before anything is near critical.
 - `signal-replay` now prints the drift check and the severity of every incident, and logs lifecycle events with severity next to the decisions.
+
+
+## 2026-10-08: reproducing v2 from the README in a fresh clone
+
+A fresh copy of the repo, with the v2 models, registry and all results deleted, followed the README's "Reproduce everything" commands exactly. It found a real bug: after the freeze, `signal-data generate` rewrote the telemetry with the test split added, but `signal-features build` reused the feature cache built from train and validation only. The test split had no features and the official test crashed. My own v2 run never hit this because I happened to delete the data folder before regenerating. Fixed in the data CLI (regenerating removes that data version's stale feature cache; neither file is part of any frozen hash), with a regression test, and the official test now stops with a clear message if the test split has no features.
+
+With the fix, the fresh copy reproduced **byte-identical model files** (all four SHA-256 match the committed artifacts) and **identical official result files** (everything except the timestamp and git SHA). Also added `scripts/demo_walkthrough.sh`, which runs the whole acceptance demo for recording, and the README's AI-use section.

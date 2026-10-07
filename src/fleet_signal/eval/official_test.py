@@ -88,6 +88,11 @@ def run_official_test(names: tuple[str, ...] | None = None) -> dict[str, Any]:
 
     # ---- the test split is touched for the first time here ----
     test = load_features("test", gen_cfg=gen_cfg)
+    if test.empty:
+        raise SystemExit(
+            "the test split has no feature rows: generate it (`signal-data generate`) and "
+            "rebuild features (`signal-features build`) before the official test"
+        )
     assert_only_split(test, "test", gen_cfg)
     test_ids = split_run_ids(gen_cfg)["test"]
     faults = with_detectability(load_faults(), gen_cfg)

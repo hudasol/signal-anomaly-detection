@@ -32,6 +32,14 @@ def _cmd_generate(args: argparse.Namespace) -> None:
     if only:
         plan = [r for r in plan if r.split in only]
     path = generate_dataset(cfg, Path(args.out), runs=plan)
+    # The telemetry for this data version was just rewritten (e.g. the test split added
+    # after a freeze), so any feature cache built from the old file is stale: remove it.
+    stale = path / "features"
+    if stale.exists():
+        import shutil
+
+        shutil.rmtree(stale)
+        print(f"removed stale feature cache {stale}")
     what = f" (splits: {', '.join(only)} only)" if only else ""
     print(f"data version {cfg.version}{what} written to {path} "
           f"in {time.perf_counter() - started:.1f}s")  # fmt: skip

@@ -30,7 +30,7 @@ Task 02 of the mentorship track, built next to [blackbox-telemetry](https://gith
 | Median latency ≤ 3 events for faults expected to be caught | ❌ | ❌ **11** over all progressive faults (the original plan's definition) · ✅ 1 event on the narrower physics-based set declared for v2 |
 | Defensible advantage at a comparable operating point, or the baseline ships | ✅ baseline shipped | ✅ faster at the same false-alert rate |
 | Reproducible; saved result has model version and frozen threshold | ✅ | ✅ |
-| Tests pass, errors analysed, honest failure states | ✅ | ✅ 194 tests |
+| Tests pass, errors analysed, honest failure states | ✅ | ✅ 195 tests |
 
 Evidence per criterion, the interpretation questions decided without the mentor's sign-off, and the limits of the result: [EVALUATION.md](docs/EVALUATION.md#acceptance-criteria-the-briefs-definition-of-done).
 
@@ -47,6 +47,15 @@ Evidence per criterion, the interpretation questions decided without the mentor'
 | [RETROSPECTIVE.md](docs/RETROSPECTIVE.md) | what went wrong and what I'd change |
 | [v1/](docs/v1/EVALUATION_v1.md) | v1's evaluation and model card, archived unchanged (paths only) |
 | [DEMO.md](docs/DEMO.md) | the acceptance demo, command by command |
+
+## How this was built (AI use)
+
+This project was built with Claude (Anthropic's AI assistant) as a coding and writing partner. Every commit Claude wrote carries a `Co-Authored-By: Claude` line, so the git history shows exactly what it touched.
+
+- **Huda** set the direction and made the calls: the plan's scope and order of work, when to stop and review, getting an engineering review "through the lens of a software engineer from Edge", deciding to go for a v2 with a fresh test set instead of submitting v1, and which improvements to pursue.
+- **Claude** wrote most of the code, tests and documentation, ran the experiments, and drafted the retrospective in Huda's writing style at her request.
+- **Independent checks** (separate Claude agents given only the repo and the saved results, not the build conversation) reviewed the work several times; what they found and what was fixed is in docs/PROCESS_LOG.md.
+- **What AI did not do:** nothing in the detectors uses an LLM, and no LLM sits anywhere in the decision path.
 
 ## Setup
 
@@ -138,7 +147,7 @@ Responses carry `status` (`ok`, `insufficient_data`, `degraded`, `unavailable`),
 ## Tests
 
 ```bash
-pytest                       # 194 tests, ~30 s
+pytest                       # 195 tests, ~30 s
 ruff check . && ruff format --check .
 mypy                         # type check (clean)
 ```

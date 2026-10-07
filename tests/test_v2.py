@@ -218,3 +218,25 @@ def test_v2_test_seeds_are_new() -> None:
     cfg = load_config()
     test_seeds = {r.seed for r in build_run_plan(cfg) if r.split == "test"}
     assert min(test_seeds) == 4000 and not test_seeds & set(range(3000, 3060))
+
+
+def test_regenerating_data_removes_a_stale_feature_cache(tmp_path) -> None:
+    """Found reproducing v2 from the README in a fresh clone: generating the test split after
+    the freeze reused the train/validation-only feature cache, so test had no features."""
+    import yaml
+
+    from fleet_signal.data.cli import main as data_cli
+    from fleet_signal.data.config import DEFAULT_DATA_CONFIG
+
+    raw = yaml.safe_load(DEFAULT_DATA_CONFIG.read_text())
+    raw["run_duration_s"] = 200
+    small = tmp_path / "data.yaml"
+    small.write_text(yaml.safe_dump(raw))
+    out = tmp_path / "data"
+    data_cli(["generate", "--config", str(small), "--out", str(out), "--only-splits", "train"])
+    version_dir = next(p for p in out.iterdir() if p.is_dir())
+    cache = version_dir / "features" / "x.parquet"
+    cache.parent.mkdir()
+    cache.write_text("stale")
+    data_cli(["generate", "--config", str(small), "--out", str(out), "--only-splits", "train"])
+    assert not cache.parent.exists()

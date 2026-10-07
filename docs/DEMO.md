@@ -2,6 +2,8 @@
 
 Every item the brief lists, with the exact command and what it shows. Nothing here edits a model, regenerates data or touches `results/official/`. Outputs below are from a rehearsal on the committed state. v1's runbook is in git history (tag `iteration-1`).
 
+**To record the video in one take:** `bash scripts/demo_walkthrough.sh` runs every step below in order and waits for Enter between steps (step 7 always puts the model back, even on Ctrl-C). `NO_PAUSE=1` runs it straight through as a rehearsal.
+
 Setup, once: `pip install --require-hashes -r requirements.lock && pip install --no-deps -e . && signal-data generate` (about 20 s; byte-identical data). **Do not retrain:** the exact evaluated artifacts are committed under `models/`, SHA-256 checked against `models/registry.json`. Docker alternative: `docker build -t signal . && docker run --rm signal sh -c "signal-data generate && signal-eval show"`.
 
 ## 1. The split, and proof held-out runs were not used
@@ -193,7 +195,7 @@ Say: the drift check (here `caution`, because a fault moves the battery trend to
 
 ```bash
 pytest -v tests/test_features.py tests/test_splits.py tests/test_eval.py tests/test_incidents.py tests/test_service.py tests/test_v2.py
-pytest                          # 194 passed
+pytest                          # 195 passed
 mypy                            # no issues
 ```
 
@@ -219,4 +221,4 @@ mypy                            # no issues
 | 4:30–5:15 | §6 demo-threshold + sensitivity figure | trade-off, then back to frozen |
 | 5:15–5:50 | §7 rename the model; bad input | HTTP 503, 422, `degraded`, never "normal" |
 | 5:50–6:30 | §8 replay with shadow + generalisation figure | drift monitor, severity, shadow LOF; the shipped model's off-distribution weakness |
-| 6:30–6:40 | `pytest` | 194 passed; CI green |
+| 6:30–6:40 | `pytest` | 195 passed; CI green |
