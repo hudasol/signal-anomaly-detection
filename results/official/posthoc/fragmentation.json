@@ -1,0 +1,68 @@
+{
+  "POST_HOC": true,
+  "note": "Computed after the official result from the saved files; selects nothing.",
+  "test": {
+    "rule": {
+      "detected_faults": 42,
+      "true_incidents": 53,
+      "false_incidents": 11,
+      "incidents_per_detected_fault": 1.2619047619047619,
+      "max_incidents_on_one_fault": 4,
+      "faults_with_more_than_one_incident": 8,
+      "incident_precision": 0.828125,
+      "per_fault_precision": 0.7924528301886793
+    },
+    "stats": {
+      "detected_faults": 14,
+      "true_incidents": 15,
+      "false_incidents": 9,
+      "incidents_per_detected_fault": 1.0714285714285714,
+      "max_incidents_on_one_fault": 2,
+      "faults_with_more_than_one_incident": 1,
+      "incident_precision": 0.625,
+      "per_fault_precision": 0.6086956521739131
+    },
+    "lof": {
+      "detected_faults": 39,
+      "true_incidents": 69,
+      "false_incidents": 6,
+      "incidents_per_detected_fault": 1.7692307692307692,
+      "max_incidents_on_one_fault": 6,
+      "faults_with_more_than_one_incident": 16,
+      "incident_precision": 0.92,
+      "per_fault_precision": 0.8666666666666667
+    },
+    "hybrid_rule_fast": {
+      "detected_faults": 44,
+      "true_incidents": 67,
+      "false_incidents": 12,
+      "incidents_per_detected_fault": 1.5227272727272727,
+      "max_incidents_on_one_fault": 5,
+      "faults_with_more_than_one_incident": 13,
+      "incident_precision": 0.8481012658227848,
+      "per_fault_precision": 0.7857142857142857
+    }
+  },
+  "validation": {
+    "rule": {
+      "detected_faults": 28,
+      "true_incidents": 38,
+      "false_incidents": 5,
+      "incidents_per_detected_fault": 1.3571428571428572,
+      "max_incidents_on_one_fault": 3,
+      "faults_with_more_than_one_incident": 8,
+      "incident_precision": 0.8837209302325582,
+      "per_fault_precision": 0.8484848484848485
+    },
+    "stats": {
+      "detected_faults": 12,
+      "true_incidents": 19,
+      "false_incidents": 4,
+      "incidents_per_detected_fault": 1.5833333333333333,
+      "max_incidents_on_one_fault": 4,
+      "faults_with_more_than_one_incident": 5,
+      "incident_precision": 0.8260869565217391,
+      "per_fault_precision": 0.75
+    }
+  }
+}

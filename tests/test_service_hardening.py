@@ -315,6 +315,8 @@ def test_registry_writes_are_atomic(tmp_path: Path) -> None:
     write_registry({"serving": "rule", "models": {}}, reg_path)
     assert read_registry(reg_path)["serving"] == "rule"
     assert sorted(p.name for p in tmp_path.iterdir()) == ["registry.json"]  # no temp left
+    # readable by other users (found when the non-root Docker image could not read it)
+    assert reg_path.stat().st_mode & 0o044 == 0o044
 
 
 def test_inference_is_single_threaded() -> None:

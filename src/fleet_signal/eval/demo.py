@@ -99,20 +99,28 @@ def show() -> list[str]:
     path = REPO_ROOT / reg["official_test_report"]
     rep = json.loads(path.read_text())
     cols = ["precision", "recall", "f1", "fp_per_10min", "progressive_latency_median"]
-    out = [f"OFFICIAL TEST ({path.name}), frozen thresholds, incident params "
-           f"{rep['incident_params']}", ""]  # fmt: skip
-    out.append("detector  model version      " + "".join(c[:12].rjust(13) for c in cols))
+    cols += ["expected_latency_median"]
+    out = [f"OFFICIAL TEST ({path.name}), frozen thresholds, run once", ""]
+    out.append("detector          model version                 open_n"
+               + "".join(c[:12].rjust(13) for c in cols))  # fmt: skip
     for name, d in rep["detectors"].items():
         s = d["summary"]
-        out.append(f"{name:<9} {d['model_version']:<18}" + "".join(
-            f"{s[c]:13.3f}" for c in cols))  # fmt: skip
+        vals = "".join(
+            f"{s[c]:13.3f}" if isinstance(s.get(c), (int, float)) else f"{'miss':>13}" for c in cols
+        )
+        out.append(f"{name:<17} {d['model_version']:<29} {s['open_n']:>5}" + vals)
     dec = rep.get("decision")
     if dec:
-        r, lat = dec["recall_ml_minus_baseline"], dec["latency_ml_minus_baseline"]
-        ci = f"(CI {r['ci_low']:+.3f}, {r['ci_high']:+.3f})"
-        out += ["", f"LOF - rule recall {r['diff']:+.3f} {ci}",
-                f"LOF - rule latency {lat['median_diff']:+.1f} events (CI {lat['ci_low']:+.1f}, "
-                f"{lat['ci_high']:+.1f}, n={lat['n_paired']})",
+        cand, base = dec["ml"], dec["best_baseline"]
+        diff = dec.get("candidate_minus_baseline") or {"recall": dec["recall_ml_minus_baseline"]}
+        lat = dec.get("latency_candidate_minus_baseline") or dec["latency_ml_minus_baseline"]
+        for m in ("recall", "precision"):
+            if m in diff:
+                d = diff[m]
+                out.append(f"{cand} - {base} {m} {d['diff']:+.3f} "
+                           f"(CI {d['ci_low']:+.3f}, {d['ci_high']:+.3f})")  # fmt: skip
+        out += [f"{cand} - {base} latency {lat['median_diff']:+.1f} events "
+                f"(CI {lat['ci_low']:+.1f}, {lat['ci_high']:+.1f}, n={lat['n_paired']})",
                 f"SHIP: {dec['ship']} - {dec['reason']}"]  # fmt: skip
     return out
 

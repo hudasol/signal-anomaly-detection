@@ -43,12 +43,14 @@ def _fmt(v: object) -> str:
 
 
 DOC_FIGURES = VALIDATION_DIR.parents[1] / "docs" / "figures"
-# Example runs shown in the docs: a normal and an overheating validation run, and the
-# post-hoc test false negative discussed in EVALUATION.md.
+# Example runs shown in the docs: a normal and an overheating validation run, and two
+# post-hoc v2 test cases discussed in EVALUATION.md (a fast catch and a late one).
+# The v1 test figure (r3015) stays in docs/figures as it was; v1 test data is v1's.
 DOC_RUNS: tuple[tuple[str, str], ...] = (
     ("r2001", "drone-01"),
     ("r2011", "drone-01"),
-    ("r3015", "rover-01"),
+    ("r4009", "drone-01"),
+    ("r4000", "quad-01"),
 )
 
 
@@ -138,7 +140,7 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("fragmentation", help="post-hoc: incidents per fault, per-fault precision")
     sub.add_parser("envelopes", help="export the train envelopes the rule limits came from")
     demo = sub.add_parser("demo-threshold", help="DEMO ONLY: a frozen model at another threshold")
-    demo.add_argument("--detector", required=True, choices=["rule", "stats", "lof"])
+    demo.add_argument("--detector", required=True, help="a detector in models/registry.json")
     demo.add_argument("--threshold", required=True, type=float)
     args = parser.parse_args(argv)
 

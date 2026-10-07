@@ -1,8 +1,8 @@
-# Data card: Signal fleet telemetry v1.0.0-9e903f9008
+# Data card: Signal fleet telemetry v1.0.0-ee836a6bb4 (v2)
 
 ## Summary
 
-Synthetic, deterministic telemetry for a three-asset inspection fleet (one drone, one rover, one quadruped), with fault scenarios injected on top of causally simulated normal behaviour. 140 runs × 3 assets × 20 minutes at 1 Hz = **502,976 events** (1,024 events, 0.2 %, deliberately lost in transit). Ground truth is stored separately from the telemetry and is used only for evaluation.
+Synthetic, deterministic telemetry for a three-asset inspection fleet (one drone, one rover, one quadruped), with fault scenarios injected on top of causally simulated normal behaviour. 140 runs × 3 assets × 20 minutes at 1 Hz = **502,961 events** in v2 (1,039 events, 0.2 %, deliberately lost in transit). v1 (data version `v1.0.0-9e903f9008`, tag `v1.0.0`) had 502,976 events; the two differ only in the test seeds. Ground truth is stored separately from the telemetry and is used only for evaluation.
 
 ```bash
 signal-data generate     # one command, ~20 s, byte-identical on every run
@@ -66,7 +66,7 @@ Per-split medians are close (temperature 40.8–41.4 °C, link 86–87 %, batter
 
 ## Fault scenarios and labels
 
-One fault per fault run, on one asset. Physical faults (overheating, battery drain, link degradation) start at a planned onset drawn from 25–60 % of the run. Sensor faults (freeze, motion anomaly) wait from that planned onset until the asset is moving, up to 300 s and never past 80 % of the run, so they can start as late as seq 960 (r3024 and r3043 in test). Faults are balanced across assets (each fault type hits each asset equally often) and across variants.
+One fault per fault run, on one asset. Physical faults (overheating, battery drain, link degradation) start at a planned onset drawn from 25–60 % of the run. Sensor faults (freeze, motion anomaly) wait from that planned onset until the asset is moving, up to 300 s and never past 80 % of the run, so they can start as late as seq 960 (r3024 and r3043 in the v1 test). Faults are balanced across assets (each fault type hits each asset equally often) and across variants.
 
 | Fault | Kind | Variants (validation) | Extra test-only variants | Window |
 |---|---|---|---|---|
@@ -94,7 +94,10 @@ The feature and model code can only read `telemetry.parquet`.
 |---|---|---|---|---|
 | train | 1000–1039 | 40 normal | none | fit detectors and normalisation statistics |
 | validation | 2000–2039 | 10 normal + 30 fault (6 per type) | standard ranges, seen variants | features, model choice, hyperparameters, incident params, thresholds |
-| test | 3000–3059 | 15 normal + 45 fault (9 per type) | wide ranges, plus 6 unseen variants (16 of 45 faults) | the official result, run once |
+| **test (v2)** | **4000–4059** | 15 normal + 45 fault (9 per type) | wide ranges, plus 6 unseen variants (16 of 45 faults) | the official v2 result, run once; generated only after the v2 models were frozen and pushed |
+| test (v1, spent) | 3000–3059 | same composition | same | v1's official result (run once); then used for v1 error analysis, so it is development data now and plays no part in v2 |
+
+Train and validation are the same runs in v1 and v2 (each run depends only on its seed, so they are byte-identical; checked). v2 generated train and validation first (`signal-data generate --only-splits train,validation`) and the test split only after the freeze.
 
 The split is by **seed and run**, never by row. Runs are also disjoint in time: run *s* starts at `2026-09-01 + s hours`, so every test run comes after every validation run, which comes after every train run. `configs/splits.yaml` is the single source; `signal-data summary` prints the seed ranges.
 
@@ -114,10 +117,12 @@ The split is by **seed and run**, never by row. Runs are also disjoint in time: 
 ## Known limitations
 
 - **Synthetic physics.** The normal envelope is my model of the fleet, not measured behaviour. Real sensors drift, saturate and fail in correlated ways this generator does not produce.
-- **Designer bias.** I wrote the fault generator and the rule baseline. Wider test ranges and unseen variants were meant to counter this; the unseen variants turned out *easier*, not harder (see EVALUATION.md). The rule baseline's test result is therefore likely optimistic relative to real faults.
+- **Designer bias.** I wrote the fault generator and the rule baseline. Wider test ranges and unseen variants were meant to counter this; the unseen variants turned out *easier*, not harder (see EVALUATION.md). In v2 I also built a detector (the fast path) knowing exactly how this generator drains batteries, which makes its battery results the least transferable to real hardware. The rule baseline's test result is therefore likely optimistic relative to real faults.
 - **Small fault counts.** 30 validation and 45 test faults. One fault moves recall by 2–3 points, and confidence intervals are wide (see EVALUATION.md).
 - **Narrow validation sample for battery drain.** The six validation drain faults happened to sample only 2.4–2.9 %/min, so threshold selection saw little variety for that fault.
-- **A hard freeze during charging.** In test run r3025 a speed freeze reached its deadline and started while the drone was charging. It is still observable (charging speed normally flickers, so a stuck 0.00 grows `speed_unchanged` far beyond normal) and the robust-z baseline caught it, but rules written for moving assets cannot. *(An earlier version of this card called it an unobservable, invalid label; that was wrong.)*
+- **Saturated readings hide freezes.** Near base the link reading sits at its 100 % ceiling for long stretches (up to 271 identical readings in normal train data), so a link freeze there (v2 test run r4023) is indistinguishable from normal.
+- **Faults that start at a mode change.** A physical fault's onset is independent of the asset's mode, so it can coincide with a mode switch (v2 test run r4000), which hides it from detectors that compare against the current mode's recent trend.
+- **A hard freeze during charging.** In v1 test run r3025 a speed freeze reached its deadline and started while the drone was charging. It is still observable (charging speed normally flickers, so a stuck 0.00 grows `speed_unchanged` far beyond normal) and the robust-z baseline caught it, but rules written for moving assets cannot. *(An earlier version of this card called it an unobservable, invalid label; that was wrong.)*
 - **Test data was looked at during development.** The generator's sanity-plot gallery originally included one test run per fault variant, and three test runs were viewed while checking the generator, before any detector limit or threshold was set. Nothing was chosen from them, but it is disclosed here and in EVALUATION.md; the gallery is now validation-only.
 - **One fault per run, one fleet.** No simultaneous faults, no fleet-wide events (such as a base-station outage), and no asset ids beyond one per type.
 - **No telemetry pathologies from Blackbox.** No duplicates, out-of-order events or clock skew; Blackbox already handles those upstream. Only rare single-event loss is simulated.

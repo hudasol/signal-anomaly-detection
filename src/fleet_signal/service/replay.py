@@ -164,5 +164,18 @@ def main(argv: list[str] | None = None) -> None:
                 print("    not detected")
 
 
+def cli(argv: list[str] | None = None) -> None:
+    """Entry point: exits quietly when the output is piped into `head`."""
+    import os
+    import sys
+
+    try:
+        main(argv)
+        sys.stdout.flush()
+    except BrokenPipeError:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        sys.exit(0)
+
+
 if __name__ == "__main__":
-    main()
+    cli()

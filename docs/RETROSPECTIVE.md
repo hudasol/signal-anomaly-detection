@@ -1,6 +1,25 @@
 # retrospective
 
-## what went wrong
+## v2 - going after the two criteria v1 missed
+
+v1 hit 6 of the 8 acceptance criteria. recall was one fault short (0.844) and latency was way off (71 events vs 3). i couldnt fix that on v1s test set because id already used it once and then studied every error in it. retuning against it would just be grading myself on the answer key. so v2 got a brand new test set (seeds 4000-4059), and the v2 models were frozen and pushed to github before that test data even existed. thats the part im proudest of - anyone can check the order in the git history.
+
+**what worked.** i did the physics before writing code. at 1 Hz battery is super precise (0.01 noise) so an extra drain shows up within 2-3 events if you compare against the assets own recent trend. temperature and link are too noisy for that. so i built a "fast path" for sudden changes and paired it with the rule baseline. on the new test: precision 0.85, recall 0.98, 0.12 false alarms per 10 min, and 1 event median latency on the faults that are physically catchable in 3 events. battery drain went from 188 events (rule) to 2.
+
+**what i had to be honest about.**
+
+- latency is still a miss. over all progressive faults the median is 11 events, because slow overheating and link decline just cant be seen in 3 seconds at this noise. for v2 i defined a narrower "expected to catch" set from physics (before the v2 test, misses counted as infinite), and on that set its 1 event. but my own original plan said every fault type is expected to catch and that narrowing it later counts as a failure, not a redefinition. i only noticed that line while checking the final docs, after id already written "meets every criterion". so its 7 of 8, not 8 of 8.
+- the rule baseline alone also passed the recall bar on the new test (0.93). so v2s real win is speed, not recall. the median paired gain is only 1 event, and most of the big gains are on battery and overheating.
+- i changed a selection rule on validation. at first only systems containing LOF could ship, and that would have picked one that failed latency on validation. i dropped that restriction before the test existed and logged it, but it was still a call i made after seeing validation numbers.
+- while rehearsing the demo i noticed an incident open 1 event after a drain started and then close 30 events later while the drain was still going. the fast path adapts to the new rate. 14 of 44 caught faults go quiet before they end. i wouldnt have found it without actually running the demo end to end.
+- r4000: a drain started the exact second the asset changed mode, and the fast path is blind right after mode changes. caught 187 events late.
+- i built the fast path knowing exactly how my generator drains batteries. thats the strongest designer bias in the whole project.
+
+**what id do next.** compare against an expected value (drain for this load, temperature for this load) instead of the assets own recent trend. that fixes the mode-change blind spot and the incidents closing early. keep an incident open until the state is back to normal, not just the trend. and get real telemetry, because everything here is my simulator.
+
+## v1
+
+### what went wrong
 
 **my ship rule asked the wrong question.** before the test i said the ML model ships only if its significantly better than the best baseline on recall or latency. on test LOF was better on every number - 0.97 vs 0.81 precision, 0.89 vs 0.84 recall, 6x fewer false alarms, 16 vs 71 events latency. its precision and false alarm wins were significant. but the rule only looked at recall and latency, and with 45 faults neither one cleared significance, so the rule baseline ships. i wrote that rule thinking about missed faults and forgot that an operator drowning in false alarms is also a failure. i kept the decision instead of rewriting the rule after seeing the answer, but the rule itself was badly specified.
 
@@ -32,7 +51,7 @@ then the engineering review found more of the same. `mode: "MOVING"` instead of 
 - running the demo setup would have rewritten the registry hashes and broken the link to the evaluated files. the evaluated artifacts are now committed and protected.
 - my first multi-stage Dockerfile built the test image by default, because docker builds the last stage. caught it by checking `whoami` and which tools were in the image.
 
-## bad assumptions
+### bad assumptions
 
 - **"unseen variants make the test harder."** they made it easier. runaway heating, accelerating drain and drift are more extreme than their validation versions, and every detector caught all 16. the test was hard because the wider ranges made *weaker* versions of variants validation had already seen. if i want to stress generalisation i need subtler unseen faults, not just different ones.
 - **"3 events of latency is a tuning problem."** at 1 Hz with 0.15 °C sensor noise, a 2 °C/min drift is physically undetectable in 3 seconds. i flagged this in the plan as a risk but still half expected features to fix it. that bar needs a sequential test (CUSUM) or a label for when a fault actually becomes detectable.
@@ -40,7 +59,7 @@ then the engineering review found more of the same. `mode: "MOVING"` instead of 
 - **"charging is a separate easy regime."** charging hid two faults. charge rate depends on state of charge and none of my features know that.
 - **"the input will look like my data."** every service test i wrote sent clean windows from my own generator. a real client sends wrong case, wrong types, duplicates, retries. the inference boundary has to assume the input is wrong until proven otherwise.
 
-## what id redesign
+### what id redesign
 
 1. **the decision rule:** non-inferiority on recall plus a significant gain on precision **or** latency, declared up front, with the operators alarm load as a first class metric.
 2. **the fault generator:** record both "fault starts" and "fault becomes physically detectable", so latency can be reported against both.
@@ -51,7 +70,7 @@ then the engineering review found more of the same. `mode: "MOVING"` instead of 
 7. **incident grouping:** choose open, close and cooldown on per fault precision, and keep an incident open while the asset is still inside an unresolved fault, so one fault stays one incident.
 8. **the service contract first:** write the request schema and the "what do we answer for bad input" table before the scorer, and test it with hostile input, not just my own data. same for the protocol - resending 650 events every second is fine for a demo and wasteful for 200 assets. id keep feature state per asset on the server.
 
-## technical lessons
+### technical lessons
 
 - the split isnt just train / validation / test. its also which code is allowed to *import* which data. making ground truth physically unreachable from feature code, and testing that, was cheaper than being careful.
 - counterfactual twins (same seed with and without the fault) are the strongest test i wrote. they prove a fault cant leak backwards in time or across assets.
@@ -62,7 +81,7 @@ then the engineering review found more of the same. `mode: "MOVING"` instead of 
 - "never answers normal" is a property of the whole input space, not of the cases i listed. if theres a field the model branches on (mode, asset type), an unexpected value there is a silent normal waiting to happen.
 - verify before you open. a hash checked after loading a pickle protects nothing.
 
-## what my own checks missed
+### what my own checks missed
 
 - **the ship rules blind spot.** every test i wrote checked the rule was *implemented* as declared (`test_registry_and_decision.py`). none asked if it was the right rule.
 - **the unknown asset type "normal" fallback.** i tested every failure state i had listed (missing model, corrupt model, short history, gaps, NaN, mixed assets) but not "an input the model has no idea about".

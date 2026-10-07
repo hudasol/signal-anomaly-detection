@@ -13,12 +13,17 @@ import pandas as pd  # noqa: E402
 
 INK, INK_2, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#fcfcfb"
 # Fixed categorical order (validated: dataviz validate_palette.js, light mode).
-DETECTOR_COLORS = {"rule": "#2a78d6", "stats": "#eb6834", "lof": "#1baf7a"}
-DETECTOR_MARKERS = {"rule": "o", "stats": "s", "lof": "^"}
+DETECTOR_COLORS = {"rule": "#2a78d6", "stats": "#eb6834", "lof": "#1baf7a",
+                   "hybrid_rule_fast": "#7a4fc9"}  # fmt: skip
+DETECTOR_MARKERS = {"rule": "o", "stats": "s", "lof": "^", "hybrid_rule_fast": "D"}
+# Where each operating-point label sits (points from the marker), so labels never overlap.
+LABEL_OFFSETS = {"hybrid_rule_fast": (40, -4), "rule": (40, -30), "lof": (40, -58),
+                 "stats": (40, -20)}  # fmt: skip
 DETECTOR_LABELS = {
     "rule": "Rule baseline",
     "stats": "Robust z baseline",
     "lof": "LOF (ML)",
+    "hybrid_rule_fast": "Rule + fast path (shipped v2)",
 }
 
 
@@ -56,7 +61,8 @@ def plot_threshold_sensitivity(
         ax1.annotate(
             f"{label}\nrecall {sel['recall']:.2f}",
             (sel["fp_per_10min"], sel["recall"]),
-            textcoords="offset points", xytext=(14, -10 - 30 * i), fontsize=8, color=INK_2,
+            textcoords="offset points", xytext=LABEL_OFFSETS.get(name, (14, -10 - 30 * i)),
+            fontsize=8, color=INK_2,
             arrowprops={"arrowstyle": "-", "color": GRID, "linewidth": 0.8},
         )  # fmt: skip
         pr = curve.dropna(subset=["precision"])

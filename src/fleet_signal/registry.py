@@ -191,6 +191,11 @@ def write_registry(reg: dict[str, Any], path: Path = REGISTRY_PATH) -> None:
     try:
         with os.fdopen(fd, "w") as fh:
             fh.write(json.dumps(reg, indent=2, default=str) + "\n")
+        # mkstemp creates 0600; the registry must stay readable by the service user
+        # (the Docker image runs as non-root), so apply the normal umask-based mode.
+        umask = os.umask(0)
+        os.umask(umask)
+        os.chmod(tmp, 0o666 & ~umask)
         os.replace(tmp, path)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
