@@ -39,7 +39,7 @@ An **advisory** early-warning signal for an operator watching a mixed inspection
               {"signal": "fast:temp_res3", "contribution": 0.71}]}
 ```
 
-`decision` is **per event**. Incidents (for the shipped model: open on the first alert, close after 5 quiet events, re-open within 30 = same incident) are built from the stream of decisions by the incident tracker, as `signal-replay` does. The false-incident rates in this card and in EVALUATION_v1.md are for incidents, not for individual decisions.
+`decision` is **per event**. Incidents (for the shipped model: open on the first alert, close after 5 quiet events, re-open within 30 = same incident) are built from the stream of decisions by the incident tracker, as `signal-replay` does. The false-incident rates in this card and in EVALUATION.md are for incidents, not for individual decisions.
 
 | Answer | When | Decision |
 |---|---|---|
@@ -54,13 +54,13 @@ The service answers `normal` only for a validated, full-context window scored by
 
 ## Scaling and protocol
 
-Measured on the development container, one asset, 650-event windows sent sequentially, including input validation: `/score` p50 ≈ 43 ms, p95 ≈ 57 ms for the shipped hybrid (v1 rule and LOF: p50 ≈ 28 ms). Each call sends about 180 KB of JSON and recomputes every feature for the window. At 200 assets reporting at 1 Hz that is about 35 MB/s of mostly repeated data and about 9 CPU-seconds per second: workable for a demo, wasteful for a fleet. The next step is incremental feature state per asset (send only the newest event). The service holds no per-asset state, so it can run as several replicas; incident state lives with the consumer of decisions.
+Measured once on the development container (not a saved benchmark), one asset, 650-event windows sent sequentially, including input validation: `/score` p50 ≈ 43 ms, p95 ≈ 57 ms for the shipped hybrid (v1 rule and LOF: p50 ≈ 28 ms). Each call sends about 180 KB of JSON and recomputes every feature for the window. At 200 assets reporting at 1 Hz that is about 35 MB/s of mostly repeated data and about 9 CPU-seconds per second: workable for a demo, wasteful for a fleet. The next step is incremental feature state per asset (send only the newest event). The service holds no per-asset state, so it can run as several replicas; incident state lives with the consumer of decisions.
 
 The feature-schema hash covers the feature builder's raw source, so even a formatting change there needs re-freezing. The v1 position-freeze key (`x·10⁶ + y`) was replaced in v2 by comparing x and y as a pair.
 
 ## Features (41, causal, per run and asset)
 
-Computed by `fleet_signal.features.build_features`, identical at training, evaluation and inference (tested; all 180 test asset-runs replayed through the service reproduce the official incidents).
+Computed by `fleet_signal.features.build_features`, identical at training, evaluation and inference (tested; all 180 test asset-runs replayed through the service reproduce the official incidents: `signal-eval replay-check`).
 
 | Group | Features |
 |---|---|
@@ -74,13 +74,13 @@ Computed by `fleet_signal.features.build_features`, identical at training, evalu
 
 ## Shipped model
 
-**Rule part.** Eleven transparent rules, unchanged from v1: each compares one feature to a limit set by hand from train-normal envelopes (temperature rise, battery drain per mode, link dropout and instability, five frozen-field rules, speed/position mismatch, position jumps). Score = the worst rule margin.
+**Rule part.** Eleven transparent rules, the same rules and limits as v1 (re-frozen as `rule-ac784bbf45` because the feature schema changed): each compares one feature to a limit set by hand from train-normal envelopes (temperature rise, battery drain per mode, link dropout and instability, five frozen-field rules, speed/position mismatch, position jumps). Score = the worst rule margin.
 
 **Fast-path part** (`detectors/fastpath.py`). For each residual, per asset type and mode, on train-normal rows only: a linear fit on the matching speed change (a hard manoeuvre raises speed and drain together), then a robust centre and scale of what is left. The score is the largest one-sided z: more drain than expected, or hotter than expected. It is silent for 45 events after a mode change, because its 30-event baseline would span two modes.
 
 **Combining** (`detectors/hybrid.py`). Each part's score is rescaled with its own train-normal scores (median → 0, 99.9th percentile → 1), and the hybrid score is the larger. One threshold (1.175) and the grouping (open on 1 alert) were chosen on validation. Evidence comes from the part that drove the score, prefixed `rule:` or `fast:`.
 
-**Why this and not LOF.** On validation every LOF system either missed the recall bar (LOF alone 0.83) or, combined with the fast path, slowed it to 4–5 events, because one shared threshold is set by LOF. Rule + fast was the only system that met the whole bar on validation (EVALUATION §6, PLAN_V2 §5). LOF stays the evaluated ML detector: on test it had the best precision (0.92) and fewest false alarms (0.06 / 10 min), with recall 0.87.
+**Why this and not LOF.** On validation LOF alone missed the latency bar (expected-to-catch latency 64.5 events when opening on 1 alert, recall 0.90; recall 0.83 when opening on 2), and combined with the fast path it slowed the fast path to 4–5 events, because one shared threshold is set by LOF. Rule + fast was the only system that met the whole bar on validation (EVALUATION §6, PLAN_V2 §5). LOF stays the evaluated ML detector: on test it had the best precision (0.92) and fewest false alarms (0.06 / 10 min), with recall 0.87.
 
 ## Performance (official v2 test, run once)
 
@@ -95,7 +95,7 @@ Against the rule on the same test (paired 95 % CI): recall +0.044 (0.000 to +0.1
 ## Known failure cases
 
 - **Onset at a mode change (r4000):** a drain that starts the same second the asset changes mode is hidden from the fast path (silent for 45 events, then its baseline already contains the drain). The rule part caught it 187 events later.
-- **Saturated readings (r4023):** a link reading frozen at 100 % while charging at base looks exactly like normal saturation and was missed by every detector.
+- **Saturated readings (r4023):** a link reading frozen at 100 % while charging at base looks exactly like normal saturation (normal runs of 100 reach 272 readings) and was missed by every detector.
 - **Incident closes while the fault continues (r4009 and 13 more of 44 detected test faults):** the fast path flags a change and then adapts to the new rate within about 30 events, and slope checks go quiet once heating levels off. Treat a closed incident on an asset that alerted recently as "check again", not "resolved".
 - **Single-event false alarms:** opening on the first alert turns some lone alerts into incidents (6 of 12 false incidents on test).
 - **Charge taper (rule part):** near full charge the charging slope drops, which the rule's battery check can read as extra drain (r4048).

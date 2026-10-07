@@ -139,6 +139,7 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("show", help="print the official comparison from the saved report")
     sub.add_parser("fragmentation", help="post-hoc: incidents per fault, per-fault precision")
     sub.add_parser("envelopes", help="export the train envelopes the rule limits came from")
+    sub.add_parser("replay-check", help="post-hoc: service replay of every test run == official")
     demo = sub.add_parser("demo-threshold", help="DEMO ONLY: a frozen model at another threshold")
     demo.add_argument("--detector", required=True, help="a detector in models/registry.json")
     demo.add_argument("--threshold", required=True, type=float)
@@ -186,6 +187,15 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.command == "test":
         _official()
+        return
+
+    if args.command == "replay-check":
+        from fleet_signal.eval.demo import replay_check
+
+        out = replay_check()
+        n_bad = len(out["mismatches"])
+        print(f"{out['model_version']}: {out['asset_runs']} test asset-runs replayed through "
+              f"the service; mismatches with the official incidents: {n_bad}")  # fmt: skip
         return
 
     if args.command == "select-v2":

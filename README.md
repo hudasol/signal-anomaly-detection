@@ -91,7 +91,7 @@ signal-eval show            # the official comparison, from the saved report
 signal-eval audit           # proves which runs each model was fitted / selected / tested on
 signal-eval fragmentation   # incidents per detected fault, per-fault precision
 signal-eval envelopes       # the train-normal envelopes the rule limits came from
-signal-eval demo-threshold --detector lof --threshold 1.5   # DEMO ONLY, writes results/demo/
+signal-eval demo-threshold --detector hybrid_rule_fast --threshold 2.0   # DEMO ONLY, writes results/demo/
 ```
 
 ## Inference

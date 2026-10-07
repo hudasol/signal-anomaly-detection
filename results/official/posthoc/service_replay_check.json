@@ -1,0 +1,6 @@
+{
+  "model_version": "hybrid_rule_fast-a0918187ba",
+  "asset_runs": 180,
+  "mismatches": [],
+  "note": "post-hoc check: service replay vs official incidents"
+}

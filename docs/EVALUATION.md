@@ -11,12 +11,12 @@ All numbers come from saved outputs: `results/validation/` (v2 selection) and `r
 | # | Criterion | v1 (test seeds 3000–3059) | **v2 (test seeds 4000–4059)** | Evidence |
 |---|---|---|---|---|
 | 1 | Normal + ≥ 5 fault scenarios, repeatable runs, stored ground truth | ✅ | ✅ | 5 fault types in 16 variants; deterministic per seed; ground truth stored apart and loadable only by evaluation code (DATA_CARD) |
-| 2 | Leakage-safe, documented split | ✅ | ✅ | split by seed and time; `signal-eval audit`; v2 models frozen and **pushed (d121e2a) before the v2 test runs were generated** |
+| 2 | Leakage-safe, documented split | ✅ | ✅ | split by seed and time; `signal-eval audit`; v2 models frozen and **pushed (d121e2a) before the v2 test runs were generated**: GitHub's CI run for that push was triggered at 21:02:04 UTC, and the test telemetry was written at 21:02:33 UTC |
 | 3 | Baselines and ML on the same held-out test | ✅ | ✅ | rule, robust z, LOF and the shipped system on the same 60 runs, one run-once evaluation |
 | 4 | Test precision ≥ 0.75, recall ≥ 0.85, ≤ 2 false incidents / 10 min | ❌ shipped rule recall 0.844 | ✅ **0.85 / 0.98 / 0.12** | §2 |
 | 5 | Median progressive latency ≤ 3 events for faults the detector is expected to catch | ❌ every detector | ❌ **11 events** over all progressive faults, the set the original plan declared · ✅ 1 event on the narrower physics-based set declared for v2 (5 of 5 caught; a miss would count as infinite) | §1, §3, §7 pattern 1 |
 | 6 | Defensible advantage over a baseline at a comparable operating point, or the baseline ships | ✅ (baseline shipped) | ✅ shipped system: recall not worse, latency significantly better, at nearly the same false-alert rate (0.12 vs 0.11) | §4 |
-| 7 | Reproducible; saved result has exact model version and frozen threshold | ✅ | ✅ | `results/official/test_*.json`: `model_version`, `artifact_sha256`, `frozen_threshold`, `incident_params`, `data_version`; every test incident reproduced by replaying through the service (180 of 180 asset-runs) |
+| 7 | Reproducible; saved result has exact model version and frozen threshold | ✅ | ✅ | `results/official/test_*.json`: `model_version`, `artifact_sha256`, `frozen_threshold`, `incident_params`, `data_version`; every test incident reproduced by replaying through the service (180 of 180 asset-runs; `signal-eval replay-check`, saved in `results/official/posthoc/service_replay_check.json`) |
 | 8 | Tests pass, errors analysed, honest inference failure states | ✅ | ✅ | 187 tests; §7; MODEL_CARD statuses |
 
 **How criterion 5 is read, and why I count it as missed.** The brief limits the latency bar to "faults the detector is expected to catch". My original plan (PLAN §7.1, written before any code) declared that set as **all five fault types**, with the bar applying to the three progressive ones, and added: *"If a fault type is later dropped from this set, that is recorded as a failure, not a redefinition."* By that definition v2's latency is **11 events: a miss.**
@@ -132,11 +132,11 @@ How big the latency gain is depends on where you look, and the honest summary ha
 
 - **The paired median gain is only 1 event.** Opening an incident on 1 alert instead of 2 removes one event from every detection; for most faults that is the whole difference.
 - **The large gains are concentrated where the fast path was designed to help:** battery drain (median 188 → 2 events) and overheating (64 → 11).
-- **At matched false-alert rates on the post-hoc test curves**, the rule and rule + fast reach similar recall (0.91 vs 0.89 on the sweep grid) while rule + fast is far faster (11 vs 90 events). Its defensible advantage is **speed, not recall**. The recall difference at the frozen points (+0.044) is partly the operating point.
+- **On the post-hoc test curves**, at **zero** false incidents the rule reaches recall 0.91 and rule + fast 0.89, with latency 90 vs 11 events; at their frozen points (0.11 and 0.12 false incidents per 10 min) recall is 0.93 vs 0.98. The recall advantage depends on the operating point; the latency advantage holds at both. Its defensible advantage is **speed**, not recall.
 
 ![threshold sensitivity](figures/test_threshold_sensitivity.png)
 
-**LOF**, the ML detector, has the best precision and fewest false alarms of all four (0.92, 0.06 / 10 min), but lower recall (0.87) and is slower than the shipped system on every fault type. It was not the selected candidate: on validation, every LOF system either missed the recall bar or, combined with the fast path, slowed it to 4–5 events (PLAN_V2 §5).
+**LOF**, the ML detector, has the best precision and fewest false alarms of all four (0.92, 0.06 / 10 min), but lower recall (0.87) and is slower than the shipped system on every fault type. It was not the selected candidate: on validation, LOF alone missed the latency bar (expected-to-catch latency 64.5 events when opening on 1 alert, with recall 0.90; recall 0.83 when opening on 2), and combined with the fast path it slowed the fast path to 4–5 events (PLAN_V2 §5, `v2_candidates.csv`).
 
 ## 5. v1 → v2
 
@@ -149,7 +149,7 @@ How big the latency gain is depends on where you look, and the honest summary ha
 | Expected-to-catch latency | — | 1 ✅ |
 | All-progressive latency | 71 ❌ | 11 ❌ |
 
-The two columns are different test sets drawn from the same generator. The fair comparison is within the v2 test (§2–§4), where the v1 rule is one of the four detectors.
+The two columns are different test sets drawn from the same generator. The fair comparison is within the v2 test (§2–§4), where the rule baseline (the same rules as v1, re-frozen as `rule-ac784bbf45` because the feature schema changed) is one of the four detectors.
 
 ## 6. Threshold and grouping choice
 
@@ -167,11 +167,11 @@ r4000's quadruped battery drain (2.4 %/min, expected to catch) started at seq 61
 
 ### Pattern 3: a link reading frozen at its ceiling while charging (r4023, missed by every detector)
 
-r4023's quadruped link-quality reading froze for 46 events (seq 960–1005) while it was **charging at base** (about 20 m away), with the reading at 100 %, the top of the scale. Checked against normal data rather than assumed: in train, a charging quadruped's link reads an unbroken 100 for up to **271** events (other types: up to 154), because the reading saturates near base. This freeze produced 74 identical readings in a row (it began during an already-saturated stretch), inside that normal range. The rule's frozen-link check only runs while moving and below 99 %, and LOF and robust z see a value they have seen many times. With these signals the fault is indistinguishable from normal. *Next:* a freeze check on a signal that never saturates at base (for example, the raw RSSI behind the percentage), which this telemetry contract does not carry.
+r4023's quadruped link-quality reading froze for 46 events (seq 960–1005) while it was **charging at base** (about 20 m away), with the reading at 100 %, the top of the scale. Checked against normal data rather than assumed: in train, a charging quadruped's link reads 100 for up to **272** readings in a row (drone up to 155), because the reading saturates near base. The freeze sits inside an unbroken run of 84 readings of 100 (seq 931–1014; it began during an already-saturated stretch), well inside that normal range. The rule's frozen-link check only runs while moving and below 99 %, and LOF and robust z see a value they have seen many times. With these signals the fault is indistinguishable from normal. *Next:* a freeze check on a signal that never saturates at base (for example, the raw RSSI behind the percentage), which this telemetry contract does not carry.
 
 ### Pattern 4: single-event false incidents from opening on 1 alert
 
-6 of the shipped system's 12 false incidents are a single alert, which opening on 2 alerts would have absorbed (the validation trade-off in §6). The others come from the rule part's battery check near full charge (r4048, charge taper), a link-instability check on a drone (r4035), and fast-path battery residuals when an asset speeds up (r4037). *Next:* open after 1 alert only for the fast-path part and after 2 for the rule part.
+6 of the shipped system's 12 false incidents are a single alert, which opening on 2 alerts would have absorbed (the validation trade-off in §6). The other 6 last 2–27 events: the rule part's battery check while charging near full (r4048, r4051: charge taper), its link-instability check (r4025 rover, r4035 drone), and fast-path battery residuals while moving (r4037, r4044). *Next:* open after 1 alert only for the fast-path part and after 2 for the rule part.
 
 ### Pattern 5: alerts on change, not on state, so an incident can close while its fault continues
 

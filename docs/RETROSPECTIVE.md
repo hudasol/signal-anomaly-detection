@@ -2,7 +2,7 @@
 
 ## v2 - going after the two criteria v1 missed
 
-v1 hit 6 of the 8 acceptance criteria. recall was one fault short (0.844) and latency was way off (71 events vs 3). i couldnt fix that on v1s test set because id already used it once and then studied every error in it. retuning against it would just be grading myself on the answer key. so v2 got a brand new test set (seeds 4000-4059), and the v2 models were frozen and pushed to github before that test data even existed. thats the part im proudest of - anyone can check the order in the git history.
+v1 hit 6 of the 8 acceptance criteria. recall was one fault short (0.844) and latency was way off (71 events vs 3). i couldnt fix that on v1s test set because id already used it once and then studied every error in it. retuning against it would just be grading myself on the answer key. so v2 got a brand new test set (seeds 4000-4059), and the v2 models were frozen and pushed to github before that test data even existed. thats the part im proudest of. github's own timestamp shows the freeze push (21:02:04 UTC) came before the test data was written (21:02:33 UTC), so its not just my word.
 
 **what worked.** i did the physics before writing code. at 1 Hz battery is super precise (0.01 noise) so an extra drain shows up within 2-3 events if you compare against the assets own recent trend. temperature and link are too noisy for that. so i built a "fast path" for sudden changes and paired it with the rule baseline. on the new test: precision 0.85, recall 0.98, 0.12 false alarms per 10 min, and 1 event median latency on the faults that are physically catchable in 3 events. battery drain went from 188 events (rule) to 2.
 

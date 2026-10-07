@@ -29,7 +29,7 @@ scoring-code commits since freeze (d121e2a): 0
 
 Then point at:
 
-- **The pre-registration.** `d121e2a` (frozen models, `docs/PLAN_V2.md`, selection outputs) was pushed to GitHub **before** the v2 test runs existed: train and validation were generated with `--only-splits train,validation`. The test runs were generated and evaluated in `eb83aa7`. Say why: v1's test set was studied for v2's design, so v2 needed a new one.
+- **The pre-registration.** `d121e2a` (frozen models, `docs/PLAN_V2.md`, selection outputs) was pushed to GitHub **before** the v2 test runs existed: train and validation were generated with `--only-splits train,validation`. Independent timestamp: GitHub Actions run 37686477806 was triggered by that push at 21:02:04 UTC; the test telemetry file was written at 21:02:33 UTC. (That run's Docker job failed because `results/official/` did not exist yet; its test job passed.) The test runs were generated and evaluated in `eb83aa7`. Say why: v1's test set was studied for v2's design, so v2 needed a new one.
 - **The guard.** `signal-eval test` again refuses (the official files exist).
 - **The leakage tests:** `pytest tests/test_splits.py tests/test_features.py tests/test_v2.py -k "split or leak or causal or seeds or separately" -v`.
 
@@ -58,7 +58,7 @@ GROUND TRUTH: drone-01: battery_drain / step  seq 697-1200
     detected: incident #1 opened at seq 698 -> latency 1 events
 ```
 
-The rule baseline: **0 incidents, not detected** (LOF also missed it). Then say the honest part: the incident **closes at seq 730 while the drain continues**, because the fast path adapts to the new rate within about 30 events (EVALUATION §7 pattern 5, 14 of 44 detected faults). Per-event scores are in `results/replay/r4009_<model>.jsonl`.
+The rule baseline (same rules as v1, re-frozen for the v2 feature schema): **0 incidents, not detected** (LOF also missed it). Then say the honest part: the incident **closes at seq 730 while the drain continues**, because the fast path adapts to the new rate within about 30 events (EVALUATION §7 pattern 5, 14 of 44 detected faults). Per-event scores are in `results/replay/r4009_<model>.jsonl`.
 
 ## 4. Rule vs robust z vs ML vs shipped, on the same test data
 
@@ -96,7 +96,7 @@ Evidence `fast:batt_res10, fast:temp_res10, fast:batt_res3`. The quadruped speed
 signal-replay --run r4023 --asset quad-01 --show-truth
 ```
 
-The reading froze at 100 % while charging at base. Checked against normal data: a charging quadruped's link reads an unbroken 100 for up to 271 events, and this freeze produced 74. Indistinguishable with these signals.
+The reading froze at 100 % while charging at base. Checked against normal data: a charging quadruped's link reads 100 for up to 272 readings in a row, and the freeze sits inside a run of 84. Indistinguishable with these signals.
 
 **The fast path's own blind spot: r4000 (expected to catch, caught after 187 events).**
 

@@ -241,3 +241,37 @@ def rule_envelopes() -> pd.DataFrame:
     df = pd.DataFrame(rows)
     df.to_csv(VALIDATION_DIR / "rule_envelopes_train.csv", index=False, float_format="%.3f")
     return df
+
+
+def replay_check() -> dict[str, Any]:
+    """Post-hoc: replay every test asset-run through the service code path (registry model,
+    SHA-verified) and compare its incidents with the official result. Writes
+    results/official/posthoc/service_replay_check.json."""
+    from fleet_signal.data.config import load_config
+    from fleet_signal.data.splits import split_run_ids
+    from fleet_signal.data.telemetry import load_telemetry
+    from fleet_signal.eval.official import OFFICIAL_DIR
+    from fleet_signal.service.replay import replay_asset
+    from fleet_signal.service.scorer import Scorer
+
+    scorer = Scorer()
+    if scorer.artifact is None:
+        raise SystemExit(f"model unavailable: {scorer.error}")
+    name, version = scorer.artifact.detector_name, scorer.artifact.model_version
+    official_file = OFFICIAL_DIR / f"test_{name}_{version}.json"
+    official = json.loads(official_file.read_text())
+    want: dict[tuple[str, str], list[list[int]]] = {}
+    for inc in official["incidents"]:
+        want.setdefault((inc["run_id"], inc["asset_id"]), []).append(inc["open_seqs"])
+    tel = load_telemetry(run_ids=split_run_ids(load_config())["test"])
+    mismatches, n = [], 0
+    for (run_id, asset_id), events in tel.groupby(["run_id", "asset_id"]):
+        _, _, incidents = replay_asset(scorer, events)
+        n += 1
+        if [i["open_seqs"] for i in incidents] != want.get((str(run_id), str(asset_id)), []):
+            mismatches.append([str(run_id), str(asset_id)])
+    out = {"model_version": version, "asset_runs": n, "mismatches": mismatches,
+           "note": "post-hoc check: service replay vs official incidents"}  # fmt: skip
+    path = OFFICIAL_DIR / "posthoc" / "service_replay_check.json"
+    path.write_text(json.dumps(out, indent=2) + "\n")
+    return out
