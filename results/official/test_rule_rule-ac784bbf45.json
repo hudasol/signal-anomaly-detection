@@ -1,0 +1,1776 @@
+{
+  "split": "test",
+  "official": true,
+  "detector": "rule",
+  "model_version": "rule-ac784bbf45",
+  "artifact_sha256": "d263e95f7a642c1133b3c62205dcfe3205a326a7ce2e1209c522418c96adc51e",
+  "frozen_threshold": -0.0867346959161708,
+  "incident_params": {
+    "open_n": 2,
+    "close_m": 5,
+    "cooldown_c": 30
+  },
+  "data_version": "v1.0.0-ee836a6bb4",
+  "feature_schema_hash": "b539bdefb8",
+  "evaluated_utc": "2026-10-07T21:02:47.571207+00:00",
+  "git_sha": "d121e2a780e3d1a17b2185031dda800a2c750c9d",
+  "summary": {
+    "precision": 0.828125,
+    "recall": 0.9333333333333333,
+    "f1": 0.8775872264931993,
+    "fp_per_10min": 0.11306468099199982,
+    "n_faults": 45,
+    "n_detected": 42,
+    "n_incidents": 64,
+    "n_false_incidents": 11,
+    "normal_fleet_minutes": 972.8944444444444,
+    "per_fault_precision": 0.7924528301886793,
+    "progressive_latency_median": 76.0,
+    "progressive_latency_p90": 283.60000000000014,
+    "expected_latency_median": 188.0,
+    "n_expected": 5,
+    "n_expected_detected": 4,
+    "threshold": -0.0867346959161708,
+    "open_n": 2,
+    "close_m": 5,
+    "cooldown_c": 30
+  },
+  "meets_bar": {
+    "precision": true,
+    "recall": true,
+    "false_alerts": true,
+    "latency": false,
+    "latency_all_progressive": false
+  },
+  "ci95": {
+    "precision": [
+      0.7368238304093567,
+      0.9137931034482759
+    ],
+    "recall": [
+      0.85,
+      1.0
+    ],
+    "f1": [
+      0.8113574198559447,
+      0.9322097163894026
+    ],
+    "fp_per_10min": [
+      0.05094761149048631,
+      0.18521718216404603
+    ]
+  },
+  "by_fault_type": [
+    {
+      "fault_type": "battery_drain",
+      "n": 9,
+      "detected": 7,
+      "latency_median": 188.0,
+      "latency_p90": 318.8,
+      "recall": 0.7777777777777778
+    },
+    {
+      "fault_type": "link_degradation",
+      "n": 9,
+      "detected": 9,
+      "latency_median": 73.0,
+      "latency_p90": 223.0,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "motion_anomaly",
+      "n": 9,
+      "detected": 9,
+      "latency_median": 2.0,
+      "latency_p90": 11.800000000000004,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "overheating",
+      "n": 9,
+      "detected": 9,
+      "latency_median": 64.0,
+      "latency_p90": 188.4000000000001,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "sensor_freeze",
+      "n": 9,
+      "detected": 8,
+      "latency_median": 12.0,
+      "latency_p90": 37.29999999999999,
+      "recall": 0.8888888888888888
+    }
+  ],
+  "by_variant": [
+    {
+      "fault_type": "battery_drain",
+      "variant": "accelerating",
+      "n": 4,
+      "detected": 4,
+      "latency_median": 255.0,
+      "latency_p90": 320.9,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "battery_drain",
+      "variant": "step",
+      "n": 5,
+      "detected": 3,
+      "latency_median": 28.0,
+      "latency_p90": 156.0,
+      "recall": 0.6
+    },
+    {
+      "fault_type": "link_degradation",
+      "variant": "decline",
+      "n": 3,
+      "detected": 3,
+      "latency_median": 220.0,
+      "latency_p90": 232.0,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "link_degradation",
+      "variant": "intermittent",
+      "n": 3,
+      "detected": 3,
+      "latency_median": 20.0,
+      "latency_p90": 22.4,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "link_degradation",
+      "variant": "oscillation",
+      "n": 3,
+      "detected": 3,
+      "latency_median": 73.0,
+      "latency_p90": 75.4,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "motion_anomaly",
+      "variant": "drift",
+      "n": 3,
+      "detected": 3,
+      "latency_median": 7.0,
+      "latency_p90": 26.200000000000003,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "motion_anomaly",
+      "variant": "jump",
+      "n": 3,
+      "detected": 3,
+      "latency_median": 1.0,
+      "latency_p90": 1.0,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "motion_anomaly",
+      "variant": "speed_mismatch",
+      "n": 3,
+      "detected": 3,
+      "latency_median": 2.0,
+      "latency_p90": 2.8,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "overheating",
+      "variant": "linear",
+      "n": 5,
+      "detected": 5,
+      "latency_median": 80.0,
+      "latency_p90": 349.20000000000005,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "overheating",
+      "variant": "runaway",
+      "n": 4,
+      "detected": 4,
+      "latency_median": 44.5,
+      "latency_p90": 82.80000000000001,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "sensor_freeze",
+      "variant": "battery_pct",
+      "n": 2,
+      "detected": 2,
+      "latency_median": 9.0,
+      "latency_p90": 9.0,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "sensor_freeze",
+      "variant": "link_quality_pct",
+      "n": 2,
+      "detected": 1,
+      "latency_median": 16.0,
+      "latency_p90": 16.0,
+      "recall": 0.5
+    },
+    {
+      "fault_type": "sensor_freeze",
+      "variant": "multi",
+      "n": 1,
+      "detected": 1,
+      "latency_median": 15.0,
+      "latency_p90": 15.0,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "sensor_freeze",
+      "variant": "position",
+      "n": 1,
+      "detected": 1,
+      "latency_median": 4.0,
+      "latency_p90": 4.0,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "sensor_freeze",
+      "variant": "speed_mps",
+      "n": 1,
+      "detected": 1,
+      "latency_median": 9.0,
+      "latency_p90": 9.0,
+      "recall": 1.0
+    },
+    {
+      "fault_type": "sensor_freeze",
+      "variant": "temperature_c",
+      "n": 2,
+      "detected": 2,
+      "latency_median": 49.5,
+      "latency_p90": 73.9,
+      "recall": 1.0
+    }
+  ],
+  "by_seen_variant": [
+    {
+      "seen_variant": false,
+      "n": 16,
+      "detected": 16,
+      "latency_median": 32.0,
+      "latency_p90": 255.0,
+      "recall": 1.0
+    },
+    {
+      "seen_variant": true,
+      "n": 29,
+      "detected": 26,
+      "latency_median": 45.0,
+      "latency_p90": 204.0,
+      "recall": 0.896551724137931
+    }
+  ],
+  "by_asset": [
+    {
+      "asset_id": "drone-01",
+      "n": 15,
+      "detected": 13,
+      "latency_median": 31.0,
+      "latency_p90": 197.60000000000008,
+      "recall": 0.8666666666666667
+    },
+    {
+      "asset_id": "quad-01",
+      "n": 15,
+      "detected": 14,
+      "latency_median": 67.5,
+      "latency_p90": 222.70000000000005,
+      "recall": 0.9333333333333333
+    },
+    {
+      "asset_id": "rover-01",
+      "n": 15,
+      "detected": 15,
+      "latency_median": 26.0,
+      "latency_p90": 83.8,
+      "recall": 1.0
+    }
+  ],
+  "window_confusion": {
+    "tp": 9203,
+    "fp": 339,
+    "fn": 9607,
+    "tn": 174981
+  },
+  "per_fault": [
+    {
+      "run_id": "r4000",
+      "asset_id": "quad-01",
+      "fault_type": "battery_drain",
+      "variant": "step",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": true,
+      "fault_start_seq": 612,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 800.0,
+      "latency_events": 188.0
+    },
+    {
+      "run_id": "r4001",
+      "asset_id": "quad-01",
+      "fault_type": "link_degradation",
+      "variant": "decline",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 560,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 795.0,
+      "latency_events": 235.0
+    },
+    {
+      "run_id": "r4003",
+      "asset_id": "quad-01",
+      "fault_type": "battery_drain",
+      "variant": "accelerating",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 703,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 897.0,
+      "latency_events": 194.0
+    },
+    {
+      "run_id": "r4004",
+      "asset_id": "drone-01",
+      "fault_type": "sensor_freeze",
+      "variant": "temperature_c",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 960,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 1040.0,
+      "latency_events": 80.0
+    },
+    {
+      "run_id": "r4005",
+      "asset_id": "drone-01",
+      "fault_type": "link_degradation",
+      "variant": "decline",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 691,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 911.0,
+      "latency_events": 220.0
+    },
+    {
+      "run_id": "r4006",
+      "asset_id": "drone-01",
+      "fault_type": "overheating",
+      "variant": "linear",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 358,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 466.0,
+      "latency_events": 108.0
+    },
+    {
+      "run_id": "r4007",
+      "asset_id": "rover-01",
+      "fault_type": "sensor_freeze",
+      "variant": "battery_pct",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 522,
+      "fault_end_seq": 568,
+      "detected": true,
+      "open_seq": 531.0,
+      "latency_events": 9.0
+    },
+    {
+      "run_id": "r4008",
+      "asset_id": "quad-01",
+      "fault_type": "overheating",
+      "variant": "linear",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 630,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 692.0,
+      "latency_events": 62.0
+    },
+    {
+      "run_id": "r4009",
+      "asset_id": "drone-01",
+      "fault_type": "battery_drain",
+      "variant": "step",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": true,
+      "fault_start_seq": 697,
+      "fault_end_seq": 1200,
+      "detected": false,
+      "open_seq": null,
+      "latency_events": null
+    },
+    {
+      "run_id": "r4011",
+      "asset_id": "drone-01",
+      "fault_type": "motion_anomaly",
+      "variant": "drift",
+      "progressive": false,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 375,
+      "fault_end_seq": 473,
+      "detected": true,
+      "open_seq": 382.0,
+      "latency_events": 7.0
+    },
+    {
+      "run_id": "r4012",
+      "asset_id": "drone-01",
+      "fault_type": "sensor_freeze",
+      "variant": "position",
+      "progressive": false,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 607,
+      "fault_end_seq": 897,
+      "detected": true,
+      "open_seq": 611.0,
+      "latency_events": 4.0
+    },
+    {
+      "run_id": "r4013",
+      "asset_id": "rover-01",
+      "fault_type": "motion_anomaly",
+      "variant": "speed_mismatch",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 583,
+      "fault_end_seq": 693,
+      "detected": true,
+      "open_seq": 585.0,
+      "latency_events": 2.0
+    },
+    {
+      "run_id": "r4014",
+      "asset_id": "quad-01",
+      "fault_type": "overheating",
+      "variant": "runaway",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 674,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 773.0,
+      "latency_events": 99.0
+    },
+    {
+      "run_id": "r4015",
+      "asset_id": "rover-01",
+      "fault_type": "battery_drain",
+      "variant": "step",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 582,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 610.0,
+      "latency_events": 28.0
+    },
+    {
+      "run_id": "r4016",
+      "asset_id": "rover-01",
+      "fault_type": "link_degradation",
+      "variant": "oscillation",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 630,
+      "fault_end_seq": 1107,
+      "detected": true,
+      "open_seq": 694.0,
+      "latency_events": 64.0
+    },
+    {
+      "run_id": "r4017",
+      "asset_id": "quad-01",
+      "fault_type": "link_degradation",
+      "variant": "decline",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 632,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 770.0,
+      "latency_events": 138.0
+    },
+    {
+      "run_id": "r4018",
+      "asset_id": "rover-01",
+      "fault_type": "motion_anomaly",
+      "variant": "speed_mismatch",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 667,
+      "fault_end_seq": 756,
+      "detected": true,
+      "open_seq": 669.0,
+      "latency_events": 2.0
+    },
+    {
+      "run_id": "r4019",
+      "asset_id": "drone-01",
+      "fault_type": "overheating",
+      "variant": "linear",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 442,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 522.0,
+      "latency_events": 80.0
+    },
+    {
+      "run_id": "r4020",
+      "asset_id": "rover-01",
+      "fault_type": "link_degradation",
+      "variant": "oscillation",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 314,
+      "fault_end_seq": 632,
+      "detected": true,
+      "open_seq": 390.0,
+      "latency_events": 76.0
+    },
+    {
+      "run_id": "r4023",
+      "asset_id": "quad-01",
+      "fault_type": "sensor_freeze",
+      "variant": "link_quality_pct",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 960,
+      "fault_end_seq": 1006,
+      "detected": false,
+      "open_seq": null,
+      "latency_events": null
+    },
+    {
+      "run_id": "r4024",
+      "asset_id": "quad-01",
+      "fault_type": "motion_anomaly",
+      "variant": "drift",
+      "progressive": false,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 310,
+      "fault_end_seq": 386,
+      "detected": true,
+      "open_seq": 312.0,
+      "latency_events": 2.0
+    },
+    {
+      "run_id": "r4025",
+      "asset_id": "drone-01",
+      "fault_type": "sensor_freeze",
+      "variant": "speed_mps",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 628,
+      "fault_end_seq": 827,
+      "detected": true,
+      "open_seq": 637.0,
+      "latency_events": 9.0
+    },
+    {
+      "run_id": "r4026",
+      "asset_id": "quad-01",
+      "fault_type": "sensor_freeze",
+      "variant": "battery_pct",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 341,
+      "fault_end_seq": 585,
+      "detected": true,
+      "open_seq": 350.0,
+      "latency_events": 9.0
+    },
+    {
+      "run_id": "r4029",
+      "asset_id": "rover-01",
+      "fault_type": "battery_drain",
+      "variant": "step",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": true,
+      "fault_start_seq": 333,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 359.0,
+      "latency_events": 26.0
+    },
+    {
+      "run_id": "r4030",
+      "asset_id": "drone-01",
+      "fault_type": "battery_drain",
+      "variant": "accelerating",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": true,
+      "fault_start_seq": 524,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 847.0,
+      "latency_events": 323.0
+    },
+    {
+      "run_id": "r4031",
+      "asset_id": "drone-01",
+      "fault_type": "battery_drain",
+      "variant": "step",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 709,
+      "fault_end_seq": 1200,
+      "detected": false,
+      "open_seq": null,
+      "latency_events": null
+    },
+    {
+      "run_id": "r4032",
+      "asset_id": "rover-01",
+      "fault_type": "link_degradation",
+      "variant": "intermittent",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 589,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 612.0,
+      "latency_events": 23.0
+    },
+    {
+      "run_id": "r4034",
+      "asset_id": "rover-01",
+      "fault_type": "overheating",
+      "variant": "runaway",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 646,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 679.0,
+      "latency_events": 33.0
+    },
+    {
+      "run_id": "r4035",
+      "asset_id": "rover-01",
+      "fault_type": "overheating",
+      "variant": "linear",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 442,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 952.0,
+      "latency_events": 510.0
+    },
+    {
+      "run_id": "r4037",
+      "asset_id": "quad-01",
+      "fault_type": "motion_anomaly",
+      "variant": "jump",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 602,
+      "fault_end_seq": 628,
+      "detected": true,
+      "open_seq": 603.0,
+      "latency_events": 1.0
+    },
+    {
+      "run_id": "r4039",
+      "asset_id": "quad-01",
+      "fault_type": "battery_drain",
+      "variant": "accelerating",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 328,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 644.0,
+      "latency_events": 316.0
+    },
+    {
+      "run_id": "r4042",
+      "asset_id": "quad-01",
+      "fault_type": "link_degradation",
+      "variant": "oscillation",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 581,
+      "fault_end_seq": 798,
+      "detected": true,
+      "open_seq": 654.0,
+      "latency_events": 73.0
+    },
+    {
+      "run_id": "r4043",
+      "asset_id": "drone-01",
+      "fault_type": "motion_anomaly",
+      "variant": "drift",
+      "progressive": false,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 658,
+      "fault_end_seq": 856,
+      "detected": true,
+      "open_seq": 689.0,
+      "latency_events": 31.0
+    },
+    {
+      "run_id": "r4044",
+      "asset_id": "drone-01",
+      "fault_type": "link_degradation",
+      "variant": "intermittent",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 326,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 336.0,
+      "latency_events": 10.0
+    },
+    {
+      "run_id": "r4045",
+      "asset_id": "rover-01",
+      "fault_type": "battery_drain",
+      "variant": "accelerating",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": true,
+      "fault_start_seq": 654,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 743.0,
+      "latency_events": 89.0
+    },
+    {
+      "run_id": "r4046",
+      "asset_id": "rover-01",
+      "fault_type": "sensor_freeze",
+      "variant": "link_quality_pct",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 715,
+      "fault_end_seq": 899,
+      "detected": true,
+      "open_seq": 731.0,
+      "latency_events": 16.0
+    },
+    {
+      "run_id": "r4047",
+      "asset_id": "rover-01",
+      "fault_type": "sensor_freeze",
+      "variant": "multi",
+      "progressive": false,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 353,
+      "fault_end_seq": 394,
+      "detected": true,
+      "open_seq": 368.0,
+      "latency_events": 15.0
+    },
+    {
+      "run_id": "r4049",
+      "asset_id": "quad-01",
+      "fault_type": "overheating",
+      "variant": "runaway",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 440,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 485.0,
+      "latency_events": 45.0
+    },
+    {
+      "run_id": "r4050",
+      "asset_id": "rover-01",
+      "fault_type": "overheating",
+      "variant": "runaway",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 422,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 466.0,
+      "latency_events": 44.0
+    },
+    {
+      "run_id": "r4051",
+      "asset_id": "drone-01",
+      "fault_type": "link_degradation",
+      "variant": "intermittent",
+      "progressive": true,
+      "seen_variant": false,
+      "fast_detectable": false,
+      "fault_start_seq": 559,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 579.0,
+      "latency_events": 20.0
+    },
+    {
+      "run_id": "r4052",
+      "asset_id": "drone-01",
+      "fault_type": "motion_anomaly",
+      "variant": "speed_mismatch",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 754,
+      "fault_end_seq": 780,
+      "detected": true,
+      "open_seq": 757.0,
+      "latency_events": 3.0
+    },
+    {
+      "run_id": "r4055",
+      "asset_id": "quad-01",
+      "fault_type": "motion_anomaly",
+      "variant": "jump",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 363,
+      "fault_end_seq": 549,
+      "detected": true,
+      "open_seq": 364.0,
+      "latency_events": 1.0
+    },
+    {
+      "run_id": "r4056",
+      "asset_id": "rover-01",
+      "fault_type": "motion_anomaly",
+      "variant": "jump",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 960,
+      "fault_end_seq": 981,
+      "detected": true,
+      "open_seq": 961.0,
+      "latency_events": 1.0
+    },
+    {
+      "run_id": "r4057",
+      "asset_id": "drone-01",
+      "fault_type": "overheating",
+      "variant": "linear",
+      "progressive": true,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 612,
+      "fault_end_seq": 1200,
+      "detected": true,
+      "open_seq": 676.0,
+      "latency_events": 64.0
+    },
+    {
+      "run_id": "r4059",
+      "asset_id": "quad-01",
+      "fault_type": "sensor_freeze",
+      "variant": "temperature_c",
+      "progressive": false,
+      "seen_variant": true,
+      "fast_detectable": false,
+      "fault_start_seq": 357,
+      "fault_end_seq": 445,
+      "detected": true,
+      "open_seq": 376.0,
+      "latency_events": 19.0
+    }
+  ],
+  "incidents": [
+    {
+      "run_id": "r4000",
+      "asset_id": "quad-01",
+      "start_seq": 799,
+      "open_seq": 800,
+      "open_seqs": [
+        800
+      ],
+      "last_alert_seq": 822,
+      "close_seq": 827,
+      "peak_score": 2.1764483644520376,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4000",
+      "asset_id": "quad-01",
+      "start_seq": 943,
+      "open_seq": 944,
+      "open_seqs": [
+        944
+      ],
+      "last_alert_seq": 1119,
+      "close_seq": 1124,
+      "peak_score": 2.0443044655893785,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4001",
+      "asset_id": "quad-01",
+      "start_seq": 794,
+      "open_seq": 795,
+      "open_seqs": [
+        795
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 1.5,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4003",
+      "asset_id": "quad-01",
+      "start_seq": 896,
+      "open_seq": 897,
+      "open_seqs": [
+        897
+      ],
+      "last_alert_seq": 993,
+      "close_seq": 998,
+      "peak_score": 3.2145294812114478,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4004",
+      "asset_id": "drone-01",
+      "start_seq": 1039,
+      "open_seq": 1040,
+      "open_seqs": [
+        1040
+      ],
+      "last_alert_seq": 1116,
+      "close_seq": 1121,
+      "peak_score": 6.85,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4004",
+      "asset_id": "drone-01",
+      "start_seq": 1169,
+      "open_seq": 1170,
+      "open_seqs": [
+        1170
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 11.0,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4005",
+      "asset_id": "drone-01",
+      "start_seq": 910,
+      "open_seq": 911,
+      "open_seqs": [
+        911
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 1.8,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4005",
+      "asset_id": "quad-01",
+      "start_seq": 1195,
+      "open_seq": 1196,
+      "open_seqs": [
+        1196
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": -0.07019486251022156,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4006",
+      "asset_id": "drone-01",
+      "start_seq": 465,
+      "open_seq": 466,
+      "open_seqs": [
+        466
+      ],
+      "last_alert_seq": 624,
+      "close_seq": 629,
+      "peak_score": 0.04486422668176877,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4006",
+      "asset_id": "drone-01",
+      "start_seq": 740,
+      "open_seq": 741,
+      "open_seqs": [
+        741
+      ],
+      "last_alert_seq": 836,
+      "close_seq": 841,
+      "peak_score": 0.1092811913092848,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4007",
+      "asset_id": "rover-01",
+      "start_seq": 530,
+      "open_seq": 531,
+      "open_seqs": [
+        531
+      ],
+      "last_alert_seq": 567,
+      "close_seq": 572,
+      "peak_score": 4.5,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4008",
+      "asset_id": "quad-01",
+      "start_seq": 691,
+      "open_seq": 692,
+      "open_seqs": [
+        692
+      ],
+      "last_alert_seq": 896,
+      "close_seq": 901,
+      "peak_score": 1.6481463990536684,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4011",
+      "asset_id": "drone-01",
+      "start_seq": 381,
+      "open_seq": 382,
+      "open_seqs": [
+        382,
+        393,
+        474
+      ],
+      "last_alert_seq": 477,
+      "close_seq": 482,
+      "peak_score": 140.8581188713108,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4012",
+      "asset_id": "drone-01",
+      "start_seq": 610,
+      "open_seq": 611,
+      "open_seqs": [
+        611
+      ],
+      "last_alert_seq": 901,
+      "close_seq": 906,
+      "peak_score": 106.62353908508048,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4013",
+      "asset_id": "rover-01",
+      "start_seq": 584,
+      "open_seq": 585,
+      "open_seqs": [
+        585
+      ],
+      "last_alert_seq": 588,
+      "close_seq": 593,
+      "peak_score": 0.032193491800793554,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4014",
+      "asset_id": "quad-01",
+      "start_seq": 772,
+      "open_seq": 773,
+      "open_seqs": [
+        773
+      ],
+      "last_alert_seq": 1036,
+      "close_seq": 1041,
+      "peak_score": 1.0451670254889571,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4015",
+      "asset_id": "rover-01",
+      "start_seq": 609,
+      "open_seq": 610,
+      "open_seqs": [
+        610
+      ],
+      "last_alert_seq": 739,
+      "close_seq": 744,
+      "peak_score": 1.1980158344334435,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4015",
+      "asset_id": "rover-01",
+      "start_seq": 860,
+      "open_seq": 861,
+      "open_seqs": [
+        861
+      ],
+      "last_alert_seq": 873,
+      "close_seq": 878,
+      "peak_score": 1.2608271407761484,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4015",
+      "asset_id": "rover-01",
+      "start_seq": 1147,
+      "open_seq": 1148,
+      "open_seqs": [
+        1148
+      ],
+      "last_alert_seq": 1171,
+      "close_seq": 1176,
+      "peak_score": 1.1887084081522725,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4016",
+      "asset_id": "rover-01",
+      "start_seq": 693,
+      "open_seq": 694,
+      "open_seqs": [
+        694
+      ],
+      "last_alert_seq": 1119,
+      "close_seq": 1124,
+      "peak_score": 1.0,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4017",
+      "asset_id": "drone-01",
+      "start_seq": 1050,
+      "open_seq": 1051,
+      "open_seqs": [
+        1051
+      ],
+      "last_alert_seq": 1061,
+      "close_seq": 1066,
+      "peak_score": -0.024628883250959355,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4017",
+      "asset_id": "quad-01",
+      "start_seq": 769,
+      "open_seq": 770,
+      "open_seqs": [
+        770
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 1.9,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4018",
+      "asset_id": "quad-01",
+      "start_seq": 122,
+      "open_seq": 123,
+      "open_seqs": [
+        123
+      ],
+      "last_alert_seq": 126,
+      "close_seq": 131,
+      "peak_score": -0.0856156677547025,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4018",
+      "asset_id": "rover-01",
+      "start_seq": 668,
+      "open_seq": 669,
+      "open_seqs": [
+        669
+      ],
+      "last_alert_seq": 757,
+      "close_seq": 762,
+      "peak_score": 0.9121764147092591,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4019",
+      "asset_id": "drone-01",
+      "start_seq": 521,
+      "open_seq": 522,
+      "open_seqs": [
+        522
+      ],
+      "last_alert_seq": 837,
+      "close_seq": 842,
+      "peak_score": 0.3567195583494378,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4020",
+      "asset_id": "rover-01",
+      "start_seq": 388,
+      "open_seq": 390,
+      "open_seqs": [
+        390,
+        415
+      ],
+      "last_alert_seq": 432,
+      "close_seq": 437,
+      "peak_score": 0.2934608303076834,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4024",
+      "asset_id": "quad-01",
+      "start_seq": 147,
+      "open_seq": 148,
+      "open_seqs": [
+        148
+      ],
+      "last_alert_seq": 156,
+      "close_seq": 161,
+      "peak_score": -0.07681505660113733,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4024",
+      "asset_id": "quad-01",
+      "start_seq": 311,
+      "open_seq": 312,
+      "open_seqs": [
+        312
+      ],
+      "last_alert_seq": 390,
+      "close_seq": 395,
+      "peak_score": 128.75891352444293,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4025",
+      "asset_id": "drone-01",
+      "start_seq": 636,
+      "open_seq": 637,
+      "open_seqs": [
+        637
+      ],
+      "last_alert_seq": 826,
+      "close_seq": 831,
+      "peak_score": 23.625,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4025",
+      "asset_id": "rover-01",
+      "start_seq": 1004,
+      "open_seq": 1005,
+      "open_seqs": [
+        1005
+      ],
+      "last_alert_seq": 1011,
+      "close_seq": 1016,
+      "peak_score": -0.013809372371132014,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4026",
+      "asset_id": "quad-01",
+      "start_seq": 349,
+      "open_seq": 350,
+      "open_seqs": [
+        350
+      ],
+      "last_alert_seq": 394,
+      "close_seq": 399,
+      "peak_score": 5.625,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4026",
+      "asset_id": "quad-01",
+      "start_seq": 461,
+      "open_seq": 462,
+      "open_seqs": [
+        462,
+        601
+      ],
+      "last_alert_seq": 701,
+      "close_seq": 706,
+      "peak_score": 29.125,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4029",
+      "asset_id": "rover-01",
+      "start_seq": 358,
+      "open_seq": 359,
+      "open_seqs": [
+        359
+      ],
+      "last_alert_seq": 492,
+      "close_seq": 497,
+      "peak_score": 3.5334050975774622,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4029",
+      "asset_id": "rover-01",
+      "start_seq": 613,
+      "open_seq": 614,
+      "open_seqs": [
+        614
+      ],
+      "last_alert_seq": 631,
+      "close_seq": 636,
+      "peak_score": 3.672798805472478,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4029",
+      "asset_id": "rover-01",
+      "start_seq": 752,
+      "open_seq": 753,
+      "open_seqs": [
+        753
+      ],
+      "last_alert_seq": 829,
+      "close_seq": 834,
+      "peak_score": 3.5647652826638647,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4029",
+      "asset_id": "rover-01",
+      "start_seq": 1042,
+      "open_seq": 1043,
+      "open_seqs": [
+        1043
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 0.41194136960821487,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4030",
+      "asset_id": "drone-01",
+      "start_seq": 846,
+      "open_seq": 847,
+      "open_seqs": [
+        847
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 7.647083130777834,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4030",
+      "asset_id": "quad-01",
+      "start_seq": 119,
+      "open_seq": 120,
+      "open_seqs": [
+        120
+      ],
+      "last_alert_seq": 123,
+      "close_seq": 128,
+      "peak_score": -0.06171817487325519,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4032",
+      "asset_id": "rover-01",
+      "start_seq": 611,
+      "open_seq": 612,
+      "open_seqs": [
+        612
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 2.556794113779448,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4034",
+      "asset_id": "rover-01",
+      "start_seq": 678,
+      "open_seq": 679,
+      "open_seqs": [
+        679
+      ],
+      "last_alert_seq": 849,
+      "close_seq": 854,
+      "peak_score": 6.6645947635269005,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4035",
+      "asset_id": "drone-01",
+      "start_seq": 588,
+      "open_seq": 589,
+      "open_seqs": [
+        589
+      ],
+      "last_alert_seq": 592,
+      "close_seq": 597,
+      "peak_score": 0.02208775679703745,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4035",
+      "asset_id": "quad-01",
+      "start_seq": 120,
+      "open_seq": 121,
+      "open_seqs": [
+        121
+      ],
+      "last_alert_seq": 137,
+      "close_seq": 142,
+      "peak_score": -0.03014247923900957,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4035",
+      "asset_id": "rover-01",
+      "start_seq": 951,
+      "open_seq": 952,
+      "open_seqs": [
+        952
+      ],
+      "last_alert_seq": 1043,
+      "close_seq": 1048,
+      "peak_score": 0.098756858114319,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4037",
+      "asset_id": "quad-01",
+      "start_seq": 602,
+      "open_seq": 603,
+      "open_seqs": [
+        603,
+        629
+      ],
+      "last_alert_seq": 632,
+      "close_seq": 637,
+      "peak_score": 83.72931886421617,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4039",
+      "asset_id": "quad-01",
+      "start_seq": 643,
+      "open_seq": 644,
+      "open_seqs": [
+        644
+      ],
+      "last_alert_seq": 715,
+      "close_seq": 720,
+      "peak_score": 6.877010903535517,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4039",
+      "asset_id": "quad-01",
+      "start_seq": 836,
+      "open_seq": 837,
+      "open_seqs": [
+        837
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 0.8015518516224097,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4042",
+      "asset_id": "quad-01",
+      "start_seq": 653,
+      "open_seq": 654,
+      "open_seqs": [
+        654
+      ],
+      "last_alert_seq": 823,
+      "close_seq": 828,
+      "peak_score": 0.12428724782541233,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4043",
+      "asset_id": "drone-01",
+      "start_seq": 688,
+      "open_seq": 689,
+      "open_seqs": [
+        689,
+        704,
+        736,
+        799
+      ],
+      "last_alert_seq": 860,
+      "close_seq": 865,
+      "peak_score": 195.67570116494153,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4044",
+      "asset_id": "drone-01",
+      "start_seq": 335,
+      "open_seq": 336,
+      "open_seqs": [
+        336
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 2.0,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4045",
+      "asset_id": "rover-01",
+      "start_seq": 742,
+      "open_seq": 743,
+      "open_seqs": [
+        743
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 10.60714980205924,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4046",
+      "asset_id": "quad-01",
+      "start_seq": 122,
+      "open_seq": 123,
+      "open_seqs": [
+        123
+      ],
+      "last_alert_seq": 130,
+      "close_seq": 135,
+      "peak_score": -0.07996110841031143,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4046",
+      "asset_id": "rover-01",
+      "start_seq": 729,
+      "open_seq": 731,
+      "open_seqs": [
+        731
+      ],
+      "last_alert_seq": 872,
+      "close_seq": 877,
+      "peak_score": 9.4,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4047",
+      "asset_id": "rover-01",
+      "start_seq": 367,
+      "open_seq": 368,
+      "open_seqs": [
+        368
+      ],
+      "last_alert_seq": 393,
+      "close_seq": 398,
+      "peak_score": 1.6666666666666667,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4048",
+      "asset_id": "quad-01",
+      "start_seq": 1157,
+      "open_seq": 1158,
+      "open_seqs": [
+        1158
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 0.05924230845109135,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4049",
+      "asset_id": "quad-01",
+      "start_seq": 484,
+      "open_seq": 485,
+      "open_seqs": [
+        485
+      ],
+      "last_alert_seq": 639,
+      "close_seq": 644,
+      "peak_score": 3.2430279880550983,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4050",
+      "asset_id": "rover-01",
+      "start_seq": 465,
+      "open_seq": 466,
+      "open_seqs": [
+        466
+      ],
+      "last_alert_seq": 688,
+      "close_seq": 693,
+      "peak_score": 4.670379887490256,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4051",
+      "asset_id": "drone-01",
+      "start_seq": 578,
+      "open_seq": 579,
+      "open_seqs": [
+        579
+      ],
+      "last_alert_seq": 1199,
+      "close_seq": 1199,
+      "peak_score": 2.0,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4051",
+      "asset_id": "quad-01",
+      "start_seq": 1113,
+      "open_seq": 1114,
+      "open_seqs": [
+        1114
+      ],
+      "last_alert_seq": 1152,
+      "close_seq": 1157,
+      "peak_score": 0.047894586815413254,
+      "true_positive": false
+    },
+    {
+      "run_id": "r4052",
+      "asset_id": "drone-01",
+      "start_seq": 756,
+      "open_seq": 757,
+      "open_seqs": [
+        757
+      ],
+      "last_alert_seq": 776,
+      "close_seq": 781,
+      "peak_score": 10.136511890073061,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4055",
+      "asset_id": "quad-01",
+      "start_seq": 363,
+      "open_seq": 364,
+      "open_seqs": [
+        364
+      ],
+      "last_alert_seq": 367,
+      "close_seq": 373,
+      "peak_score": 61.55402486605549,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4055",
+      "asset_id": "quad-01",
+      "start_seq": 549,
+      "open_seq": 550,
+      "open_seqs": [
+        550
+      ],
+      "last_alert_seq": 553,
+      "close_seq": 559,
+      "peak_score": 61.96214736322683,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4056",
+      "asset_id": "rover-01",
+      "start_seq": 960,
+      "open_seq": 961,
+      "open_seqs": [
+        961,
+        982
+      ],
+      "last_alert_seq": 985,
+      "close_seq": 990,
+      "peak_score": 28.991652528611425,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4057",
+      "asset_id": "drone-01",
+      "start_seq": 675,
+      "open_seq": 676,
+      "open_seqs": [
+        676
+      ],
+      "last_alert_seq": 879,
+      "close_seq": 884,
+      "peak_score": 1.0657002695895792,
+      "true_positive": true
+    },
+    {
+      "run_id": "r4059",
+      "asset_id": "quad-01",
+      "start_seq": 375,
+      "open_seq": 376,
+      "open_seqs": [
+        376
+      ],
+      "last_alert_seq": 444,
+      "close_seq": 449,
+      "peak_score": 3.4,
+      "true_positive": true
+    }
+  ]
+}
