@@ -47,6 +47,13 @@ The two questions in PLAN §13 were never answered by the mentor. As in v1, I de
 | (b) Wider ranges and unseen variants in test | kept (the same policy as v1) | seen variants only (29 faults): shipped 0.97, rule 0.90, LOF 0.79; the shipped system still passes recall |
 | (c) "Expected to catch" | the **original plan's** definition (all fault types) decides the criterion; the v2 physics set is reported alongside | physics set: 1 event, meets the bar |
 
+**Mentor's answers (8 Oct 2026, after this section and all results were written).** The table above records what I decided before he answered, and it stays as it is.
+
+- **(b)** Confirmed. The wider ranges and unseen variants were part of the test policy before any results, so the official result stays on the full, harder test set. The seen-variants-only 0.97 stays as extra analysis.
+- **(c)** Confirmed: latency is a **miss**. The original plan put all five fault types in the expected-to-catch set and said narrowing it later would count as a failure, so the result stays 7 of 8. The 1-event result on the physically detectable set stays in the report as **secondary evidence**: it explains why the criterion failed and shows the fast path works where the signal holds enough information. It does not replace the criterion.
+- **Exceeds.** The extras (generalisation test, drift monitor, shadow mode, severity, ablation) cannot turn a core miss into an automatic "exceeds", but they count towards engineering quality and stay in.
+- **(a)** No ruling. Per fault, counted once, stands as decided.
+
 ## 2. Official v2 test result
 
 Frozen thresholds: rule −0.087, robust z 151.9, LOF 2.279, **rule + fast 1.175 (incident opens after 1 alert)**. Model versions `rule-ac784bbf45`, `stats-b688d29f11`, `lof-f9f000d78f`, `hybrid_rule_fast-a0918187ba`. Data version `v1.0.0-ee836a6bb4`. Normal fleet time 972.9 min.
